@@ -1,20 +1,23 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, UploadFile, File, Request
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, UploadFile, File, Request, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from pydantic import BaseModel, Field, validator
-from typing import List, Optional
-from datetime import datetime, timedelta, timezone
-import jwt
-import bcrypt
-import uuid
-from pymongo import MongoClient
-from bson import ObjectId
+from fastapi.responses import StreamingResponse
+from dotenv import load_dotenv
+from motor.motor_asyncio import AsyncIOMotorClient
 import os
+import logging
+from pathlib import Path
+from pydantic import BaseModel, Field, EmailStr, validator
+from typing import List, Optional
+import uuid
+from datetime import datetime, timedelta, timezone
+import bcrypt
+import jwt
+from bson import ObjectId
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment
-from io import BytesIO
-from fastapi.responses import StreamingResponse
+import io
 import time
 import re
 import hashlib
