@@ -59,6 +59,8 @@ class BackendTester:
                 response = requests.get(url, headers=headers, params=data)
             elif method.upper() == "POST":
                 response = requests.post(url, headers=headers, json=data)
+            elif method.upper() == "PUT":
+                response = requests.put(url, headers=headers, json=data)
             elif method.upper() == "DELETE":
                 response = requests.delete(url, headers=headers)
             else:
