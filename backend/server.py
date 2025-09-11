@@ -729,9 +729,7 @@ async def create_post(post: PostCreate, current_user: User = Depends(get_current
     return Post(**post_data)
 
 @api_router.get("/posts", response_model=List[Post])
-async def get_posts(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    current_user = await get_current_user(credentials)
-    
+async def get_posts(current_user: User = Depends(get_current_user)):
     posts = await db.posts.find().sort("created_at", -1).to_list(length=None)
     return [Post(**post) for post in posts]
 
