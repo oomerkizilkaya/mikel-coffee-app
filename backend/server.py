@@ -744,7 +744,8 @@ async def get_posts(current_user: User = Depends(get_current_user)):
 
 @api_router.delete("/posts/{post_id}")
 async def delete_post(post_id: str, current_user: User = Depends(get_current_user)):
-    post = await db.posts.find_one({"id": post_id})
+    # Try both _id and id fields for compatibility
+    post = await db.posts.find_one({"$or": [{"_id": post_id}, {"id": post_id}]})
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
     
@@ -752,7 +753,8 @@ async def delete_post(post_id: str, current_user: User = Depends(get_current_use
     if post["author_id"] != current_user.employee_id and not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Not authorized")
     
-    await db.posts.delete_one({"id": post_id})
+    # Delete using the same identifier
+    await db.posts.delete_one({"$or": [{"_id": post_id}, {"id": post_id}]})
     await db.comments.delete_many({"post_id": post_id})
     await db.likes.delete_many({"post_id": post_id})
     return {"message": "Post deleted"}
