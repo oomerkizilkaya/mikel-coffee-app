@@ -2036,10 +2036,24 @@
                     const posts = await postsResponse.json();
                     const users = await usersResponse.json();
                     
-                    // Create user map for quick lookup
+                    // Get all profiles to add profile images to users
+                    const profilesResponse = await fetch('https://mikelstaff.preview.emergentagent.com/api/profiles', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    }).catch(() => null);
+                    
+                    let profiles = [];
+                    if (profilesResponse && profilesResponse.ok) {
+                        profiles = await profilesResponse.json();
+                    }
+                    
+                    // Create user map with profile images
                     const userMap = {};
                     users.forEach(user => {
-                        userMap[user.employee_id] = user;
+                        const userProfile = profiles.find(p => p.user_id === user.employee_id);
+                        userMap[user.employee_id] = {
+                            ...user,
+                            profile_image_url: userProfile?.profile_image_url || null
+                        };
                     });
                     
                     socialPosts = posts;
