@@ -1711,27 +1711,32 @@
             }
         }
 
-        function renderSocialPosts(posts) {
-            if (posts.length === 0) {
-                document.getElementById('socialPosts').innerHTML = `
+        function renderSocialPosts() {
+            if (socialPosts.length === 0) {
+                return `
                     <div class="empty-state">
                         <div class="empty-icon">💬</div>
                         <div class="empty-text">Henüz gönderi yok</div>
                         <div class="empty-subtext">İlk gönderiyi siz yapın!</div>
                     </div>
                 `;
-                return;
             }
 
-            const postsHtml = posts.map(post => {
+            return socialPosts.map(post => {
                 const timeAgo = getTimeAgo(post.created_at);
+                const author = userMap_global[post.author_id];
+                const authorName = author ? `${author.name} ${author.surname}` : `Sicil: ${post.author_id}`;
+                const authorInitials = author ? 
+                    (author.name?.[0] || '') + (author.surname?.[0] || '') : 
+                    post.author_id.slice(-2);
+                
                 return `
                     <div class="social-post">
                         <div class="post-header">
                             <div class="post-user">
-                                <div class="post-avatar">${post.author_id.slice(-2)}</div>
+                                <div class="post-avatar">${authorInitials}</div>
                                 <div class="post-info">
-                                    <div class="post-username">Sicil: ${post.author_id}</div>
+                                    <div class="post-username">${authorName}</div>
                                     <div class="post-time">${timeAgo}</div>
                                 </div>
                             </div>
@@ -1740,18 +1745,16 @@
                             <div class="post-text">${post.content}</div>
                         </div>
                         <div class="post-actions">
-                            <button class="action-btn like-btn" onclick="togglePostLike('${post.id}')">
+                            <button class="action-btn like-btn" onclick="togglePostLike('${post._id}')">
                                 ❤️ ${post.likes_count || 0}
                             </button>
-                            <button class="action-btn comment-btn" onclick="showComments('${post.id}')">
+                            <button class="action-btn comment-btn" onclick="showComments('${post._id}')">
                                 💬 ${post.comments_count || 0}
                             </button>
                         </div>
                     </div>
                 `;
             }).join('');
-
-            document.getElementById('socialPosts').innerHTML = postsHtml;
         }
 
         async function togglePostLike(postId) {
