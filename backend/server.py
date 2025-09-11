@@ -639,8 +639,8 @@ async def create_exam_result(exam_data: ExamResultCreate, current_user: User = D
         if employee["position"] not in ["barista", "supervizer"]:
             raise HTTPException(status_code=400, detail="Only barista and supervizer can take management exam")
     
-    # Calculate if passed (assuming 60% is passing)
-    passed = (exam_data.score / exam_data.max_score) >= 0.6
+    # Calculate if passed (80% is passing score)
+    passed = (exam_data.score / exam_data.max_score) >= 0.8
     
     exam_doc = {
         "employee_id": exam_data.employee_id,
