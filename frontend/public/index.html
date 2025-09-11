@@ -1482,50 +1482,15 @@
         async function loadAnnouncements() {
             try {
                 const token = localStorage.getItem('auth_token');
-                const [announcementsResponse, usersResponse, profilesResponse] = await Promise.all([
+                const [announcementsResponse, usersLoaded] = await Promise.all([
                     fetch('https://mikelstaff.preview.emergentagent.com/api/announcements', {
                         headers: { 'Authorization': `Bearer ${token}` }
                     }),
-                    fetch('https://mikelstaff.preview.emergentagent.com/api/users', {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    }),
-                    fetch('https://mikelstaff.preview.emergentagent.com/api/profiles', {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    }).catch(() => null)
+                    loadUsersWithProfiles()
                 ]);
                 
                 if (announcementsResponse.ok) {
                     announcements = await announcementsResponse.json();
-                    
-                    // Load users and profiles for complete data
-                    if (usersResponse.ok) {
-                        const users = await usersResponse.json();
-                        let profiles = [];
-                        if (profilesResponse && profilesResponse.ok) {
-                            profiles = await profilesResponse.json();
-                        }
-                        
-                        // Update user map with profile images
-                        const newUserMap = {};
-                        users.forEach(user => {
-                            const userProfile = profiles.find(p => p.user_id === user.employee_id);
-                            newUserMap[user.employee_id] = {
-                                ...user,
-                                profile_image_url: userProfile?.profile_image_url || null
-                            };
-                        });
-                        userMap_global = newUserMap;
-                    }
-                }
-                
-                if (usersResponse.ok) {
-                    const users = await usersResponse.json();
-                    // Create user map for quick lookup
-                    const userMap = {};
-                    users.forEach(user => {
-                        userMap[user.employee_id] = user;
-                    });
-                    userMap_global = userMap;
                 }
             } catch (error) {
                 console.error('Error loading announcements:', error);
