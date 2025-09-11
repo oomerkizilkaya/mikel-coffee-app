@@ -749,9 +749,7 @@ async def delete_post(post_id: str, current_user: User = Depends(get_current_use
     return {"message": "Post deleted"}
 
 @api_router.post("/posts/{post_id}/comments", response_model=Comment)
-async def create_comment(post_id: str, comment: CommentCreate, credentials: HTTPAuthorizationCredentials = Depends(security)):
-    current_user = await get_current_user(credentials)
-    
+async def create_comment(post_id: str, comment: CommentCreate, current_user: User = Depends(get_current_user)):
     # Check if post exists
     post = await db.posts.find_one({"id": post_id})
     if not post:
@@ -760,7 +758,7 @@ async def create_comment(post_id: str, comment: CommentCreate, credentials: HTTP
     comment_data = {
         "id": str(uuid.uuid4()),
         "post_id": post_id,
-        "author_id": current_user["employee_id"],
+        "author_id": current_user.employee_id,
         "content": comment.content,
         "created_at": datetime.utcnow()
     }
