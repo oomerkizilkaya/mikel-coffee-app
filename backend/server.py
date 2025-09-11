@@ -995,9 +995,18 @@ async def delete_post(post_id: str, current_user: User = Depends(get_current_use
     return {"message": "Post deleted"}
 
 @api_router.post("/posts/{post_id}/comments", response_model=Comment)
-async def create_comment(post_id: str, comment: CommentCreate, current_user: User = Depends(get_current_user)):
+async def create_comment(post_id: str, comment: CommentCreate, request: Request, current_user: User = Depends(get_current_user)):
+    # Input validation and sanitization
+    content = input_validator.sanitize_input(comment.content.strip())
+    
+    if not content:
+        raise HTTPException(status_code=400, detail="Comment content is required")
+    
+    if not input_validator.validate_content_size(content):
+        raise HTTPException(status_code=413, detail="Comment too large")
+    
     # Check if post exists
-    post = await db.posts.find_one({"id": post_id})
+    post = await db.posts.find_one({"$or": [{"id": post_id}, {"_id": post_id}]})
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
     
@@ -1005,13 +1014,17 @@ async def create_comment(post_id: str, comment: CommentCreate, current_user: Use
         "id": str(uuid.uuid4()),
         "post_id": post_id,
         "author_id": current_user.employee_id,
-        "content": comment.content,
+        "content": content,
         "created_at": datetime.utcnow()
     }
     
     await db.comments.insert_one(comment_data)
     # Update comment count
-    await db.posts.update_one({"id": post_id}, {"$inc": {"comments_count": 1}})
+    await db.posts.update_one({"$or": [{"id": post_id}, {"_id": post_id}]}, {"$inc": {"comments_count": 1}})
+    
+    # Security logging
+    print(f"🔐 SECURITY LOG - Comment created by: {current_user.email} on post: {post_id} from IP: {request.client.host}")
+    
     return Comment(**comment_data)
 
 @api_router.get("/posts/{post_id}/comments", response_model=List[Comment])
