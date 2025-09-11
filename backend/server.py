@@ -148,6 +148,72 @@ class AnnouncementCreate(BaseModel):
 
 class Token(BaseModel):
     access_token: str
+
+# Social Media Models
+class Post(BaseModel):
+    id: Optional[str] = Field(alias="_id")
+    author_id: str
+    content: str
+    image_url: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    likes_count: int = 0
+    comments_count: int = 0
+    
+    class Config:
+        allow_population_by_field_name = True
+        json_encoders = {
+            ObjectId: str
+        }
+
+class PostCreate(BaseModel):
+    content: str
+    image_url: Optional[str] = None
+
+class Comment(BaseModel):
+    id: Optional[str] = Field(alias="_id")
+    post_id: str
+    author_id: str
+    content: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    
+    class Config:
+        allow_population_by_field_name = True
+        json_encoders = {
+            ObjectId: str
+        }
+
+class CommentCreate(BaseModel):
+    content: str
+
+class Like(BaseModel):
+    id: Optional[str] = Field(alias="_id")
+    post_id: Optional[str] = None
+    announcement_id: Optional[str] = None
+    user_id: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    
+    class Config:
+        allow_population_by_field_name = True
+        json_encoders = {
+            ObjectId: str
+        }
+
+class Profile(BaseModel):
+    id: Optional[str] = Field(alias="_id")
+    user_id: str
+    profile_image_url: Optional[str] = None
+    bio: Optional[str] = None
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    
+    class Config:
+        allow_population_by_field_name = True
+        json_encoders = {
+            ObjectId: str
+        }
+
+class ProfileUpdate(BaseModel):
+    profile_image_url: Optional[str] = None
+    bio: Optional[str] = None
     token_type: str
     user: User
 
