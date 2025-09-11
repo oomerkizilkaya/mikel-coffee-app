@@ -260,7 +260,7 @@ export default function Index() {
         style={styles.container}
       >
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Kahve Şirketi</Text>
+          <Text style={styles.headerTitle}>Mikel Coffee</Text>
           <Text style={styles.headerSubtitle}>Çalışan Sistemi</Text>
         </View>
 
