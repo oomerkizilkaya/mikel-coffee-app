@@ -800,26 +800,28 @@ async def toggle_post_like(post_id: str, current_user: User = Depends(get_curren
         return {"liked": True}
 
 @api_router.post("/announcements/{announcement_id}/like")
-async def toggle_announcement_like(announcement_id: str, credentials: HTTPAuthorizationCredentials = Depends(security)):
-    current_user = await get_current_user(credentials)
+async def toggle_announcement_like(announcement_id: str, current_user: User = Depends(get_current_user)):
+    # Check if announcement exists - use ObjectId for MongoDB query
+    try:
+        announcement = await db.announcements.find_one({"_id": ObjectId(announcement_id)})
+    except:
+        announcement = None
     
-    # Check if announcement exists
-    announcement = await db.announcements.find_one({"id": announcement_id})
     if not announcement:
         raise HTTPException(status_code=404, detail="Announcement not found")
     
-    existing_like = await db.likes.find_one({"announcement_id": announcement_id, "user_id": current_user["employee_id"]})
+    existing_like = await db.likes.find_one({"announcement_id": announcement_id, "user_id": current_user.employee_id})
     
     if existing_like:
         # Unlike
-        await db.likes.delete_one({"announcement_id": announcement_id, "user_id": current_user["employee_id"]})
+        await db.likes.delete_one({"announcement_id": announcement_id, "user_id": current_user.employee_id})
         return {"liked": False}
     else:
         # Like
         like_data = {
             "id": str(uuid.uuid4()),
             "announcement_id": announcement_id,
-            "user_id": current_user["employee_id"],
+            "user_id": current_user.employee_id,
             "created_at": datetime.utcnow()
         }
         await db.likes.insert_one(like_data)
