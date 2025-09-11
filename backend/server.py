@@ -716,7 +716,7 @@ async def get_statistics(current_user: User = Depends(get_current_user)):
 @api_router.post("/posts", response_model=Post)
 async def create_post(post: PostCreate, current_user: User = Depends(get_current_user)):
     post_data = {
-        "id": str(uuid.uuid4()),
+        "_id": str(uuid.uuid4()),
         "author_id": current_user.employee_id,
         "content": post.content,
         "image_url": post.image_url,
