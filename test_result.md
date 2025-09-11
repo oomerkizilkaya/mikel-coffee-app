@@ -246,10 +246,8 @@
 
 ## test_plan:
   current_focus:
-    - "Mobile-first login/register UI"
-    - "Dashboard with role-based menu"
-  stuck_tasks:
-    - "Mobile-first login/register UI"
+    - "Position selection picker"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
