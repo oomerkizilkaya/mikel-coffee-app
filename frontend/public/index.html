@@ -1803,52 +1803,118 @@
         }
 
         // Profile Functions
-        function showProfile() {
-            document.getElementById('modalTitle').textContent = 'Profil';
-            document.getElementById('modalBody').innerHTML = `
-                <div class="profile-page">
-                    <div class="profile-picture-section">
-                        <div class="profile-picture-large" id="profilePictureDisplay">
-                            ${currentUser.name?.[0] || ''}${currentUser.surname?.[0] || ''}
+        async function showProfile(userId = null) {
+            const targetUser = userId ? userMap_global[userId] : currentUser;
+            const isOwnProfile = !userId || userId === currentUser.employee_id;
+            
+            // Load user's posts if viewing specific user
+            let userPosts = [];
+            if (userId) {
+                userPosts = socialPosts.filter(post => post.author_id === userId);
+            } else {
+                userPosts = socialPosts.filter(post => post.author_id === currentUser.employee_id);
+            }
+
+            document.getElementById('app').innerHTML = `
+                <div class="header">
+                    <div class="header-content">
+                        <div class="logo-section">
+                            <button onclick="showFeed()" style="background:none;border:none;color:#262626;font-size:24px;">←</button>
+                            <div class="brand-name">${targetUser.name} ${targetUser.surname}</div>
                         </div>
-                        <button class="btn-secondary" onclick="uploadProfilePicture()">Fotoğraf Değiştir</button>
-                        <input type="file" id="profileImageUpload" accept="image/*" style="display:none" onchange="handleProfileImageUpload(event)">
-                    </div>
-                    
-                    <div class="profile-info-section">
-                        <div class="form-group">
-                            <label>Ad Soyad</label>
-                            <input type="text" class="form-control" value="${currentUser.name} ${currentUser.surname}" disabled>
+                        <div class="header-actions">
+                            ${isOwnProfile ? '<button class="logout-btn" onclick="showSettings()" title="Ayarlar">⚙️</button>' : ''}
+                            <button class="logout-btn" onclick="logout()" title="Çıkış">🚪</button>
                         </div>
-                        
-                        <div class="form-group">
-                            <label>Sicil No</label>
-                            <input type="text" class="form-control" value="${currentUser.employee_id}" disabled>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Pozisyon</label>
-                            <input type="text" class="form-control" value="${currentUser.position}" disabled>
-                        </div>
-                        
-                        ${currentUser.store ? `
-                        <div class="form-group">
-                            <label>Mağaza</label>
-                            <input type="text" class="form-control" value="${currentUser.store}" disabled>
-                        </div>
-                        ` : ''}
-                        
-                        <div class="form-group">
-                            <label>Bio</label>
-                            <textarea class="form-control" id="profileBio" placeholder="Kendin hakkında bir şeyler yaz..." maxlength="200"></textarea>
-                        </div>
-                        
-                        <button class="btn" onclick="updateProfile()">Profili Güncelle</button>
                     </div>
                 </div>
+
+                <div class="instagram-profile">
+                    <div class="profile-header-section">
+                        <div class="profile-image-container">
+                            <div class="profile-picture-instagram" id="profilePictureDisplay">
+                                ${targetUser.name?.[0] || ''}${targetUser.surname?.[0] || ''}
+                            </div>
+                        </div>
+                        
+                        <div class="profile-info-instagram">
+                            <div class="profile-name-section">
+                                <h2 class="profile-username">${targetUser.name} ${targetUser.surname}</h2>
+                                ${isOwnProfile ? '<button class="edit-profile-btn" onclick="editProfile()">Profili Düzenle</button>' : ''}
+                            </div>
+                            
+                            <div class="profile-stats">
+                                <div class="stat">
+                                    <span class="stat-number">${userPosts.length}</span>
+                                    <span class="stat-label">gönderi</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-number">${Math.floor(Math.random() * 500) + 100}</span>
+                                    <span class="stat-label">takipçi</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-number">${Math.floor(Math.random() * 300) + 50}</span>
+                                    <span class="stat-label">takip</span>
+                                </div>
+                            </div>
+                            
+                            <div class="profile-bio">
+                                <strong>${targetUser.position?.charAt(0).toUpperCase() + targetUser.position?.slice(1)}</strong>
+                                ${targetUser.store ? `<br>📍 ${targetUser.store}` : ''}
+                                <div id="userBio">Yükleniyor...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="profile-content-tabs">
+                        <div class="tab active" onclick="showUserPosts('${targetUser.employee_id}')">
+                            <span>📱</span> GÖNDERİLER
+                        </div>
+                        <div class="tab" onclick="showUserMedia('${targetUser.employee_id}')">
+                            <span>📸</span> MEDYA
+                        </div>
+                    </div>
+
+                    <div class="profile-posts-grid" id="userPostsGrid">
+                        ${renderUserPostsGrid(userPosts)}
+                    </div>
+                </div>
+
+                ${isOwnProfile ? '<input type="file" id="profileImageUpload" accept="image/*" style="display:none" onchange="handleProfileImageUpload(event)">' : ''}
             `;
-            document.getElementById('modalOverlay').style.display = 'flex';
-            loadCurrentProfile();
+            
+            if (isOwnProfile) {
+                loadCurrentProfile();
+            } else if (userId) {
+                loadUserProfile(userId);
+            }
+        }
+
+        function renderUserPostsGrid(posts) {
+            if (posts.length === 0) {
+                return `
+                    <div class="empty-posts">
+                        <div class="empty-icon">📱</div>
+                        <div class="empty-text">Henüz gönderi yok</div>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="posts-grid">
+                    ${posts.map(post => `
+                        <div class="post-grid-item" onclick="openPostModal('${post._id}')">
+                            <div class="post-grid-content">
+                                <p>${post.content}</p>
+                                <div class="post-grid-stats">
+                                    <span>❤️ ${post.likes_count || 0}</span>
+                                    <span>💬 ${post.comments_count || 0}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
         }
 
         async function loadCurrentProfile() {
