@@ -11,11 +11,12 @@ import {
   KeyboardAvoidingView,
   Platform,
   StatusBar,
-  Modal,
+  Image,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const EXPO_PUBLIC_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+const MIKEL_LOGO_URL = "https://customer-assets.emergentagent.com/job_0f64345d-2f6b-41c8-af15-208e01ade896/artifacts/fwptedkg_M%C4%B0KEL%20LOGOSU.png";
 
 interface User {
   id: string;
@@ -60,11 +61,11 @@ export default function Index() {
   const [showPositionPicker, setShowPositionPicker] = useState(false);
 
   // Announcement states
-  const [showAnnouncementModal, setShowAnnouncementModal] = useState(false);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [announcementTitle, setAnnouncementTitle] = useState('');
   const [announcementContent, setAnnouncementContent] = useState('');
   const [isUrgent, setIsUrgent] = useState(false);
+  const [showAnnouncementForm, setShowAnnouncementForm] = useState(false);
 
   useEffect(() => {
     checkAuthToken();
@@ -119,7 +120,6 @@ export default function Index() {
   const handleAuth = async () => {
     if (loading) return;
 
-    // Validation
     if (!email.trim() || !password.trim()) {
       Alert.alert('Hata', 'E-posta ve şifre alanları zorunludur');
       return;
@@ -167,7 +167,6 @@ export default function Index() {
             : `Kayıt başarılı! Sicil numaranız: ${data.user.employee_id}`
         );
         
-        // Clear form
         setEmail('');
         setPassword('');
         setName('');
@@ -220,7 +219,7 @@ export default function Index() {
         setAnnouncementTitle('');
         setAnnouncementContent('');
         setIsUrgent(false);
-        setShowAnnouncementModal(false);
+        setShowAnnouncementForm(false);
         loadAnnouncements();
       } else {
         const data = await response.json();
@@ -262,64 +261,65 @@ export default function Index() {
     </View>
   );
 
-  const AnnouncementModal = () => (
-    <Modal
-      visible={showAnnouncementModal}
-      animationType="slide"
-      presentationStyle="pageSheet"
-    >
-      <SafeAreaView style={styles.modalContainer}>
-        <View style={styles.modalHeader}>
-          <TouchableOpacity onPress={() => setShowAnnouncementModal(false)}>
-            <Text style={styles.cancelButton}>İptal</Text>
-          </TouchableOpacity>
-          <Text style={styles.modalTitle}>Yeni Duyuru</Text>
-          <TouchableOpacity onPress={createAnnouncement}>
-            <Text style={styles.saveButton}>Paylaş</Text>
-          </TouchableOpacity>
+  const AnnouncementForm = () => (
+    <View style={styles.announcementForm}>
+      <View style={styles.formHeader}>
+        <Text style={styles.formTitle}>📢 Yeni Duyuru Oluştur</Text>
+        <TouchableOpacity 
+          onPress={() => setShowAnnouncementForm(false)}
+          style={styles.closeButton}
+        >
+          <Text style={styles.closeButtonText}>✕</Text>
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView style={styles.formContent}>
+        <View style={styles.inputGroup}>
+          <Text style={styles.inputLabel}>Başlık *</Text>
+          <TextInput
+            style={styles.formInput}
+            placeholder="Duyuru başlığını girin"
+            value={announcementTitle}
+            onChangeText={setAnnouncementTitle}
+            maxLength={100}
+          />
         </View>
 
-        <ScrollView style={styles.modalContent}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Başlık *</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Duyuru başlığını girin"
-              value={announcementTitle}
-              onChangeText={setAnnouncementTitle}
-              maxLength={100}
-            />
-          </View>
+        <View style={styles.inputGroup}>
+          <Text style={styles.inputLabel}>İçerik *</Text>
+          <TextInput
+            style={[styles.formInput, styles.textArea]}
+            placeholder="Duyuru içeriğini girin..."
+            value={announcementContent}
+            onChangeText={setAnnouncementContent}
+            multiline
+            numberOfLines={6}
+            textAlignVertical="top"
+            maxLength={500}
+          />
+          <Text style={styles.charCount}>
+            {announcementContent.length}/500
+          </Text>
+        </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>İçerik *</Text>
-            <TextInput
-              style={[styles.modalInput, styles.textArea]}
-              placeholder="Duyuru içeriğini girin..."
-              value={announcementContent}
-              onChangeText={setAnnouncementContent}
-              multiline
-              numberOfLines={6}
-              textAlignVertical="top"
-              maxLength={500}
-            />
-            <Text style={styles.charCount}>
-              {announcementContent.length}/500
-            </Text>
+        <TouchableOpacity
+          style={styles.urgentToggle}
+          onPress={() => setIsUrgent(!isUrgent)}
+        >
+          <View style={[styles.checkbox, isUrgent && styles.checkboxChecked]}>
+            {isUrgent && <Text style={styles.checkmark}>✓</Text>}
           </View>
+          <Text style={styles.urgentLabel}>🔴 Acil Duyuru</Text>
+        </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.urgentToggle}
-            onPress={() => setIsUrgent(!isUrgent)}
-          >
-            <View style={[styles.checkbox, isUrgent && styles.checkboxChecked]}>
-              {isUrgent && <Text style={styles.checkmark}>✓</Text>}
-            </View>
-            <Text style={styles.urgentLabel}>🔴 Acil Duyuru</Text>
-          </TouchableOpacity>
-        </ScrollView>
-      </SafeAreaView>
-    </Modal>
+        <TouchableOpacity 
+          style={styles.createButton}
+          onPress={createAnnouncement}
+        >
+          <Text style={styles.createButtonText}>📢 Duyuru Yayınla</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </View>
   );
 
   const AnnouncementsView = () => (
@@ -329,9 +329,9 @@ export default function Index() {
         {canCreateAnnouncement() && (
           <TouchableOpacity
             style={styles.addButton}
-            onPress={() => setShowAnnouncementModal(true)}
+            onPress={() => setShowAnnouncementForm(true)}
           >
-            <Text style={styles.addButtonText}>+ Yeni Duyuru</Text>
+            <Text style={styles.addButtonText}>+ Yeni</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -371,6 +371,8 @@ export default function Index() {
           </View>
         ))
       )}
+
+      {showAnnouncementForm && <AnnouncementForm />}
     </ScrollView>
   );
 
@@ -379,7 +381,14 @@ export default function Index() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#8B4513" />
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Mikel Coffee</Text>
+        <View style={styles.headerLeft}>
+          <Image 
+            source={{ uri: MIKEL_LOGO_URL }}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <Text style={styles.headerTitle}>Mikel Coffee</Text>
+        </View>
         <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
           <Text style={styles.logoutButtonText}>Çıkış</Text>
         </TouchableOpacity>
@@ -432,7 +441,10 @@ export default function Index() {
             {canCreateAnnouncement() && (
               <TouchableOpacity 
                 style={[styles.menuItem, styles.trainerMenuItem]}
-                onPress={() => setShowAnnouncementModal(true)}
+                onPress={() => {
+                  setCurrentView('announcements');
+                  setTimeout(() => setShowAnnouncementForm(true), 300);
+                }}
               >
                 <Text style={styles.menuItemTitle}>📝 Duyuru Paylaş</Text>
                 <Text style={styles.menuItemSubtitle}>Yeni duyuru oluştur</Text>
@@ -457,12 +469,14 @@ export default function Index() {
       ) : currentView === 'announcements' ? (
         <>
           <View style={styles.backButton}>
-            <TouchableOpacity onPress={() => setCurrentView('dashboard')}>
+            <TouchableOpacity onPress={() => {
+              setCurrentView('dashboard');
+              setShowAnnouncementForm(false);
+            }}>
               <Text style={styles.backButtonText}>← Ana Sayfa</Text>
             </TouchableOpacity>
           </View>
           <AnnouncementsView />
-          <AnnouncementModal />
         </>
       ) : null}
     </SafeAreaView>
@@ -480,7 +494,14 @@ export default function Index() {
         style={styles.container}
       >
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Mikel Coffee</Text>
+          <View style={styles.headerLeft}>
+            <Image 
+              source={{ uri: MIKEL_LOGO_URL }}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+            <Text style={styles.headerTitle}>Mikel Coffee</Text>
+          </View>
           <Text style={styles.headerSubtitle}>Çalışan Sistemi</Text>
         </View>
 
