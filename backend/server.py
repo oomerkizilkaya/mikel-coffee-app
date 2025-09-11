@@ -481,7 +481,8 @@ async def create_announcement(announcement_data: AnnouncementCreate, current_use
         "is_urgent": announcement_data.is_urgent,
         "created_by": current_user.employee_id,
         "created_at": datetime.utcnow(),
-        "likes_count": 0
+        "likes_count": 0,
+        "image_url": announcement_data.image_url
     }
     
     result = await db.announcements.insert_one(announcement_doc)
