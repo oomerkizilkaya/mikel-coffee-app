@@ -1516,23 +1516,31 @@
             
             try {
                 const token = localStorage.getItem('auth_token');
+                const announcementData = {
+                    title,
+                    content,
+                    is_urgent: isUrgent
+                };
+
+                // Add media if selected
+                if (selectedAnnouncementMedia) {
+                    announcementData.image_url = selectedAnnouncementMedia;
+                }
+
                 const response = await fetch('https://mikelstaff.preview.emergentagent.com/api/announcements', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify({
-                        title,
-                        content,
-                        is_urgent: isUrgent
-                    })
+                    body: JSON.stringify(announcementData)
                 });
                 
                 if (response.ok) {
+                    clearAnnouncementMedia();
                     closeModal();
                     await loadFeed();
-                    showToast('Gönderi paylaşıldı! ✨');
+                    showToast('Duyuru paylaşıldı! ✨');
                 } else {
                     const error = await response.json();
                     showMessage('Hata: ' + (error.detail || 'Paylaşım başarısız'), 'error');
