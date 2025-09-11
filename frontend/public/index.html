@@ -2702,6 +2702,46 @@
             }
         }
 
+        // Announcement Media Functions
+        let selectedAnnouncementMedia = null;
+
+        function handleAnnouncementMediaUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64Data = e.target.result;
+                selectedAnnouncementMedia = base64Data;
+                
+                const preview = document.getElementById('announcementMediaPreview');
+                preview.style.display = 'block';
+                
+                if (file.type.startsWith('image/')) {
+                    preview.innerHTML = `
+                        <div class="media-preview-item">
+                            <img src="${base64Data}" alt="Önizleme" style="max-width:200px;max-height:150px;border-radius:8px;">
+                            <span class="media-type">📷 Fotoğraf</span>
+                        </div>
+                    `;
+                } else if (file.type.startsWith('video/')) {
+                    preview.innerHTML = `
+                        <div class="media-preview-item">
+                            <video src="${base64Data}" controls style="max-width:200px;max-height:150px;border-radius:8px;"></video>
+                            <span class="media-type">🎥 Video</span>
+                        </div>
+                    `;
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function clearAnnouncementMedia() {
+            selectedAnnouncementMedia = null;
+            document.getElementById('announcementMediaPreview').style.display = 'none';
+            document.getElementById('announcementMediaUpload').value = '';
+        }
+
         function logout() {
             localStorage.removeItem('auth_token');
             localStorage.removeItem('user');
