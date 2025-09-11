@@ -149,6 +149,8 @@ class AnnouncementCreate(BaseModel):
 
 class Token(BaseModel):
     access_token: str
+    token_type: str = "bearer"
+    user: User
 
 # Social Media Models
 class Post(BaseModel):
