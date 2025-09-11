@@ -500,16 +500,18 @@ async def get_announcements(current_user: User = Depends(get_current_user)):
 
 @api_router.delete("/announcements/{announcement_id}")
 async def delete_announcement(announcement_id: str, current_user: User = Depends(get_current_user)):
-    # Only the creator or admin can delete
-    announcement = await db.announcements.find_one({"_id": ObjectId(announcement_id)})
+    # Only admin, trainer, or eğitim departmanı can delete
+    if not (current_user.is_admin or current_user.position == 'trainer' or current_user.special_role == 'eğitim departmanı'):
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    # Try both _id and id fields for compatibility
+    announcement = await db.announcements.find_one({"$or": [{"_id": announcement_id}, {"id": announcement_id}]})
     if not announcement:
         raise HTTPException(status_code=404, detail="Announcement not found")
     
-    if announcement["created_by"] != current_user.employee_id and not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Can only delete your own announcements")
-    
-    await db.announcements.delete_one({"_id": ObjectId(announcement_id)})
-    return {"message": "Announcement deleted successfully"}
+    # Delete using the same identifier
+    await db.announcements.delete_one({"$or": [{"_id": announcement_id}, {"id": announcement_id}]})
+    return {"message": "Announcement deleted"}
 
 # Admin Routes for User Management
 @api_router.put("/admin/users/{user_id}/special-role")
