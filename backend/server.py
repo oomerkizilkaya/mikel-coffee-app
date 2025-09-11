@@ -668,27 +668,38 @@ async def get_exam_results(employee_id: Optional[str] = None, current_user: User
 
 # Announcements Routes
 @api_router.post("/announcements", response_model=Announcement)
-async def create_announcement(announcement_data: AnnouncementCreate, current_user: User = Depends(get_current_user)):
-    # Only trainers and education department can create announcements
-    if (current_user.position != "trainer" and 
-        current_user.special_role != "eğitim departmanı" and 
-        not current_user.is_admin):
-        raise HTTPException(status_code=403, detail="Only trainers and education department can create announcements")
+async def create_announcement(announcement_data: AnnouncementCreate, request: Request, current_user: User = Depends(get_current_user)):
+    # Only admin, trainer, or eğitim departmanı can create announcements
+    if not (current_user.is_admin or current_user.position == 'trainer' or current_user.special_role == 'eğitim departmanı'):
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    # Input validation and sanitization
+    title = input_validator.sanitize_input(announcement_data.title.strip())
+    content = input_validator.sanitize_input(announcement_data.content.strip())
+    
+    if not title or not content:
+        raise HTTPException(status_code=400, detail="Title and content are required")
+    
+    if not input_validator.validate_content_size(title) or not input_validator.validate_content_size(content):
+        raise HTTPException(status_code=413, detail="Content too large")
     
     announcement_id = str(uuid.uuid4())
     announcement_doc = {
         "id": announcement_id,
-        "title": announcement_data.title,
-        "content": announcement_data.content,
+        "title": title,
+        "content": content,
         "is_urgent": announcement_data.is_urgent,
         "created_by": current_user.employee_id,
         "created_at": datetime.utcnow(),
         "likes_count": 0,
-        "image_url": announcement_data.image_url
+        "image_url": input_validator.sanitize_input(announcement_data.image_url) if announcement_data.image_url else None
     }
     
     result = await db.announcements.insert_one(announcement_doc)
     announcement_doc["_id"] = str(result.inserted_id)
+    
+    # Security logging
+    print(f"🔐 SECURITY LOG - Announcement created by: {current_user.email} from IP: {request.client.host}")
     
     return Announcement(**announcement_doc)
 
