@@ -1048,9 +1048,14 @@ if __name__ == "__main__":
     
     tester = BackendTester()
     
-    # Check if we should run only the profile photo test
-    if len(sys.argv) > 1 and sys.argv[1] == "--profile-photo-only":
-        summary = tester.run_profile_photo_test_only()
+    # Check command line arguments for specific tests
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "--profile-photo-only":
+            summary = tester.run_profile_photo_test_only()
+        elif sys.argv[1] == "--make-admin-only":
+            summary = tester.run_make_admin_test_only()
+        else:
+            summary = tester.run_all_tests()
     else:
         summary = tester.run_all_tests()
     
