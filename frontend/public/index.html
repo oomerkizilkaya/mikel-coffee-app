@@ -2662,37 +2662,77 @@
             }
         }
 
-        async function updateEditProfile() {
+        async function updateCompleteProfile() {
+            const firstName = document.getElementById('editFirstName').value.trim();
+            const lastName = document.getElementById('editLastName').value.trim();
+            const position = document.getElementById('editPosition').value;
+            const store = document.getElementById('editStore').value.trim();
             const bio = document.getElementById('editProfileBio').value.trim();
             const imageElement = document.getElementById('editProfilePictureDisplay').querySelector('img');
             const profileImageUrl = imageElement ? imageElement.src : null;
             
+            if (!firstName || !lastName || !position) {
+                showToast('Ad, soyad ve pozisyon gereklidir');
+                return;
+            }
+            
             try {
                 const token = localStorage.getItem('auth_token');
-                const updateData = { bio };
-                if (profileImageUrl && profileImageUrl !== '') {
-                    updateData.profile_image_url = profileImageUrl;
-                }
+                
+                // Update user info first
+                const userUpdateData = {
+                    name: firstName,
+                    surname: lastName,
+                    position: position,
+                    store: store || null
+                };
 
-                const response = await fetch('https://mikelstaff.preview.emergentagent.com/api/profile', {
+                const userResponse = await fetch('https://mikelstaff.preview.emergentagent.com/api/users/me', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify(updateData)
+                    body: JSON.stringify(userUpdateData)
                 });
                 
-                if (response.ok) {
-                    showToast('Profil güncellendi! ✨');
+                // Update profile info
+                const profileUpdateData = { bio };
+                if (profileImageUrl && profileImageUrl !== '' && !profileImageUrl.includes('data:image/')) {
+                    profileUpdateData.profile_image_url = profileImageUrl;
+                } else if (imageElement && profileImageUrl && profileImageUrl.includes('data:image/')) {
+                    profileUpdateData.profile_image_url = profileImageUrl;
+                }
+
+                const profileResponse = await fetch('https://mikelstaff.preview.emergentagent.com/api/profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(profileUpdateData)
+                });
+                
+                if (userResponse.ok && profileResponse.ok) {
+                    // Update current user data
+                    currentUser.name = firstName;
+                    currentUser.surname = lastName;
+                    currentUser.position = position;
+                    currentUser.store = store;
+                    localStorage.setItem('user', JSON.stringify(currentUser));
+                    
+                    showToast('Profil tamamen güncellendi! ✨');
                     closeModal();
-                    // Refresh current page
+                    
+                    // Refresh all data
+                    await loadSocialPosts();
                     showProfile();
                 } else {
-                    showToast('Güncelleme hatası');
+                    showToast('Güncelleme hatası - bazı bilgiler kaydedilemedi');
                 }
             } catch (error) {
                 showToast('Bağlantı hatası');
+                console.error('Profile update error:', error);
             }
         }
 
