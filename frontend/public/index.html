@@ -1882,32 +1882,37 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            // Basit bir yaklaşım: Cloudinary veya benzer servis kullanılabilir
-            // Şimdilik placeholder URL kullanacağız
-            const imageUrl = `https://picsum.photos/150/150?random=${Date.now()}`;
-            
-            try {
-                const token = localStorage.getItem('auth_token');
-                const response = await fetch('https://mikelstaff.preview.emergentagent.com/api/profile', {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        profile_image_url: imageUrl
-                    })
-                });
+            // Convert file to base64 for storage
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const base64Image = e.target.result;
                 
-                if (response.ok) {
-                    document.getElementById('profilePictureDisplay').innerHTML = `
-                        <img src="${imageUrl}" alt="Profil" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
-                    `;
-                    showToast('Profil fotoğrafı güncellendi!');
+                try {
+                    const token = localStorage.getItem('auth_token');
+                    const response = await fetch('https://mikelstaff.preview.emergentagent.com/api/profile', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            profile_image_url: base64Image
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        document.getElementById('profilePictureDisplay').innerHTML = `
+                            <img src="${base64Image}" alt="Profil" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+                        `;
+                        showToast('Profil fotoğrafı güncellendi! ✨');
+                    } else {
+                        showToast('Güncelleme hatası');
+                    }
+                } catch (error) {
+                    showToast('Fotoğraf yükleme hatası');
                 }
-            } catch (error) {
-                showToast('Fotoğraf yükleme hatası');
-            }
+            };
+            reader.readAsDataURL(file);
         }
 
         async function updateProfile() {
