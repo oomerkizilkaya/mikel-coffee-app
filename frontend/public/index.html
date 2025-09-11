@@ -2371,6 +2371,38 @@
             }
         }
 
+        async function sharePost(postId) {
+            try {
+                const post = socialPosts.find(p => p._id === postId);
+                if (!post) {
+                    showToast('Gönderi bulunamadı');
+                    return;
+                }
+
+                const author = userMap_global[post.author_id];
+                const authorName = author ? `${author.name} ${author.surname}` : `Sicil: ${post.author_id}`;
+                
+                const shareText = `${authorName} tarafından paylaşılan gönderi:\n\n"${post.content}"\n\n#MikelCoffee`;
+                
+                if (navigator.share) {
+                    // Use native sharing if available
+                    await navigator.share({
+                        title: 'Mikel Coffee - Gönderi Paylaş',
+                        text: shareText,
+                        url: window.location.href
+                    });
+                    showToast('Paylaşıldı! 📤');
+                } else {
+                    // Fallback to clipboard
+                    await navigator.clipboard.writeText(shareText);
+                    showToast('Metin panoya kopyalandı! 📋');
+                }
+            } catch (error) {
+                console.error('Share error:', error);
+                showToast('Paylaşım hatası');
+            }
+        }
+
         // Profile Functions
         async function showProfile(userId = null) {
             const targetUser = userId ? userMap_global[userId] : currentUser;
