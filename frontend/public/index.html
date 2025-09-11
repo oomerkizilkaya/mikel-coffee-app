@@ -481,6 +481,24 @@
                         max-width: 400px;
                         margin: 0 auto;
                         padding: 20px;
+                        position: relative;
+                    }
+                    
+                    .dashboard::before {
+                        content: '';
+                        position: fixed;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        width: 350px;
+                        height: 350px;
+                        background-image: url('https://customer-assets.emergentagent.com/job_0f64345d-2f6b-41c8-af15-208e01ade896/artifacts/fwptedkg_M%C4%B0KEL%20LOGOSU.png');
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                        background-position: center;
+                        opacity: 0.04;
+                        z-index: -1;
+                        pointer-events: none;
                     }
                     
                     .welcome-card {
