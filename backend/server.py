@@ -218,7 +218,7 @@ async def register(user_data: UserRegister):
         "email": user_data.email,
         "password": hashed_password,
         "position": user_data.position,
-        "store": user_data.store,
+        "store": user_data.store if user_data.store else "Belirtilmemiş",
         "special_role": None,  # Default no special role
         "is_admin": is_admin,
         "created_at": datetime.utcnow()
