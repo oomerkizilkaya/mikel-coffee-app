@@ -2243,43 +2243,14 @@
         async function loadSocialPosts() {
             try {
                 const token = localStorage.getItem('auth_token');
-                const [postsResponse, usersResponse] = await Promise.all([
+                const [postsResponse, usersLoaded] = await Promise.all([
                     fetch('https://mikelstaff.preview.emergentagent.com/api/posts', {
                         headers: { 'Authorization': `Bearer ${token}` }
                     }),
-                    fetch('https://mikelstaff.preview.emergentagent.com/api/users', {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    })
+                    loadUsersWithProfiles()
                 ]);
                 
-                if (postsResponse.ok && usersResponse.ok) {
-                    const posts = await postsResponse.json();
-                    const users = await usersResponse.json();
-                    
-                    // Get all profiles to add profile images to users
-                    const profilesResponse = await fetch('https://mikelstaff.preview.emergentagent.com/api/profiles', {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    }).catch(() => null);
-                    
-                    let profiles = [];
-                    if (profilesResponse && profilesResponse.ok) {
-                        profiles = await profilesResponse.json();
-                    }
-                    
-                    // Create user map with profile images
-                    const userMap = {};
-                    users.forEach(user => {
-                        const userProfile = profiles.find(p => p.user_id === user.employee_id);
-                        userMap[user.employee_id] = {
-                            ...user,
-                            profile_image_url: userProfile?.profile_image_url || null
-                        };
-                    });
-                    
-                    socialPosts = posts;
-                    userMap_global = userMap;
-                } else if (postsResponse.ok) {
-                    // Fallback if users endpoint fails
+                if (postsResponse.ok) {
                     socialPosts = await postsResponse.json();
                 }
             } catch (error) {
