@@ -578,6 +578,205 @@ class BackendTester:
         else:
             self.log_test("PUT profile update", False, "Failed to update profile", response["data"])
 
+    def test_make_admin_functionality(self):
+        """Test the Make Admin functionality - PUT /api/admin/users/{employee_id}/admin-status"""
+        print("\n=== Testing Make Admin Functionality ===")
+        
+        # Step 1: Ensure we have admin credentials
+        admin_token = None
+        admin_user = None
+        
+        # Try to login with the test admin credentials
+        login_data = {
+            "email": "admin@mikelcoffee.com",
+            "password": "admin123"
+        }
+        
+        response = self.make_request("POST", "/auth/login", login_data)
+        if response["success"]:
+            admin_token = response["data"]["access_token"]
+            admin_user = response["data"]["user"]
+            self.log_test("STEP 1: Admin login", True, f"Successfully logged in as admin: {admin_user['employee_id']}")
+        else:
+            # Try to create admin user if login fails
+            admin_data = {
+                "name": "Admin",
+                "surname": "User",
+                "email": "admin@mikelcoffee.com",
+                "password": "admin123",
+                "position": "trainer",
+                "store": "merkez"
+            }
+            
+            response = self.make_request("POST", "/auth/register", admin_data)
+            if response["success"]:
+                admin_token = response["data"]["access_token"]
+                admin_user = response["data"]["user"]
+                
+                # Make this user admin using the test endpoint
+                make_admin_response = self.make_request("POST", f"/test/make-admin/{admin_user['email']}")
+                if make_admin_response["success"]:
+                    self.log_test("STEP 1: Create and make admin", True, f"Created and promoted user to admin: {admin_user['employee_id']}")
+                    
+                    # Re-login to get updated token with admin privileges
+                    response = self.make_request("POST", "/auth/login", login_data)
+                    if response["success"]:
+                        admin_token = response["data"]["access_token"]
+                        admin_user = response["data"]["user"]
+                else:
+                    self.log_test("STEP 1: Make user admin", False, "Failed to promote user to admin", make_admin_response["data"])
+                    return
+            else:
+                self.log_test("STEP 1: Admin setup", False, "Failed to create or login admin user", response["data"])
+                return
+        
+        if not admin_token or not admin_user:
+            self.log_test("STEP 1: Admin setup", False, "No admin token or user data available")
+            return
+        
+        # Step 2: Create a regular user to test admin assignment on
+        test_user_data = {
+            "name": "Test",
+            "surname": "Employee",
+            "email": "test.employee@mikelcoffee.com",
+            "password": "testpass123",
+            "position": "barista",
+            "store": "test_store"
+        }
+        
+        response = self.make_request("POST", "/auth/register", test_user_data)
+        test_user = None
+        test_token = None
+        if response["success"]:
+            test_user = response["data"]["user"]
+            test_token = response["data"]["access_token"]
+            self.log_test("STEP 2: Create test user", True, f"Test user created: {test_user['employee_id']}")
+        else:
+            self.log_test("STEP 2: Create test user", False, "Failed to create test user", response["data"])
+            return
+        
+        # Step 3: Test authentication - non-admin cannot access endpoint
+        admin_update_data = {
+            "is_admin": True,
+            "reason": "Testing admin assignment"
+        }
+        
+        response = self.make_request("PUT", f"/admin/users/{test_user['employee_id']}/admin-status", admin_update_data, token=test_token)
+        if not response["success"] and response["status_code"] == 403:
+            self.log_test("STEP 3: Non-admin access denied", True, "Non-admin user correctly denied access to admin assignment endpoint")
+        else:
+            self.log_test("STEP 3: Non-admin access denied", False, "Non-admin user should not access admin assignment endpoint", response["data"])
+        
+        # Step 4: Test self-protection - admin cannot modify their own admin status
+        response = self.make_request("PUT", f"/admin/users/{admin_user['employee_id']}/admin-status", admin_update_data, token=admin_token)
+        if not response["success"] and response["status_code"] == 400:
+            self.log_test("STEP 4: Self-protection", True, "Admin correctly prevented from modifying their own admin status")
+        else:
+            self.log_test("STEP 4: Self-protection", False, "Admin should not be able to modify their own admin status", response["data"])
+        
+        # Step 5: Test with non-existent user
+        response = self.make_request("PUT", "/admin/users/99999/admin-status", admin_update_data, token=admin_token)
+        if not response["success"] and response["status_code"] == 404:
+            self.log_test("STEP 5: Non-existent user validation", True, "Correctly rejected request for non-existent user")
+        else:
+            self.log_test("STEP 5: Non-existent user validation", False, "Should reject request for non-existent user", response["data"])
+        
+        # Step 6: Test successful admin assignment
+        response = self.make_request("PUT", f"/admin/users/{test_user['employee_id']}/admin-status", admin_update_data, token=admin_token)
+        if response["success"]:
+            result = response["data"]
+            updated_user = result.get("user")
+            
+            if updated_user and updated_user.get("is_admin") == True:
+                self.log_test("STEP 6: Successful admin assignment", True, f"Successfully granted admin privileges to user {test_user['employee_id']}")
+                
+                # Verify response structure
+                required_fields = ["message", "user", "action_by"]
+                if all(field in result for field in required_fields):
+                    self.log_test("STEP 6a: Response structure", True, "Response contains all required fields")
+                else:
+                    self.log_test("STEP 6a: Response structure", False, f"Response missing fields. Got: {list(result.keys())}")
+                
+                # Verify security logging information
+                if result.get("action_by") == admin_user["email"]:
+                    self.log_test("STEP 6b: Security logging", True, "Response includes correct admin who performed the action")
+                else:
+                    self.log_test("STEP 6b: Security logging", False, f"Expected action_by: {admin_user['email']}, got: {result.get('action_by')}")
+                
+            else:
+                self.log_test("STEP 6: Successful admin assignment", False, f"User admin status not updated correctly: {updated_user}")
+        else:
+            self.log_test("STEP 6: Successful admin assignment", False, "Failed to grant admin privileges", response["data"])
+        
+        # Step 7: Test admin revocation
+        revoke_admin_data = {
+            "is_admin": False,
+            "reason": "Testing admin revocation"
+        }
+        
+        response = self.make_request("PUT", f"/admin/users/{test_user['employee_id']}/admin-status", revoke_admin_data, token=admin_token)
+        if response["success"]:
+            result = response["data"]
+            updated_user = result.get("user")
+            
+            if updated_user and updated_user.get("is_admin") == False:
+                self.log_test("STEP 7: Admin revocation", True, f"Successfully revoked admin privileges from user {test_user['employee_id']}")
+            else:
+                self.log_test("STEP 7: Admin revocation", False, f"User admin status not revoked correctly: {updated_user}")
+        else:
+            self.log_test("STEP 7: Admin revocation", False, "Failed to revoke admin privileges", response["data"])
+        
+        # Step 8: Test payload validation - missing required fields
+        invalid_payload = {"reason": "Missing is_admin field"}
+        
+        response = self.make_request("PUT", f"/admin/users/{test_user['employee_id']}/admin-status", invalid_payload, token=admin_token)
+        if not response["success"] and response["status_code"] in [400, 422]:
+            self.log_test("STEP 8: Payload validation", True, "Correctly rejected request with missing required fields")
+        else:
+            self.log_test("STEP 8: Payload validation", False, "Should reject request with missing required fields", response["data"])
+        
+        # Step 9: Test with optional reason field
+        admin_with_reason = {
+            "is_admin": True,
+            "reason": "Promoting to admin for testing purposes - comprehensive security test"
+        }
+        
+        response = self.make_request("PUT", f"/admin/users/{test_user['employee_id']}/admin-status", admin_with_reason, token=admin_token)
+        if response["success"]:
+            result = response["data"]
+            if result.get("reason") == admin_with_reason["reason"]:
+                self.log_test("STEP 9: Optional reason field", True, "Reason field correctly processed and returned")
+            else:
+                self.log_test("STEP 9: Optional reason field", False, f"Reason field not handled correctly: {result.get('reason')}")
+        else:
+            self.log_test("STEP 9: Optional reason field", False, "Failed to process request with reason field", response["data"])
+        
+        # Step 10: Verify the newly promoted user can now access admin endpoints
+        # Login as the newly promoted admin
+        new_admin_login = {
+            "email": "test.employee@mikelcoffee.com",
+            "password": "testpass123"
+        }
+        
+        response = self.make_request("POST", "/auth/login", new_admin_login)
+        if response["success"]:
+            new_admin_token = response["data"]["access_token"]
+            new_admin_user = response["data"]["user"]
+            
+            if new_admin_user.get("is_admin"):
+                self.log_test("STEP 10a: New admin login", True, "Newly promoted admin can login with admin privileges")
+                
+                # Test if new admin can access admin endpoints
+                response = self.make_request("GET", "/users", token=new_admin_token)
+                if response["success"]:
+                    self.log_test("STEP 10b: New admin access", True, "Newly promoted admin can access admin-only endpoints")
+                else:
+                    self.log_test("STEP 10b: New admin access", False, "Newly promoted admin cannot access admin endpoints", response["data"])
+            else:
+                self.log_test("STEP 10a: New admin login", False, "User login shows admin status not updated")
+        else:
+            self.log_test("STEP 10a: New admin login", False, "Failed to login as newly promoted admin", response["data"])
+
     def test_profile_photo_visibility_issue(self):
         """Test the specific profile photo visibility issue reported"""
         print("\n=== Testing Profile Photo Visibility Issue ===")
