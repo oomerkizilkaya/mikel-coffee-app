@@ -1668,6 +1668,8 @@
                 if (response.ok) {
                     document.getElementById('socialPostContent').value = '';
                     await loadSocialPosts();
+                    // Re-render the posts container
+                    document.getElementById('postsContainer').innerHTML = renderSocialPosts();
                     showToast('Gönderi paylaşıldı! ✨');
                 } else {
                     showToast('Paylaşım hatası');
