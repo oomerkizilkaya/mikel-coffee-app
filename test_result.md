@@ -493,6 +493,18 @@
         agent: "testing"
         comment: "✅ VERIFIED: Gallery photo upload working. Profile photos display correctly with actual uploaded images, photos persist after page refresh and show in all required locations."
 
+  - task: "Employee Delete Functionality"
+    implemented: true
+    working: "NA"
+    file: "public/index.html"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "NEW FEATURE: Admin can delete employees from 'Çalışanlar' section with delete button (🗑️), confirmation dialog with warning, complete data deletion (profile, posts, exam results, likes, comments). Backend endpoint DELETE /api/admin/users/{employee_id} implemented with proper admin-only permissions and self-deletion prevention."
+
 ## metadata:
   created_by: "main_agent"
   version: "1.0"
