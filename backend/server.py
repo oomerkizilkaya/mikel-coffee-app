@@ -333,6 +333,9 @@ async def create_announcement(announcement_data: AnnouncementCreate, current_use
 @api_router.get("/announcements", response_model=List[Announcement])
 async def get_announcements(current_user: User = Depends(get_current_user)):
     announcements = await db.announcements.find({}).sort("created_at", -1).to_list(1000)
+    # Convert ObjectId to string for each announcement
+    for announcement in announcements:
+        announcement["_id"] = str(announcement["_id"])
     return [Announcement(**announcement) for announcement in announcements]
 
 @api_router.delete("/announcements/{announcement_id}")
