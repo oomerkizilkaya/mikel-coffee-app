@@ -1,22 +1,24 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, status
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, UploadFile, File, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi.responses import StreamingResponse
-from dotenv import load_dotenv
-from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
-import os
-import logging
-from pathlib import Path
-from pydantic import BaseModel, Field, EmailStr
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from pydantic import BaseModel, Field, validator
 from typing import List, Optional
-import uuid
-from datetime import datetime, timedelta
-import bcrypt
+from datetime import datetime, timedelta, timezone
 import jwt
+import bcrypt
+import uuid
+from pymongo import MongoClient
 from bson import ObjectId
+import os
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment
-import io
+from io import BytesIO
+from fastapi.responses import StreamingResponse
+import time
+import re
+import hashlib
+from collections import defaultdict, deque
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
