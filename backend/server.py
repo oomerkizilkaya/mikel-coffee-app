@@ -484,6 +484,98 @@ async def get_stores(current_user: User = Depends(get_current_user)):
             "employee_count": employee_count
         })
     
+    return store_stats
+
+# Excel Export Routes
+@api_router.get("/admin/export/users")
+async def export_users_excel(current_user: User = Depends(get_current_user)):
+    # Only admin and education department can export
+    if (not current_user.is_admin and 
+        current_user.special_role != "eğitim departmanı"):
+        raise HTTPException(status_code=403, detail="Only admin and education department can export data")
+    
+    # Get all users
+    users = await db.users.find({}, {"password": 0}).sort("employee_id", 1).to_list(1000)
+    
+    # Create Excel workbook
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Mikel Coffee Çalışanlar"
+    
+    # Headers
+    headers = [
+        "Sicil No", "Ad", "Soyad", "E-posta", "Pozisyon", 
+        "Mağaza", "Özel Rol", "Admin", "Kayıt Tarihi"
+    ]
+    
+    # Style headers
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill(start_color="8B4513", end_color="8B4513", fill_type="solid")
+    
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=header)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal="center")
+    
+    # Add user data
+    for row, user in enumerate(users, 2):
+        ws.cell(row=row, column=1, value=user.get("employee_id", ""))
+        ws.cell(row=row, column=2, value=user.get("name", ""))
+        ws.cell(row=row, column=3, value=user.get("surname", ""))
+        ws.cell(row=row, column=4, value=user.get("email", ""))
+        ws.cell(row=row, column=5, value=user.get("position", "").title())
+        ws.cell(row=row, column=6, value=user.get("store", "Belirtilmemiş"))
+        ws.cell(row=row, column=7, value=user.get("special_role", "Yok") or "Yok")
+        ws.cell(row=row, column=8, value="Evet" if user.get("is_admin") else "Hayır")
+        
+        # Format date
+        created_at = user.get("created_at")
+        if created_at:
+            if isinstance(created_at, str):
+                try:
+                    date_obj = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+                    formatted_date = date_obj.strftime("%d.%m.%Y %H:%M")
+                except:
+                    formatted_date = created_at
+            else:
+                formatted_date = created_at.strftime("%d.%m.%Y %H:%M")
+        else:
+            formatted_date = "Bilinmiyor"
+        
+        ws.cell(row=row, column=9, value=formatted_date)
+    
+    # Auto-adjust column widths
+    for column in ws.columns:
+        max_length = 0
+        column_letter = column[0].column_letter
+        for cell in column:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        adjusted_width = min(max_length + 2, 50)
+        ws.column_dimensions[column_letter].width = adjusted_width
+    
+    # Save to memory
+    excel_buffer = io.BytesIO()
+    wb.save(excel_buffer)
+    excel_buffer.seek(0)
+    
+    # Generate filename with date
+    filename = f"Mikel_Coffee_Calisanlar_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    
+    # Return as streaming response
+    def iter_excel():
+        yield excel_buffer.read()
+    
+    return StreamingResponse(
+        iter_excel(),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+    
 # Test endpoint to migrate old users and make first user admin
 @api_router.post("/test/migrate-db")
 async def migrate_database():
