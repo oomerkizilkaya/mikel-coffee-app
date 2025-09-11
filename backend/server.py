@@ -731,6 +731,10 @@ async def create_post(post: PostCreate, current_user: User = Depends(get_current
 @api_router.get("/posts", response_model=List[Post])
 async def get_posts(current_user: User = Depends(get_current_user)):
     posts = await db.posts.find().sort("created_at", -1).to_list(length=None)
+    # Convert ObjectId to string for each post
+    for post in posts:
+        if "_id" in post:
+            post["_id"] = str(post["_id"])
     return [Post(**post) for post in posts]
 
 @api_router.delete("/posts/{post_id}")
