@@ -603,6 +603,8 @@
     - "Comprehensive Security Firewall System"
   test_all: false
   test_priority: "high_first"
+  completed_urgent:
+    - "Profile photo visibility in announcements backend verification"
 
 ## agent_communication:
   - agent: "main"
