@@ -979,6 +979,11 @@
                             <div class="post-title">${announcement.title}</div>
                             <div class="post-text">${announcement.content}</div>
                         </div>
+                        <div class="post-actions">
+                            <button class="action-btn like-btn" onclick="toggleAnnouncementLike('${announcement.id}')">
+                                ❤️ ${announcement.likes_count || 0}
+                            </button>
+                        </div>
                     </div>
                 `;
             }).join('');
