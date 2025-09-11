@@ -620,8 +620,20 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
   },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  logo: {
+    width: 40,
+    height: 40,
+    marginRight: 12,
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+  },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#FFFFFF',
   },
@@ -935,35 +947,52 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#999',
   },
-  // Modal styles
-  modalContainer: {
-    flex: 1,
-    backgroundColor: '#F5E6D3',
+  // Form styles
+  announcementForm: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
   },
-  modalHeader: {
+  formHeader: {
     backgroundColor: '#8B4513',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
   },
-  modalTitle: {
+  formTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#FFFFFF',
   },
-  cancelButton: {
-    color: '#FFFFFF',
-    fontSize: 16,
+  closeButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  saveButton: {
+  closeButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
   },
-  modalContent: {
-    flex: 1,
+  formContent: {
+    backgroundColor: '#FFFFFF',
+    width: '100%',
+    maxHeight: 400,
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
     padding: 20,
   },
   inputGroup: {
@@ -975,14 +1004,14 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 8,
   },
-  modalInput: {
+  formInput: {
     borderWidth: 1,
     borderColor: '#DDD',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FAFAFA',
   },
   textArea: {
     minHeight: 120,
@@ -997,7 +1026,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F9F9F9',
     borderRadius: 12,
     marginBottom: 20,
   },
@@ -1024,5 +1053,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     color: '#333',
+  },
+  createButton: {
+    backgroundColor: '#4CAF50',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  createButtonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '600',
   },
 });
