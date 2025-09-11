@@ -2376,6 +2376,16 @@
                 </div>
 
                 ${isOwnProfile ? '<input type="file" id="profileImageUpload" accept="image/*" style="display:none" onchange="handleProfileImageUpload(event)">' : ''}
+                
+                <div id="modalOverlay" class="modal-overlay" style="display: none;" onclick="closeModal()">
+                    <div class="modal-content" onclick="event.stopPropagation()">
+                        <div class="modal-header">
+                            <div class="modal-title" id="modalTitle"></div>
+                            <button onclick="closeModal()" class="close-btn">✕</button>
+                        </div>
+                        <div id="modalBody" class="modal-body"></div>
+                    </div>
+                </div>
             `;
             
             if (isOwnProfile) {
