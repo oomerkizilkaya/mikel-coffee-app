@@ -1170,6 +1170,45 @@
         let isLoginMode = true;
         let selectedPosition = '';
 
+        // Global function to load users with profiles
+        async function loadUsersWithProfiles() {
+            try {
+                const token = localStorage.getItem('auth_token');
+                const [usersResponse, profilesResponse] = await Promise.all([
+                    fetch('https://mikelstaff.preview.emergentagent.com/api/users', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    }),
+                    fetch('https://mikelstaff.preview.emergentagent.com/api/profiles', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    }).catch(() => null)
+                ]);
+                
+                if (usersResponse.ok) {
+                    const users = await usersResponse.json();
+                    let profiles = [];
+                    if (profilesResponse && profilesResponse.ok) {
+                        profiles = await profilesResponse.json();
+                    }
+                    
+                    // Create comprehensive user map with profile images
+                    const newUserMap = {};
+                    users.forEach(user => {
+                        const userProfile = profiles.find(p => p.user_id === user.employee_id);
+                        newUserMap[user.employee_id] = {
+                            ...user,
+                            profile_image_url: userProfile?.profile_image_url || null
+                        };
+                    });
+                    userMap_global = newUserMap;
+                    return true;
+                }
+                return false;
+            } catch (error) {
+                console.error('Error loading users with profiles:', error);
+                return false;
+            }
+        }
+
         // Initialize app
         window.onload = function() {
             checkAuthStatus();
