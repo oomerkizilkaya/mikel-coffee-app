@@ -714,12 +714,10 @@ async def get_statistics(current_user: User = Depends(get_current_user)):
 # Social Media Endpoints
 
 @api_router.post("/posts", response_model=Post)
-async def create_post(post: PostCreate, credentials: HTTPAuthorizationCredentials = Depends(security)):
-    current_user = await get_current_user(credentials)
-    
+async def create_post(post: PostCreate, current_user: User = Depends(get_current_user)):
     post_data = {
         "id": str(uuid.uuid4()),
-        "author_id": current_user["employee_id"],
+        "author_id": current_user.employee_id,
         "content": post.content,
         "image_url": post.image_url,
         "created_at": datetime.utcnow(),
