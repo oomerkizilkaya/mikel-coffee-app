@@ -888,6 +888,38 @@ async def get_all_profiles(current_user: User = Depends(get_current_user)):
             profile["_id"] = str(profile["_id"])
     return [Profile(**profile) for profile in profiles]
 
+class UserUpdate(BaseModel):
+    name: Optional[str] = None
+    surname: Optional[str] = None
+    position: Optional[str] = None
+    store: Optional[str] = None
+
+@api_router.put("/users/me", response_model=User)
+async def update_my_profile(user_update: UserUpdate, current_user: User = Depends(get_current_user)):
+    update_data = {}
+    if user_update.name is not None:
+        update_data["name"] = user_update.name
+    if user_update.surname is not None:
+        update_data["surname"] = user_update.surname
+    if user_update.position is not None:
+        if user_update.position not in ALLOWED_POSITIONS:
+            raise HTTPException(status_code=400, detail="Invalid position")
+        update_data["position"] = user_update.position
+    if user_update.store is not None:
+        update_data["store"] = user_update.store
+
+    if update_data:
+        await db.users.update_one(
+            {"employee_id": current_user.employee_id},
+            {"$set": update_data}
+        )
+    
+    # Get updated user
+    updated_user = await db.users.find_one({"employee_id": current_user.employee_id})
+    if "_id" in updated_user:
+        updated_user["_id"] = str(updated_user["_id"])
+    return User(**updated_user)
+
 # Include the router in the main app
 app.include_router(api_router)
 
