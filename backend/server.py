@@ -709,6 +709,172 @@ async def get_statistics(current_user: User = Depends(get_current_user)):
         "management_exam_eligible": management_eligible
     }
 
+# Social Media Endpoints
+
+@api_router.post("/posts", response_model=Post)
+async def create_post(post: PostCreate, credentials: HTTPAuthorizationCredentials = Depends(security)):
+    current_user = await get_current_user(credentials)
+    
+    post_data = {
+        "id": str(uuid.uuid4()),
+        "author_id": current_user["employee_id"],
+        "content": post.content,
+        "image_url": post.image_url,
+        "created_at": datetime.utcnow(),
+        "likes_count": 0,
+        "comments_count": 0
+    }
+    
+    await db.posts.insert_one(post_data)
+    return Post(**post_data)
+
+@api_router.get("/posts", response_model=List[Post])
+async def get_posts(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    current_user = await get_current_user(credentials)
+    
+    posts = await db.posts.find().sort("created_at", -1).to_list(length=None)
+    return [Post(**post) for post in posts]
+
+@api_router.delete("/posts/{post_id}")
+async def delete_post(post_id: str, credentials: HTTPAuthorizationCredentials = Depends(security)):
+    current_user = await get_current_user(credentials)
+    
+    post = await db.posts.find_one({"id": post_id})
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    
+    # Only author or admin can delete
+    if post["author_id"] != current_user["employee_id"] and not current_user["is_admin"]:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    await db.posts.delete_one({"id": post_id})
+    await db.comments.delete_many({"post_id": post_id})
+    await db.likes.delete_many({"post_id": post_id})
+    return {"message": "Post deleted"}
+
+@api_router.post("/posts/{post_id}/comments", response_model=Comment)
+async def create_comment(post_id: str, comment: CommentCreate, credentials: HTTPAuthorizationCredentials = Depends(security)):
+    current_user = await get_current_user(credentials)
+    
+    # Check if post exists
+    post = await db.posts.find_one({"id": post_id})
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    
+    comment_data = {
+        "id": str(uuid.uuid4()),
+        "post_id": post_id,
+        "author_id": current_user["employee_id"],
+        "content": comment.content,
+        "created_at": datetime.utcnow()
+    }
+    
+    await db.comments.insert_one(comment_data)
+    # Update comment count
+    await db.posts.update_one({"id": post_id}, {"$inc": {"comments_count": 1}})
+    return Comment(**comment_data)
+
+@api_router.get("/posts/{post_id}/comments", response_model=List[Comment])
+async def get_comments(post_id: str, credentials: HTTPAuthorizationCredentials = Depends(security)):
+    current_user = await get_current_user(credentials)
+    
+    comments = await db.comments.find({"post_id": post_id}).sort("created_at", 1).to_list(length=None)
+    return [Comment(**comment) for comment in comments]
+
+@api_router.post("/posts/{post_id}/like")
+async def toggle_post_like(post_id: str, credentials: HTTPAuthorizationCredentials = Depends(security)):
+    current_user = await get_current_user(credentials)
+    
+    # Check if post exists
+    post = await db.posts.find_one({"id": post_id})
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    
+    existing_like = await db.likes.find_one({"post_id": post_id, "user_id": current_user["employee_id"]})
+    
+    if existing_like:
+        # Unlike
+        await db.likes.delete_one({"post_id": post_id, "user_id": current_user["employee_id"]})
+        await db.posts.update_one({"id": post_id}, {"$inc": {"likes_count": -1}})
+        return {"liked": False}
+    else:
+        # Like
+        like_data = {
+            "id": str(uuid.uuid4()),
+            "post_id": post_id,
+            "user_id": current_user["employee_id"],
+            "created_at": datetime.utcnow()
+        }
+        await db.likes.insert_one(like_data)
+        await db.posts.update_one({"id": post_id}, {"$inc": {"likes_count": 1}})
+        return {"liked": True}
+
+@api_router.post("/announcements/{announcement_id}/like")
+async def toggle_announcement_like(announcement_id: str, credentials: HTTPAuthorizationCredentials = Depends(security)):
+    current_user = await get_current_user(credentials)
+    
+    # Check if announcement exists
+    announcement = await db.announcements.find_one({"id": announcement_id})
+    if not announcement:
+        raise HTTPException(status_code=404, detail="Announcement not found")
+    
+    existing_like = await db.likes.find_one({"announcement_id": announcement_id, "user_id": current_user["employee_id"]})
+    
+    if existing_like:
+        # Unlike
+        await db.likes.delete_one({"announcement_id": announcement_id, "user_id": current_user["employee_id"]})
+        return {"liked": False}
+    else:
+        # Like
+        like_data = {
+            "id": str(uuid.uuid4()),
+            "announcement_id": announcement_id,
+            "user_id": current_user["employee_id"],
+            "created_at": datetime.utcnow()
+        }
+        await db.likes.insert_one(like_data)
+        return {"liked": True}
+
+@api_router.get("/profile", response_model=Profile)
+async def get_profile(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    current_user = await get_current_user(credentials)
+    
+    profile = await db.profiles.find_one({"user_id": current_user["employee_id"]})
+    if not profile:
+        # Create default profile
+        profile_data = {
+            "id": str(uuid.uuid4()),
+            "user_id": current_user["employee_id"],
+            "profile_image_url": None,
+            "bio": None,
+            "updated_at": datetime.utcnow()
+        }
+        await db.profiles.insert_one(profile_data)
+        return Profile(**profile_data)
+    
+    return Profile(**profile)
+
+@api_router.put("/profile", response_model=Profile)
+async def update_profile(profile_update: ProfileUpdate, credentials: HTTPAuthorizationCredentials = Depends(security)):
+    current_user = await get_current_user(credentials)
+    
+    update_data = {}
+    if profile_update.profile_image_url is not None:
+        update_data["profile_image_url"] = profile_update.profile_image_url
+    if profile_update.bio is not None:
+        update_data["bio"] = profile_update.bio
+    update_data["updated_at"] = datetime.utcnow()
+    
+    # Upsert profile
+    await db.profiles.update_one(
+        {"user_id": current_user["employee_id"]},
+        {"$set": update_data},
+        upsert=True
+    )
+    
+    profile = await db.profiles.find_one({"user_id": current_user["employee_id"]})
+    return Profile(**profile)
+
 # Include the router in the main app
 app.include_router(api_router)
 
