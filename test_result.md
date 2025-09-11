@@ -376,7 +376,11 @@
 
 ## test_plan:
   current_focus:
-    - "All Instagram-style profile features testing complete"
+    - "Post deletion fix testing"
+    - "Profile edit access fix testing"
+    - "Profile photo display fix testing"
+    - "Names everywhere fix testing"
+    - "Profile photo integration testing"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
