@@ -276,9 +276,11 @@ async def get_all_users(current_user: User = Depends(get_current_user)):
 # Exam Results Routes
 @api_router.post("/exam-results", response_model=ExamResult)
 async def create_exam_result(exam_data: ExamResultCreate, current_user: User = Depends(get_current_user)):
-    # Only trainers can create exam results
-    if current_user.position != "trainer" and not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Only trainers can enter exam results")
+    # Only trainers and education department can create exam results
+    if (current_user.position != "trainer" and 
+        current_user.special_role != "eğitim departmanı" and 
+        not current_user.is_admin):
+        raise HTTPException(status_code=403, detail="Only trainers and education department can enter exam results")
     
     # Verify employee exists
     employee = await db.users.find_one({"employee_id": exam_data.employee_id})
