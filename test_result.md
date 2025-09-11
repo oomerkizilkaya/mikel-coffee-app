@@ -544,7 +544,7 @@
 
 ## test_plan:
   current_focus:
-    - "Employee Delete Functionality"
+    - "All critical tasks completed"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
