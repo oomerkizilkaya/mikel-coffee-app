@@ -264,14 +264,81 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
 # User Management Routes
 @api_router.get("/users", response_model=List[User])
 async def get_all_users(current_user: User = Depends(get_current_user)):
-    if not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Only admin can view all users")
+    # Admin and education department can view all users
+    if (not current_user.is_admin and 
+        current_user.special_role != "eğitim departmanı"):
+        raise HTTPException(status_code=403, detail="Only admin and education department can view all users")
     
     users = await db.users.find({}, {"password": 0}).to_list(1000)
     # Convert ObjectId to string for each user
     for user in users:
         user["_id"] = str(user["_id"])
     return [User(**user) for user in users]
+
+@api_router.put("/users/{user_id}")
+async def update_user(user_id: str, user_update: dict, current_user: User = Depends(get_current_user)):
+    # Admin and education department can update users
+    if (not current_user.is_admin and 
+        current_user.special_role != "eğitim departmanı"):
+        raise HTTPException(status_code=403, detail="Only admin and education department can update users")
+    
+    # Filter allowed updates
+    allowed_updates = {}
+    if "name" in user_update:
+        allowed_updates["name"] = user_update["name"]
+    if "surname" in user_update:
+        allowed_updates["surname"] = user_update["surname"]
+    if "email" in user_update:
+        # Check if email is not already taken
+        existing = await db.users.find_one({"email": user_update["email"], "_id": {"$ne": ObjectId(user_id)}})
+        if existing:
+            raise HTTPException(status_code=400, detail="Email already exists")
+        allowed_updates["email"] = user_update["email"]
+    if "position" in user_update and user_update["position"] in POSITIONS:
+        allowed_updates["position"] = user_update["position"]
+    if "store" in user_update:
+        allowed_updates["store"] = user_update["store"]
+    
+    # Only admin can update special roles
+    if current_user.is_admin and "special_role" in user_update:
+        if user_update["special_role"] in SPECIAL_ROLES or user_update["special_role"] is None:
+            allowed_updates["special_role"] = user_update["special_role"]
+    
+    if not allowed_updates:
+        raise HTTPException(status_code=400, detail="No valid updates provided")
+    
+    result = await db.users.update_one(
+        {"_id": ObjectId(user_id)},
+        {"$set": allowed_updates}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Get updated user
+    user = await db.users.find_one({"_id": ObjectId(user_id)}, {"password": 0})
+    if user:
+        user["_id"] = str(user["_id"])
+        return User(**user)
+    
+    raise HTTPException(status_code=404, detail="User not found")
+
+@api_router.delete("/users/{user_id}")
+async def delete_user(user_id: str, current_user: User = Depends(get_current_user)):
+    # Only admin can delete users
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Only admin can delete users")
+    
+    # Cannot delete self
+    if str(current_user.id) == user_id:
+        raise HTTPException(status_code=400, detail="Cannot delete your own account")
+    
+    result = await db.users.delete_one({"_id": ObjectId(user_id)})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {"message": "User deleted successfully"}
 
 # Exam Results Routes
 @api_router.post("/exam-results", response_model=ExamResult)
