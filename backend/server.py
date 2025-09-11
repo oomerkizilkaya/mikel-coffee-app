@@ -845,9 +845,7 @@ async def get_profile(current_user: User = Depends(get_current_user)):
     return Profile(**profile)
 
 @api_router.put("/profile", response_model=Profile)
-async def update_profile(profile_update: ProfileUpdate, credentials: HTTPAuthorizationCredentials = Depends(security)):
-    current_user = await get_current_user(credentials)
-    
+async def update_profile(profile_update: ProfileUpdate, current_user: User = Depends(get_current_user)):
     update_data = {}
     if profile_update.profile_image_url is not None:
         update_data["profile_image_url"] = profile_update.profile_image_url
@@ -857,12 +855,12 @@ async def update_profile(profile_update: ProfileUpdate, credentials: HTTPAuthori
     
     # Upsert profile
     await db.profiles.update_one(
-        {"user_id": current_user["employee_id"]},
+        {"user_id": current_user.employee_id},
         {"$set": update_data},
         upsert=True
     )
     
-    profile = await db.profiles.find_one({"user_id": current_user["employee_id"]})
+    profile = await db.profiles.find_one({"user_id": current_user.employee_id})
     return Profile(**profile)
 
 # Include the router in the main app
