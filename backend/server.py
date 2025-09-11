@@ -170,9 +170,10 @@ async def security_middleware(request: Request, call_next):
     
     # Rate limiting check
     if not rate_limiter.is_allowed(client_ip):
-        return HTTPException(
+        from fastapi.responses import JSONResponse
+        return JSONResponse(
             status_code=429,
-            detail={
+            content={
                 "error": "Rate limit exceeded",
                 "message": "Too many requests. Please try again later.",
                 "retry_after": SecurityConfig.RATE_LIMIT_WINDOW
@@ -182,9 +183,10 @@ async def security_middleware(request: Request, call_next):
     # Content length check
     content_length = request.headers.get('content-length')
     if content_length and int(content_length) > SecurityConfig.MAX_CONTENT_LENGTH:
-        return HTTPException(
+        from fastapi.responses import JSONResponse
+        return JSONResponse(
             status_code=413,
-            detail="Request entity too large"
+            content={"error": "Request entity too large"}
         )
     
     # Process request
@@ -196,10 +198,15 @@ async def security_middleware(request: Request, call_next):
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:;"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
     
     # Add processing time
     process_time = time.time() - start_time
     response.headers["X-Process-Time"] = str(process_time)
+    
+    # Security logging
+    print(f"🔐 SECURITY LOG - Request: {request.method} {request.url.path} from IP: {client_ip} - Time: {process_time:.3f}s")
     
     return response
 
