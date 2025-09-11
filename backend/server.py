@@ -134,6 +134,7 @@ class Announcement(BaseModel):
     created_by: str  # trainer who created
     created_at: datetime = Field(default_factory=datetime.utcnow)
     is_urgent: bool = False
+    likes_count: int = 0
     
     class Config:
         allow_population_by_field_name = True
