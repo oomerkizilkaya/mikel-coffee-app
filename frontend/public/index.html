@@ -1772,11 +1772,20 @@
                     (author.name?.[0] || '') + (author.surname?.[0] || '') : 
                     post.author_id.slice(-2);
                 
+                // Get author profile image from profiles
+                const authorProfileImage = author && author.profile_image_url ? author.profile_image_url : null;
+                
                 return `
                     <div class="social-post">
                         <div class="post-header">
-                            <div class="post-user">
-                                <div class="post-avatar">${authorInitials}</div>
+                            <div class="post-user" onclick="showProfile('${post.author_id}')">
+                                <div class="post-avatar">
+                                    ${authorProfileImage ? 
+                                        `<img src="${authorProfileImage}" alt="Profil" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` : 
+                                        ''
+                                    }
+                                    <div class="avatar-initials" ${authorProfileImage ? 'style="display:none;"' : ''}>${authorInitials}</div>
+                                </div>
                                 <div class="post-info">
                                     <div class="post-username">${authorName}</div>
                                     <div class="post-time">${timeAgo}</div>
