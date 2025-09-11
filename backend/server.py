@@ -253,6 +253,9 @@ async def get_all_users(current_user: User = Depends(get_current_user)):
         raise HTTPException(status_code=403, detail="Only admin can view all users")
     
     users = await db.users.find({}, {"password": 0}).to_list(1000)
+    # Convert ObjectId to string for each user
+    for user in users:
+        user["_id"] = str(user["_id"])
     return [User(**user) for user in users]
 
 # Exam Results Routes
