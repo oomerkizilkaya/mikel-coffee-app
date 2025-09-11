@@ -779,8 +779,8 @@ async def get_comments(post_id: str, current_user: User = Depends(get_current_us
 
 @api_router.post("/posts/{post_id}/like")
 async def toggle_post_like(post_id: str, current_user: User = Depends(get_current_user)):
-    # Check if post exists
-    post = await db.posts.find_one({"id": post_id})
+    # Check if post exists - use _id field
+    post = await db.posts.find_one({"_id": post_id})
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
     
@@ -789,18 +789,18 @@ async def toggle_post_like(post_id: str, current_user: User = Depends(get_curren
     if existing_like:
         # Unlike
         await db.likes.delete_one({"post_id": post_id, "user_id": current_user.employee_id})
-        await db.posts.update_one({"id": post_id}, {"$inc": {"likes_count": -1}})
+        await db.posts.update_one({"_id": post_id}, {"$inc": {"likes_count": -1}})
         return {"liked": False}
     else:
         # Like
         like_data = {
-            "id": str(uuid.uuid4()),
+            "_id": str(uuid.uuid4()),
             "post_id": post_id,
             "user_id": current_user.employee_id,
             "created_at": datetime.utcnow()
         }
         await db.likes.insert_one(like_data)
-        await db.posts.update_one({"id": post_id}, {"$inc": {"likes_count": 1}})
+        await db.posts.update_one({"_id": post_id}, {"$inc": {"likes_count": 1}})
         return {"liked": True}
 
 @api_router.post("/announcements/{announcement_id}/like")
