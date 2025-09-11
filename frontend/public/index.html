@@ -663,62 +663,8 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <img src="https://customer-assets.emergentagent.com/job_0f64345d-2f6b-41c8-af15-208e01ade896/artifacts/fwptedkg_M%C4%B0KEL%20LOGOSU.png" 
-                 alt="Mikel Coffee" class="logo">
-            <h1>Mikel Coffee</h1>
-            <p>Çalışan Sistemi</p>
-        </div>
-        
-        <div class="form-container">
-            <div class="tabs">
-                <button class="tab active" onclick="switchTab('login')">Giriş Yap</button>
-                <button class="tab" onclick="switchTab('register')">Kayıt Ol</button>
-            </div>
-            
-            <form id="authForm">
-                <div class="register-fields">
-                    <div class="form-group">
-                        <label>Adınız</label>
-                        <input type="text" class="form-control" id="name" placeholder="Adınız">
-                    </div>
-                    <div class="form-group">
-                        <label>Soyadınız</label>
-                        <input type="text" class="form-control" id="surname" placeholder="Soyadınız">
-                    </div>
-                    <div class="form-group">
-                        <label>Mağaza (İsteğe bağlı)</label>
-                        <input type="text" class="form-control" id="store" placeholder="Hangi mağaza (örn: Kadıköy, Merkez)">
-                    </div>
-                    <div class="form-group">
-                        <label>Pozisyon</label>
-                        <input type="text" class="form-control" id="position" placeholder="Pozisyonunuzu seçin" readonly onclick="togglePositions()">
-                        <div class="position-list" id="positionList" style="display:none;">
-                            <div class="position-item" onclick="selectPosition('servis personeli')">Servis Personeli</div>
-                            <div class="position-item" onclick="selectPosition('barista')">Barista</div>
-                            <div class="position-item" onclick="selectPosition('supervizer')">Supervizer</div>
-                            <div class="position-item" onclick="selectPosition('müdür yardımcısı')">Müdür Yardımcısı</div>
-                            <div class="position-item" onclick="selectPosition('mağaza müdürü')">Mağaza Müdürü</div>
-                            <div class="position-item" onclick="selectPosition('trainer')">Trainer</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label>E-posta</label>
-                    <input type="email" class="form-control" id="email" placeholder="E-posta adresiniz" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Şifre</label>
-                    <input type="password" class="form-control" id="password" placeholder="Şifreniz" required>
-                </div>
-                
-                <button type="submit" class="btn" id="submitBtn">Giriş Yap</button>
-                <div id="message"></div>
-            </form>
-        </div>
+    <div class="container" id="app">
+        <!-- App content will be loaded here -->
     </div>
 
     <script>
