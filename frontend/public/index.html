@@ -945,11 +945,16 @@
                     localStorage.setItem('user', JSON.stringify(data.user));
                     currentUser = data.user;
                     
+                    console.log('Login successful, user:', currentUser);
+                    
                     showMessage(isLoginMode 
                         ? `Hoş geldiniz!`
                         : `Kayıt başarılı! Sicil: ${data.user.employee_id}`, 'success');
                     
-                    setTimeout(() => loadFeed(), 1500);
+                    setTimeout(() => {
+                        console.log('Loading feed...');
+                        loadFeed();
+                    }, 1500);
                 } else {
                     showMessage(data.detail || 'Bir hata oluştu', 'error');
                 }
