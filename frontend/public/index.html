@@ -1678,16 +1678,34 @@
         async function loadSocialPosts() {
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch('https://mikelstaff.preview.emergentagent.com/api/posts', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+                const [postsResponse, usersResponse] = await Promise.all([
+                    fetch('https://mikelstaff.preview.emergentagent.com/api/posts', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    }),
+                    fetch('https://mikelstaff.preview.emergentagent.com/api/users', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    })
+                ]);
                 
-                if (response.ok) {
-                    const posts = await response.json();
-                    renderSocialPosts(posts);
+                if (postsResponse.ok && usersResponse.ok) {
+                    const posts = await postsResponse.json();
+                    const users = await usersResponse.json();
+                    
+                    // Create user map for quick lookup
+                    const userMap = {};
+                    users.forEach(user => {
+                        userMap[user.employee_id] = user;
+                    });
+                    
+                    socialPosts = posts;
+                    userMap_global = userMap;
+                } else if (postsResponse.ok) {
+                    // Fallback if users endpoint fails
+                    socialPosts = await postsResponse.json();
                 }
             } catch (error) {
-                document.getElementById('socialPosts').innerHTML = '<div class="error-state">Yükleme hatası</div>';
+                console.error('Error loading social posts:', error);
+                socialPosts = [];
             }
         }
 
