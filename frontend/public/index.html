@@ -1995,26 +1995,71 @@
             `;
         }
 
+        let selectedPostMedia = null;
+
+        function handlePostMediaUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64Data = e.target.result;
+                selectedPostMedia = base64Data;
+                
+                const preview = document.getElementById('mediaPreview');
+                preview.style.display = 'block';
+                
+                if (file.type.startsWith('image/')) {
+                    preview.innerHTML = `
+                        <div class="media-preview-item">
+                            <img src="${base64Data}" alt="Önizleme" style="max-width:200px;max-height:150px;border-radius:8px;">
+                            <span class="media-type">📷 Fotoğraf</span>
+                        </div>
+                    `;
+                } else if (file.type.startsWith('video/')) {
+                    preview.innerHTML = `
+                        <div class="media-preview-item">
+                            <video src="${base64Data}" controls style="max-width:200px;max-height:150px;border-radius:8px;"></video>
+                            <span class="media-type">🎥 Video</span>
+                        </div>
+                    `;
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function clearPostMedia() {
+            selectedPostMedia = null;
+            document.getElementById('mediaPreview').style.display = 'none';
+            document.getElementById('postMediaUpload').value = '';
+        }
+
         async function createSocialPost() {
             const content = document.getElementById('socialPostContent').value.trim();
-            if (!content) {
-                showToast('İçerik boş olamaz');
+            if (!content && !selectedPostMedia) {
+                showToast('İçerik veya medya gerekli');
                 return;
             }
 
             try {
                 const token = localStorage.getItem('auth_token');
+                const postData = { content: content || 'Medya paylaşımı' };
+                if (selectedPostMedia) {
+                    postData.image_url = selectedPostMedia;
+                }
+
                 const response = await fetch('https://mikelstaff.preview.emergentagent.com/api/posts', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify({ content })
+                    body: JSON.stringify(postData)
                 });
                 
                 if (response.ok) {
                     document.getElementById('socialPostContent').value = '';
+                    clearPostMedia();
                     await loadSocialPosts();
                     // Re-render the posts container
                     document.getElementById('postsContainer').innerHTML = renderSocialPosts();
