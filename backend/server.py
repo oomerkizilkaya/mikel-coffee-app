@@ -837,13 +837,13 @@ async def get_profile(current_user: User = Depends(get_current_user)):
     if not profile:
         # Create default profile
         profile_data = {
-            "id": str(uuid.uuid4()),
+            "_id": str(uuid.uuid4()),
             "user_id": current_user.employee_id,
             "profile_image_url": None,
             "bio": None,
             "updated_at": datetime.utcnow()
         }
-        await db.profiles.insert_one(profile_data)
+        result = await db.profiles.insert_one(profile_data)
         return Profile(**profile_data)
     
     # Convert ObjectId to string
