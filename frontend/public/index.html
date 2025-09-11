@@ -1924,9 +1924,11 @@
                             </div>
                             <div class="create-post-input">
                                 <textarea class="form-control" id="socialPostContent" placeholder="Ne düşünüyorsun?" maxlength="280"></textarea>
+                                <div id="mediaPreview" style="display:none; margin:10px 0;"></div>
                                 <div class="post-actions-bar">
-                                    <input type="file" id="imageUpload" accept="image/*" style="display:none">
-                                    <button class="btn-secondary" onclick="document.getElementById('imageUpload').click()">📷 Fotoğraf</button>
+                                    <input type="file" id="postMediaUpload" accept="image/*,video/*" style="display:none" onchange="handlePostMediaUpload(event)">
+                                    <button class="btn-secondary" onclick="document.getElementById('postMediaUpload').click()">📷 Medya</button>
+                                    <button class="btn-secondary" onclick="clearPostMedia()">❌ Temizle</button>
                                     <button class="btn" onclick="createSocialPost()">Paylaş</button>
                                 </div>
                             </div>
