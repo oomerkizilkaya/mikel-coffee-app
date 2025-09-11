@@ -2165,6 +2165,11 @@
                                     </div>
                                     <div class="user-actions">
                                         ${user.employee_id !== currentUser.employee_id ? `
+                                            ${!user.is_admin ? `
+                                                <button class="action-btn admin-btn" onclick="makeUserAdmin('${user.employee_id}', '${user.name} ${user.surname}')" title="Admin Yap">
+                                                    👑
+                                                </button>
+                                            ` : ''}
                                             <button class="action-btn delete-btn" onclick="deleteUser('${user.employee_id}', '${user.name} ${user.surname}')" title="Çalışanı Sil">
                                                 🗑️
                                             </button>
