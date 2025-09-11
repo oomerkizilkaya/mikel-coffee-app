@@ -1063,11 +1063,27 @@
         async function loadAnnouncements() {
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch('https://mikelstaff.preview.emergentagent.com/api/announcements', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (response.ok) {
-                    announcements = await response.json();
+                const [announcementsResponse, usersResponse] = await Promise.all([
+                    fetch('https://mikelstaff.preview.emergentagent.com/api/announcements', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    }),
+                    fetch('https://mikelstaff.preview.emergentagent.com/api/users', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    })
+                ]);
+                
+                if (announcementsResponse.ok) {
+                    announcements = await announcementsResponse.json();
+                }
+                
+                if (usersResponse.ok) {
+                    const users = await usersResponse.json();
+                    // Create user map for quick lookup
+                    const userMap = {};
+                    users.forEach(user => {
+                        userMap[user.employee_id] = user;
+                    });
+                    userMap_global = userMap;
                 }
             } catch (error) {
                 console.error('Error loading announcements:', error);
