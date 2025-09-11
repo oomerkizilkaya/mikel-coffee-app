@@ -2948,6 +2948,33 @@
             document.getElementById('announcementMediaUpload').value = '';
         }
 
+        // User Management Functions
+        async function deleteUser(employeeId, userName) {
+            if (!confirm(`⚠️ DİKKAT!\n\n${userName} adlı çalışanı ve tüm verilerini kalıcı olarak silmek istediğinizden emin misiniz?\n\n• Çalışan profili\n• Tüm gönderileri\n• Sınav sonuçları\n• Tüm beğenileri ve yorumları\n\nBu işlem GERİ ALINAMAZ!`)) {
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem('auth_token');
+                const response = await fetch(`https://mikelstaff.preview.emergentagent.com/api/admin/users/${employeeId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    showToast(`✅ ${userName} başarıyla silindi!`);
+                    // Refresh the user list
+                    await loadAllUsers();
+                } else {
+                    const error = await response.json();
+                    showToast(`❌ Silme hatası: ${error.detail || 'Bilinmeyen hata'}`);
+                }
+            } catch (error) {
+                console.error('Delete user error:', error);
+                showToast('❌ Bağlantı hatası');
+            }
+        }
+
         function logout() {
             localStorage.removeItem('auth_token');
             localStorage.removeItem('user');
