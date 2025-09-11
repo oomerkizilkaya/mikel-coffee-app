@@ -26,10 +26,130 @@ from collections import defaultdict, deque
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+# Environment variables
+MONGO_URL = os.getenv('MONGO_URL')
+JWT_SECRET = os.getenv('JWT_SECRET', 'your-secret-key-change-this-in-production')
+
+# MongoDB setup
+client = AsyncIOMotorClient(MONGO_URL)
+db = client.mikel_coffee
+
+# Security Configuration
+class SecurityConfig:
+    # Rate Limiting
+    RATE_LIMIT_REQUESTS = 100  # requests per window
+    RATE_LIMIT_WINDOW = 900   # 15 minutes in seconds
+    
+    # Login Protection
+    LOGIN_MAX_ATTEMPTS = 5
+    LOGIN_LOCKOUT_TIME = 300  # 5 minutes
+    
+    # Content Security
+    MAX_CONTENT_LENGTH = 10 * 1024 * 1024  # 10MB
+    ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.mp4', '.mov', '.avi'}
+    
+    # Malicious Patterns
+    MALICIOUS_PATTERNS = [
+        r'<script[^>]*>.*?</script>',  # XSS
+        r'javascript:',               # XSS
+        r'on\w+\s*=',                # XSS event handlers
+        r'union\s+select',           # SQL injection
+        r'drop\s+table',             # SQL injection
+        r'insert\s+into',            # SQL injection
+        r'delete\s+from',            # SQL injection
+        r'\.\./\.\.',                # Path traversal
+        r'eval\s*\(',                # Code injection
+        r'exec\s*\(',                # Code injection
+    ]
+
+# Security Classes
+class RateLimiter:
+    def __init__(self):
+        self.requests = defaultdict(deque)
+        self.blocked_ips = defaultdict(float)
+    
+    def is_allowed(self, ip: str) -> bool:
+        current_time = time.time()
+        
+        # Check if IP is currently blocked
+        if ip in self.blocked_ips and current_time < self.blocked_ips[ip]:
+            return False
+        
+        # Clean old requests
+        window_start = current_time - SecurityConfig.RATE_LIMIT_WINDOW
+        while self.requests[ip] and self.requests[ip][0] < window_start:
+            self.requests[ip].popleft()
+        
+        # Check rate limit
+        if len(self.requests[ip]) >= SecurityConfig.RATE_LIMIT_REQUESTS:
+            # Block IP
+            self.blocked_ips[ip] = current_time + SecurityConfig.RATE_LIMIT_WINDOW
+            return False
+        
+        # Add current request
+        self.requests[ip].append(current_time)
+        return True
+
+class LoginProtection:
+    def __init__(self):
+        self.failed_attempts = defaultdict(list)
+        self.blocked_users = defaultdict(float)
+    
+    def is_blocked(self, email: str) -> bool:
+        current_time = time.time()
+        return email in self.blocked_users and current_time < self.blocked_users[email]
+    
+    def record_failed_attempt(self, email: str):
+        current_time = time.time()
+        # Clean old attempts (older than lockout time)
+        self.failed_attempts[email] = [
+            attempt for attempt in self.failed_attempts[email]
+            if current_time - attempt < SecurityConfig.LOGIN_LOCKOUT_TIME
+        ]
+        
+        # Add current failed attempt
+        self.failed_attempts[email].append(current_time)
+        
+        # Check if should block
+        if len(self.failed_attempts[email]) >= SecurityConfig.LOGIN_MAX_ATTEMPTS:
+            self.blocked_users[email] = current_time + SecurityConfig.LOGIN_LOCKOUT_TIME
+    
+    def record_success(self, email: str):
+        # Clear failed attempts on successful login
+        if email in self.failed_attempts:
+            del self.failed_attempts[email]
+        if email in self.blocked_users:
+            del self.blocked_users[email]
+
+class InputValidator:
+    @staticmethod
+    def sanitize_input(text: str) -> str:
+        if not text:
+            return text
+        
+        # Remove potentially malicious content
+        for pattern in SecurityConfig.MALICIOUS_PATTERNS:
+            text = re.sub(pattern, '', text, flags=re.IGNORECASE)
+        
+        # HTML encode special characters
+        text = text.replace('<', '&lt;').replace('>', '&gt;')
+        text = text.replace('"', '&quot;').replace("'", '&#x27;')
+        
+        return text
+    
+    @staticmethod
+    def validate_email(email: str) -> bool:
+        pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        return bool(re.match(pattern, email))
+    
+    @staticmethod
+    def validate_content_size(content: str) -> bool:
+        return len(content.encode('utf-8')) <= SecurityConfig.MAX_CONTENT_LENGTH
+
+# Initialize security components
+rate_limiter = RateLimiter()
+login_protection = LoginProtection()
+input_validator = InputValidator()
 
 # JWT Configuration
 JWT_SECRET = os.environ.get('JWT_SECRET', 'your-secret-key-change-in-production')
