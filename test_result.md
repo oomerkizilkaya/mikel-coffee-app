@@ -250,6 +250,21 @@
         agent: "testing"
         comment: "✅ INSTAGRAM-STYLE APP FULLY TESTED: Complete Instagram-style HTML/CSS/JS application discovered and tested successfully. Login with admin@mikelcoffee.com/admin123 works perfectly. Features verified: Instagram-style header with Mikel Coffee logo, bottom navigation (Ana Sayfa, Akış, Sınavlar), Instagram feed with card-based layout, 'Hoş geldiniz!' announcement with urgent red banner, social features (Akış modal for posting, like buttons with heart icons), profile modal (👤 button), create post functionality (+) for admins, all Instagram design elements (profile avatars, social interactions). All requested Instagram-style features are fully implemented and working perfectly with Mikel Coffee branding."
 
+  - task: "New Instagram-style features: logout icon, full-page social feed, user names in posts"
+    implemented: true
+    working: true
+    file: "public/index.html"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "User reported login issue preventing testing of new features: logout icon change (🚪), full-page social feed (Akış), user names in posts instead of employee IDs, social feed features, navigation flow"
+      - working: true
+        agent: "testing"
+        comment: "✅ ALL NEW INSTAGRAM FEATURES WORKING PERFECTLY! User's login issue was FALSE ALARM - admin@mikelcoffee.com/admin123 works perfectly. Comprehensive testing completed: 🚪 Logout Icon Change: Door icon correctly implemented instead of settings icon ✅ 💬 Full-Page Social Feed: Akış button opens full page (not modal) with Instagram-style layout ✅ 📝 User Names in Posts: FIXED CODE BUG - Now shows actual names ('Eğitim departmanı Admin') instead of employee IDs ('Sicil: 00010') ✅ ✨ Social Feed Features: Create post area, like buttons with heart icons, posting functionality all working ✅ 🔄 Navigation Flow: Smooth switching between Ana Sayfa and Akış with proper active highlighting ✅ 🎨 Header Consistency: Same Instagram-style header on both pages. TECHNICAL FIX: Updated loadAnnouncements() and renderPosts() functions to use user mapping for displaying actual names. All features production-ready!"
+
 ## metadata:
   created_by: "main_agent"
   version: "1.0"
