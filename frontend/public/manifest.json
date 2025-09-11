@@ -1,0 +1,49 @@
+{
+  "name": "Mikel Coffee - Çalışan Sistemi",
+  "short_name": "Mikel Coffee",
+  "description": "Mikel Coffee çalışanları için kayıt ve yönetim sistemi",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#8B4513",
+  "theme_color": "#8B4513",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/assets/images/icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/assets/images/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Kayıt Ol",
+      "short_name": "Kayıt",
+      "description": "Yeni çalışan kaydı",
+      "url": "/?action=register",
+      "icons": [{ "src": "/assets/images/icon.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Giriş Yap",
+      "short_name": "Giriş",
+      "description": "Çalışan girişi",
+      "url": "/?action=login",
+      "icons": [{ "src": "/assets/images/icon.png", "sizes": "96x96" }]
+    }
+  ]
+}
