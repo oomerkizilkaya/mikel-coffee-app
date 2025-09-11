@@ -861,6 +861,8 @@ async def update_profile(profile_update: ProfileUpdate, current_user: User = Dep
     )
     
     profile = await db.profiles.find_one({"user_id": current_user.employee_id})
+    if profile and "_id" in profile:
+        profile["_id"] = str(profile["_id"])
     return Profile(**profile)
 
 # Include the router in the main app
