@@ -286,7 +286,12 @@
 
 ## test_plan:
   current_focus:
-    - "Social media features testing complete"
+    - "Fixed Profile Photo Upload"
+    - "Instagram-Style Profile Page"
+    - "Profile Browsing"
+    - "Two-Column Layout"
+    - "Profile Photos in Posts"
+    - "Instagram Grid"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
