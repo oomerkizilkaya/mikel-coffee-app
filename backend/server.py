@@ -236,8 +236,9 @@ async def login(user_data: UserLogin):
     # Create access token
     access_token = create_access_token({"sub": str(user["_id"])})
     
-    # Remove password from response
+    # Remove password from response and convert ObjectId to string
     user.pop("password")
+    user["_id"] = str(user["_id"])
     user_obj = User(**user)
     
     return Token(access_token=access_token, token_type="bearer", user=user_obj)
