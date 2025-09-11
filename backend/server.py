@@ -157,7 +157,60 @@ JWT_ALGORITHM = 'HS256'
 JWT_EXPIRATION_DELTA = timedelta(days=7)
 
 # Create the main app without a prefix
-app = FastAPI(title="Corporate Coffee Employee Registration API")
+app = FastAPI(title="Mikel Coffee Employee Registration API")
+
+# Security Middleware
+async def security_middleware(request: Request, call_next):
+    start_time = time.time()
+    
+    # Get client IP
+    client_ip = request.client.host
+    if hasattr(request.state, 'forwarded_for'):
+        client_ip = request.state.forwarded_for.split(',')[0].strip()
+    
+    # Rate limiting check
+    if not rate_limiter.is_allowed(client_ip):
+        return HTTPException(
+            status_code=429,
+            detail={
+                "error": "Rate limit exceeded",
+                "message": "Too many requests. Please try again later.",
+                "retry_after": SecurityConfig.RATE_LIMIT_WINDOW
+            }
+        )
+    
+    # Content length check
+    content_length = request.headers.get('content-length')
+    if content_length and int(content_length) > SecurityConfig.MAX_CONTENT_LENGTH:
+        return HTTPException(
+            status_code=413,
+            detail="Request entity too large"
+        )
+    
+    # Process request
+    response = await call_next(request)
+    
+    # Add security headers
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:;"
+    
+    # Add processing time
+    process_time = time.time() - start_time
+    response.headers["X-Process-Time"] = str(process_time)
+    
+    return response
+
+# Add security middleware
+app.middleware("http")(security_middleware)
+
+# Host validation middleware
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=["*"]  # Configure with actual domain in production
+)
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
