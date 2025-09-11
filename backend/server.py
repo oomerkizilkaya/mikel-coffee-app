@@ -162,6 +162,8 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     if user is None:
         raise HTTPException(status_code=401, detail="User not found")
     
+    # Convert ObjectId to string for Pydantic
+    user["_id"] = str(user["_id"])
     return User(**user)
 
 async def generate_employee_id() -> str:
