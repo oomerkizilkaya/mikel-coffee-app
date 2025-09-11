@@ -390,7 +390,8 @@ class BackendTester:
         announcement_id = None
         if response["success"]:
             announcement = response["data"]
-            announcement_id = announcement["id"]
+            # Try both 'id' and '_id' fields
+            announcement_id = announcement.get("id") or announcement.get("_id")
             if announcement["title"] == announcement_data["title"] and announcement["is_urgent"]:
                 self.log_test("Trainer create announcement", True, "Trainer successfully created urgent announcement")
             else:
