@@ -1102,8 +1102,12 @@
             }
 
             return announcements.map(announcement => {
-                const authorInitials = announcement.created_by ? announcement.created_by.slice(-2) : '??';
                 const timeAgo = getTimeAgo(announcement.created_at);
+                const author = userMap_global[announcement.created_by];
+                const authorName = author ? `${author.name} ${author.surname}` : `Sicil: ${announcement.created_by}`;
+                const authorInitials = author ? 
+                    (author.name?.[0] || '') + (author.surname?.[0] || '') : 
+                    (announcement.created_by ? announcement.created_by.slice(-2) : '??');
                 
                 return `
                     <div class="post">
@@ -1112,7 +1116,7 @@
                             <div class="post-user">
                                 <div class="post-avatar">${authorInitials}</div>
                                 <div class="post-info">
-                                    <div class="post-username">Sicil: ${announcement.created_by}</div>
+                                    <div class="post-username">${authorName}</div>
                                     <div class="post-time">${timeAgo}</div>
                                 </div>
                             </div>
