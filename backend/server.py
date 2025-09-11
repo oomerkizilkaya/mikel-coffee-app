@@ -842,6 +842,9 @@ async def get_profile(current_user: User = Depends(get_current_user)):
         await db.profiles.insert_one(profile_data)
         return Profile(**profile_data)
     
+    # Convert ObjectId to string
+    if "_id" in profile:
+        profile["_id"] = str(profile["_id"])
     return Profile(**profile)
 
 @api_router.put("/profile", response_model=Profile)
