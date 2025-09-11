@@ -69,7 +69,7 @@ class UserRegister(BaseModel):
     email: EmailStr
     password: str
     position: str
-    store: str
+    store: Optional[str] = None
 
     class Config:
         json_encoders = {
