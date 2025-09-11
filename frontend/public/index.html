@@ -1490,11 +1490,11 @@
                             ` : ''}
                         </div>
                         <div class="post-actions">
-                            <button class="action-btn like-btn" onclick="toggleAnnouncementLike('${announcement.id}')">
+                            <button class="action-btn like-btn" onclick="toggleAnnouncementLike('${announcement._id || announcement.id}')">
                                 ❤️ ${announcement.likes_count || 0}
                             </button>
                             ${(currentUser.is_admin || currentUser.special_role === 'eğitim departmanı' || announcement.created_by === currentUser.employee_id) ? `
-                                <button class="action-btn delete-btn" onclick="deleteAnnouncement('${announcement.id}')" title="Sil">
+                                <button class="action-btn delete-btn" onclick="deleteAnnouncement('${announcement._id || announcement.id}')" title="Sil">
                                     🗑️
                                 </button>
                             ` : ''}
