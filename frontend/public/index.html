@@ -2822,6 +2822,8 @@
             
             try {
                 const token = localStorage.getItem('auth_token');
+                console.log('Deleting announcement with ID:', announcementId);
+                
                 const response = await fetch(`https://mikelstaff.preview.emergentagent.com/api/announcements/${announcementId}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
@@ -2829,22 +2831,23 @@
                 
                 if (response.ok) {
                     showToast('Duyuru silindi! 🗑️');
-                    await loadAnnouncements();
-                    // Re-render posts in all containers
+                    // Remove from local array immediately
+                    announcements = announcements.filter(a => a._id !== announcementId && a.id !== announcementId);
+                    
+                    // Re-render all containers immediately
                     const postsContainer = document.getElementById('postsContainer');
                     if (postsContainer) {
                         postsContainer.innerHTML = renderPosts();
                     }
                     
-                    // Check if we're on homepage and refresh
-                    const homePostsContainer = document.querySelector('.feed .posts-container');
-                    if (homePostsContainer) {
-                        homePostsContainer.innerHTML = renderPosts();
-                    }
+                    // Reload from server to be sure
+                    await loadAnnouncements();
                 } else {
-                    showToast('Silme hatası');
+                    console.error('Delete failed with status:', response.status);
+                    showToast('Silme hatası - ' + response.status);
                 }
             } catch (error) {
+                console.error('Delete error:', error);
                 showToast('Bağlantı hatası');
             }
         }
