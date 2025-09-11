@@ -2271,7 +2271,7 @@
                 if (response.ok) {
                     const profile = await response.json();
                     if (profile.bio) {
-                        document.getElementById('profileBio').value = profile.bio;
+                        document.getElementById('userBio').textContent = profile.bio;
                     }
                     if (profile.profile_image_url) {
                         document.getElementById('profilePictureDisplay').innerHTML = `
