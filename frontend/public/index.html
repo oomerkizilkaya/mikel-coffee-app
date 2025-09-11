@@ -3327,6 +3327,40 @@
             }
         }
 
+        async function makeUserAdmin(employeeId, userName) {
+            if (!confirm(`👑 ADMİN YETKİSİ VER\n\n${userName} adlı çalışana admin yetkisi vermek istediğinizden emin misiniz?\n\nAdmin yetkisi ile bu kullanıcı:\n• Tüm çalışanları yönetebilir\n• Başka kullanıcıları admin yapabilir\n• Tüm sistem özelliklerine erişebilir\n\nBu yetkiyi sadece güvendiğiniz kişilere verin!`)) {
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem('auth_token');
+                const response = await fetch(`https://baristalink.preview.emergentagent.com/api/admin/users/${employeeId}/admin-status`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        is_admin: true,
+                        reason: `Admin yetkisi ${currentUser.name} ${currentUser.surname} tarafından verildi`
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showToast(`✅ ${userName} artık admin!`);
+                    // Refresh the user list to show updated admin status
+                    await loadAllUsers();
+                } else {
+                    showToast(`❌ Admin yapma hatası: ${result.detail || 'Bilinmeyen hata'}`);
+                }
+            } catch (error) {
+                console.error('Make admin error:', error);
+                showToast('❌ Bağlantı hatası');
+            }
+        }
+
         function logout() {
             localStorage.removeItem('auth_token');
             localStorage.removeItem('user');
