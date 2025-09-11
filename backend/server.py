@@ -413,7 +413,21 @@ async def get_stores(current_user: User = Depends(get_current_user)):
             "employee_count": employee_count
         })
     
-    return store_stats
+# Test endpoint to make first user admin (only for development)
+@api_router.post("/test/make-admin")
+async def make_first_user_admin():
+    # Find the first user (by creation date)
+    first_user = await db.users.find_one(sort=[("created_at", 1)])
+    if not first_user:
+        raise HTTPException(status_code=404, detail="No users found")
+    
+    # Make them admin
+    await db.users.update_one(
+        {"_id": first_user["_id"]},
+        {"$set": {"is_admin": True}}
+    )
+    
+    return {"message": f"User {first_user['email']} is now admin"}
 
 # Statistics Routes (for admin dashboard)
 @api_router.get("/stats")
