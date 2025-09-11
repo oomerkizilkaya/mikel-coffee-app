@@ -734,15 +734,13 @@ async def get_posts(current_user: User = Depends(get_current_user)):
     return [Post(**post) for post in posts]
 
 @api_router.delete("/posts/{post_id}")
-async def delete_post(post_id: str, credentials: HTTPAuthorizationCredentials = Depends(security)):
-    current_user = await get_current_user(credentials)
-    
+async def delete_post(post_id: str, current_user: User = Depends(get_current_user)):
     post = await db.posts.find_one({"id": post_id})
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
     
     # Only author or admin can delete
-    if post["author_id"] != current_user["employee_id"] and not current_user["is_admin"]:
+    if post["author_id"] != current_user.employee_id and not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Not authorized")
     
     await db.posts.delete_one({"id": post_id})
