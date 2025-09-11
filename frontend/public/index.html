@@ -1487,8 +1487,13 @@
                     <div class="post">
                         ${announcement.is_urgent ? '<div class="urgent-banner">🔴 ACİL DUYURU</div>' : ''}
                         <div class="post-header">
-                            <div class="post-user">
-                                <div class="post-avatar">${authorInitials}</div>
+                            <div class="post-user" onclick="showProfile('${announcement.created_by}')">
+                                <div class="post-avatar">
+                                    ${author && author.profile_image_url ? 
+                                        `<img src="${author.profile_image_url}" alt="Profil" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : 
+                                        `<div class="avatar-initials">${authorInitials}</div>`
+                                    }
+                                </div>
                                 <div class="post-info">
                                     <div class="post-username">${authorName}</div>
                                     <div class="post-time">${timeAgo}</div>
