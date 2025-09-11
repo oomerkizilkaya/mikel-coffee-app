@@ -46,6 +46,11 @@ POSITIONS = [
     "trainer"
 ]
 
+# Special roles that admin can assign
+SPECIAL_ROLES = [
+    "eğitim departmanı"
+]
+
 # Role hierarchy for permissions
 POSITION_LEVELS = {
     "servis personeli": 1,
@@ -53,7 +58,8 @@ POSITION_LEVELS = {
     "supervizer": 3,
     "müdür yardımcısı": 4,
     "mağaza müdürü": 5,
-    "trainer": 6
+    "trainer": 6,
+    "eğitim departmanı": 7  # Special role with trainer-level permissions
 }
 
 # Define Models
