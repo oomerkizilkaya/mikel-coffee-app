@@ -488,25 +488,47 @@ async def register(user_data: UserRegister):
     return Token(access_token=access_token, token_type="bearer", user=user)
 
 @api_router.post("/auth/login", response_model=Token)
-async def login(user_data: UserLogin):
-    # Find user by email
-    user = await db.users.find_one({"email": user_data.email})
-    if not user:
-        raise HTTPException(status_code=401, detail="Invalid email or password")
+async def login(user_credentials: UserLogin, request: Request):
+    # Input validation and sanitization
+    email = input_validator.sanitize_input(user_credentials.email.lower().strip())
     
-    # Verify password
-    if not verify_password(user_data.password, user["password"]):
-        raise HTTPException(status_code=401, detail="Invalid email or password")
+    if not input_validator.validate_email(email):
+        raise HTTPException(status_code=400, detail="Invalid email format")
     
-    # Create access token
-    access_token = create_access_token({"sub": str(user["_id"])})
+    # Check if user is blocked
+    if login_protection.is_blocked(email):
+        raise HTTPException(
+            status_code=429, 
+            detail="Account temporarily locked due to too many failed login attempts. Please try again later."
+        )
     
-    # Remove password from response and convert ObjectId to string
-    user.pop("password")
+    # Find user
+    user = await db.users.find_one({"email": email})
+    if not user or not bcrypt.checkpw(user_credentials.password.encode('utf-8'), user['password'].encode('utf-8')):
+        # Record failed attempt
+        login_protection.record_failed_attempt(email)
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    # Record successful login
+    login_protection.record_success(email)
+    
+    # Create JWT token with enhanced payload
+    payload = {
+        'sub': str(user['_id']),
+        'email': user['email'],
+        'employee_id': user['employee_id'],
+        'iat': datetime.utcnow(),
+        'exp': datetime.utcnow() + JWT_EXPIRATION_DELTA
+    }
+    token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+    
+    # Log successful login (for security monitoring)
+    print(f"🔐 SECURITY LOG - Successful login: {email} from IP: {request.client.host}")
+    
+    # Convert ObjectId to string for response
     user["_id"] = str(user["_id"])
-    user_obj = User(**user)
     
-    return Token(access_token=access_token, token_type="bearer", user=user_obj)
+    return {"access_token": token, "token_type": "bearer", "user": User(**user)}
 
 @api_router.get("/auth/me", response_model=User)
 async def get_current_user_info(current_user: User = Depends(get_current_user)):
