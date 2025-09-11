@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   StatusBar,
+  Modal,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -26,6 +27,15 @@ interface User {
   is_admin: boolean;
 }
 
+interface Announcement {
+  id: string;
+  title: string;
+  content: string;
+  created_by: string;
+  created_at: string;
+  is_urgent: boolean;
+}
+
 const POSITIONS = [
   'servis personeli',
   'barista',
@@ -39,6 +49,7 @@ export default function Index() {
   const [isLogin, setIsLogin] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
+  const [currentView, setCurrentView] = useState('dashboard');
   
   // Form states
   const [email, setEmail] = useState('');
@@ -48,9 +59,22 @@ export default function Index() {
   const [selectedPosition, setSelectedPosition] = useState('');
   const [showPositionPicker, setShowPositionPicker] = useState(false);
 
+  // Announcement states
+  const [showAnnouncementModal, setShowAnnouncementModal] = useState(false);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [announcementTitle, setAnnouncementTitle] = useState('');
+  const [announcementContent, setAnnouncementContent] = useState('');
+  const [isUrgent, setIsUrgent] = useState(false);
+
   useEffect(() => {
     checkAuthToken();
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      loadAnnouncements();
+    }
+  }, [user]);
 
   const checkAuthToken = async () => {
     try {
@@ -71,6 +95,24 @@ export default function Index() {
       }
     } catch (error) {
       console.error('Auth check error:', error);
+    }
+  };
+
+  const loadAnnouncements = async () => {
+    try {
+      const token = await AsyncStorage.getItem('auth_token');
+      const response = await fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/announcements`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setAnnouncements(data);
+      }
+    } catch (error) {
+      console.error('Load announcements error:', error);
     }
   };
 
@@ -146,9 +188,52 @@ export default function Index() {
     try {
       await AsyncStorage.removeItem('auth_token');
       setUser(null);
+      setCurrentView('dashboard');
     } catch (error) {
       console.error('Logout error:', error);
     }
+  };
+
+  const createAnnouncement = async () => {
+    if (!announcementTitle.trim() || !announcementContent.trim()) {
+      Alert.alert('Hata', 'Başlık ve içerik alanları zorunludur');
+      return;
+    }
+
+    try {
+      const token = await AsyncStorage.getItem('auth_token');
+      const response = await fetch(`${EXPO_PUBLIC_BACKEND_URL}/api/announcements`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: announcementTitle.trim(),
+          content: announcementContent.trim(),
+          is_urgent: isUrgent
+        }),
+      });
+
+      if (response.ok) {
+        Alert.alert('Başarılı!', 'Duyuru başarıyla oluşturuldu');
+        setAnnouncementTitle('');
+        setAnnouncementContent('');
+        setIsUrgent(false);
+        setShowAnnouncementModal(false);
+        loadAnnouncements();
+      } else {
+        const data = await response.json();
+        Alert.alert('Hata', data.detail || 'Duyuru oluşturulamadı');
+      }
+    } catch (error) {
+      console.error('Create announcement error:', error);
+      Alert.alert('Hata', 'Bağlantı hatası');
+    }
+  };
+
+  const canCreateAnnouncement = () => {
+    return user?.position === 'trainer' || user?.is_admin;
   };
 
   const PositionPicker = () => (
@@ -177,6 +262,118 @@ export default function Index() {
     </View>
   );
 
+  const AnnouncementModal = () => (
+    <Modal
+      visible={showAnnouncementModal}
+      animationType="slide"
+      presentationStyle="pageSheet"
+    >
+      <SafeAreaView style={styles.modalContainer}>
+        <View style={styles.modalHeader}>
+          <TouchableOpacity onPress={() => setShowAnnouncementModal(false)}>
+            <Text style={styles.cancelButton}>İptal</Text>
+          </TouchableOpacity>
+          <Text style={styles.modalTitle}>Yeni Duyuru</Text>
+          <TouchableOpacity onPress={createAnnouncement}>
+            <Text style={styles.saveButton}>Paylaş</Text>
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView style={styles.modalContent}>
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Başlık *</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Duyuru başlığını girin"
+              value={announcementTitle}
+              onChangeText={setAnnouncementTitle}
+              maxLength={100}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>İçerik *</Text>
+            <TextInput
+              style={[styles.modalInput, styles.textArea]}
+              placeholder="Duyuru içeriğini girin..."
+              value={announcementContent}
+              onChangeText={setAnnouncementContent}
+              multiline
+              numberOfLines={6}
+              textAlignVertical="top"
+              maxLength={500}
+            />
+            <Text style={styles.charCount}>
+              {announcementContent.length}/500
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.urgentToggle}
+            onPress={() => setIsUrgent(!isUrgent)}
+          >
+            <View style={[styles.checkbox, isUrgent && styles.checkboxChecked]}>
+              {isUrgent && <Text style={styles.checkmark}>✓</Text>}
+            </View>
+            <Text style={styles.urgentLabel}>🔴 Acil Duyuru</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </SafeAreaView>
+    </Modal>
+  );
+
+  const AnnouncementsView = () => (
+    <ScrollView style={styles.content}>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>📢 Duyurular</Text>
+        {canCreateAnnouncement() && (
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => setShowAnnouncementModal(true)}
+          >
+            <Text style={styles.addButtonText}>+ Yeni Duyuru</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {announcements.length === 0 ? (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyStateText}>Henüz duyuru bulunmuyor</Text>
+        </View>
+      ) : (
+        announcements.map((announcement) => (
+          <View
+            key={announcement.id}
+            style={[
+              styles.announcementCard,
+              announcement.is_urgent && styles.urgentCard
+            ]}
+          >
+            {announcement.is_urgent && (
+              <View style={styles.urgentBadge}>
+                <Text style={styles.urgentBadgeText}>🔴 ACİL</Text>
+              </View>
+            )}
+            <Text style={styles.announcementTitle}>
+              {announcement.title}
+            </Text>
+            <Text style={styles.announcementContent}>
+              {announcement.content}
+            </Text>
+            <View style={styles.announcementFooter}>
+              <Text style={styles.announcementAuthor}>
+                📝 {announcement.created_by}
+              </Text>
+              <Text style={styles.announcementDate}>
+                📅 {new Date(announcement.created_at).toLocaleDateString('tr-TR')}
+              </Text>
+            </View>
+          </View>
+        ))
+      )}
+    </ScrollView>
+  );
+
   // Dashboard component
   const Dashboard = () => (
     <SafeAreaView style={styles.container}>
@@ -188,63 +385,86 @@ export default function Index() {
         </TouchableOpacity>
       </View>
       
-      <ScrollView style={styles.content}>
-        <View style={styles.welcomeCard}>
-          <Text style={styles.welcomeTitle}>
-            Hoş Geldiniz, {user?.name} {user?.surname}!
-          </Text>
-          <View style={styles.userInfo}>
-            <Text style={styles.userInfoText}>Sicil No: {user?.employee_id}</Text>
-            <Text style={styles.userInfoText}>
-              Pozisyon: {user?.position?.charAt(0).toUpperCase() + user?.position?.slice(1)}
+      {currentView === 'dashboard' ? (
+        <ScrollView style={styles.content}>
+          <View style={styles.welcomeCard}>
+            <Text style={styles.welcomeTitle}>
+              Hoş Geldiniz, {user?.name} {user?.surname}!
             </Text>
-            <Text style={styles.userInfoText}>E-posta: {user?.email}</Text>
-            {user?.is_admin && (
-              <Text style={styles.adminBadge}>YÖNETİCİ</Text>
-            )}
+            <View style={styles.userInfo}>
+              <Text style={styles.userInfoText}>Sicil No: {user?.employee_id}</Text>
+              <Text style={styles.userInfoText}>
+                Pozisyon: {user?.position?.charAt(0).toUpperCase() + user?.position?.slice(1)}
+              </Text>
+              <Text style={styles.userInfoText}>E-posta: {user?.email}</Text>
+              {user?.is_admin && (
+                <Text style={styles.adminBadge}>YÖNETİCİ</Text>
+              )}
+            </View>
           </View>
-        </View>
 
-        <View style={styles.menuGrid}>
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuItemTitle}>Duyurular</Text>
-            <Text style={styles.menuItemSubtitle}>Şirket haberlerini görün</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuItemTitle}>Sınav Sonuçları</Text>
-            <Text style={styles.menuItemSubtitle}>Performans sonuçlarınız</Text>
-          </TouchableOpacity>
-          
-          {(user?.position === 'barista' || user?.position === 'supervizer') && (
-            <TouchableOpacity style={[styles.menuItem, styles.specialMenuItem]}>
-              <Text style={styles.menuItemTitle}>Yöneticilik Sınavı</Text>
-              <Text style={styles.menuItemSubtitle}>Karriyere ilerle</Text>
+          <View style={styles.menuGrid}>
+            <TouchableOpacity 
+              style={styles.menuItem}
+              onPress={() => setCurrentView('announcements')}
+            >
+              <Text style={styles.menuItemTitle}>📢 Duyurular</Text>
+              <Text style={styles.menuItemSubtitle}>Şirket haberlerini görün</Text>
+              {announcements.some(a => a.is_urgent) && (
+                <View style={styles.urgentIndicator}>
+                  <Text style={styles.urgentIndicatorText}>🔴 ACİL</Text>
+                </View>
+              )}
             </TouchableOpacity>
-          )}
-          
-          {user?.position === 'trainer' && (
-            <>
-              <TouchableOpacity style={[styles.menuItem, styles.trainerMenuItem]}>
-                <Text style={styles.menuItemTitle}>Sınav Sonucu Gir</Text>
-                <Text style={styles.menuItemSubtitle}>Çalışan değerlendirmesi</Text>
+            
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuItemTitle}>📊 Sınav Sonuçları</Text>
+              <Text style={styles.menuItemSubtitle}>Performans sonuçlarınız</Text>
+            </TouchableOpacity>
+            
+            {(user?.position === 'barista' || user?.position === 'supervizer') && (
+              <TouchableOpacity style={[styles.menuItem, styles.specialMenuItem]}>
+                <Text style={styles.menuItemTitle}>🎯 Yöneticilik Sınavı</Text>
+                <Text style={styles.menuItemSubtitle}>Karriyere ilerle</Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity style={[styles.menuItem, styles.trainerMenuItem]}>
-                <Text style={styles.menuItemTitle}>Duyuru Paylaş</Text>
+            )}
+            
+            {canCreateAnnouncement() && (
+              <TouchableOpacity 
+                style={[styles.menuItem, styles.trainerMenuItem]}
+                onPress={() => setShowAnnouncementModal(true)}
+              >
+                <Text style={styles.menuItemTitle}>📝 Duyuru Paylaş</Text>
                 <Text style={styles.menuItemSubtitle}>Yeni duyuru oluştur</Text>
               </TouchableOpacity>
-            </>
-          )}
-          
-          {user?.is_admin && (
-            <TouchableOpacity style={[styles.menuItem, styles.adminMenuItem]}>
-              <Text style={styles.menuItemTitle}>Yönetici Paneli</Text>
-              <Text style={styles.menuItemSubtitle}>Sistem yönetimi</Text>
+            )}
+
+            {canCreateAnnouncement() && (
+              <TouchableOpacity style={[styles.menuItem, styles.trainerMenuItem]}>
+                <Text style={styles.menuItemTitle}>📋 Sınav Sonucu Gir</Text>
+                <Text style={styles.menuItemSubtitle}>Çalışan değerlendirmesi</Text>
+              </TouchableOpacity>
+            )}
+            
+            {user?.is_admin && (
+              <TouchableOpacity style={[styles.menuItem, styles.adminMenuItem]}>
+                <Text style={styles.menuItemTitle}>⚙️ Yönetici Paneli</Text>
+                <Text style={styles.menuItemSubtitle}>Sistem yönetimi</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </ScrollView>
+      ) : currentView === 'announcements' ? (
+        <>
+          <View style={styles.backButton}>
+            <TouchableOpacity onPress={() => setCurrentView('dashboard')}>
+              <Text style={styles.backButtonText}>← Ana Sayfa</Text>
             </TouchableOpacity>
-          )}
-        </View>
-      </ScrollView>
+          </View>
+          <AnnouncementsView />
+          <AnnouncementModal />
+        </>
+      ) : null}
     </SafeAreaView>
   );
 
