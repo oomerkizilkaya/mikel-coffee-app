@@ -774,19 +774,17 @@ async def get_comments(post_id: str, current_user: User = Depends(get_current_us
     return [Comment(**comment) for comment in comments]
 
 @api_router.post("/posts/{post_id}/like")
-async def toggle_post_like(post_id: str, credentials: HTTPAuthorizationCredentials = Depends(security)):
-    current_user = await get_current_user(credentials)
-    
+async def toggle_post_like(post_id: str, current_user: User = Depends(get_current_user)):
     # Check if post exists
     post = await db.posts.find_one({"id": post_id})
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
     
-    existing_like = await db.likes.find_one({"post_id": post_id, "user_id": current_user["employee_id"]})
+    existing_like = await db.likes.find_one({"post_id": post_id, "user_id": current_user.employee_id})
     
     if existing_like:
         # Unlike
-        await db.likes.delete_one({"post_id": post_id, "user_id": current_user["employee_id"]})
+        await db.likes.delete_one({"post_id": post_id, "user_id": current_user.employee_id})
         await db.posts.update_one({"id": post_id}, {"$inc": {"likes_count": -1}})
         return {"liked": False}
     else:
@@ -794,7 +792,7 @@ async def toggle_post_like(post_id: str, credentials: HTTPAuthorizationCredentia
         like_data = {
             "id": str(uuid.uuid4()),
             "post_id": post_id,
-            "user_id": current_user["employee_id"],
+            "user_id": current_user.employee_id,
             "created_at": datetime.utcnow()
         }
         await db.likes.insert_one(like_data)
