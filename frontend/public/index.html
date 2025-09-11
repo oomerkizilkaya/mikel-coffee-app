@@ -2193,13 +2193,15 @@
                                     <span class="stat-label">gönderi</span>
                                 </div>
                                 <div class="stat">
-                                    <span class="stat-number">${Math.floor(Math.random() * 500) + 100}</span>
-                                    <span class="stat-label">takipçi</span>
+                                    <span class="stat-number">${targetUser.position ? '1' : '0'}</span>
+                                    <span class="stat-label">pozisyon</span>
                                 </div>
+                                ${targetUser.store ? `
                                 <div class="stat">
-                                    <span class="stat-number">${Math.floor(Math.random() * 300) + 50}</span>
-                                    <span class="stat-label">takip</span>
+                                    <span class="stat-number">1</span>
+                                    <span class="stat-label">mağaza</span>
                                 </div>
+                                ` : ''}
                             </div>
                             
                             <div class="profile-bio">
