@@ -512,6 +512,21 @@
         agent: "testing"
         comment: "✅ SOCIAL MEDIA FEATURES FULLY TESTED: All new social endpoints working perfectly - GET/POST /api/posts (✅), POST /api/posts/{id}/like (✅), GET/PUT /api/profile (✅), POST /api/announcements/{id}/like (✅). Fixed ObjectId serialization issues. Admin user admin@mikelcoffee.com successfully registered and tested. JWT authentication working correctly for all social features."
 
+  - task: "Announcement delete functionality fix"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "User reported announcement delete not working - getting 404 errors when trying to delete announcements"
+      - working: true
+        agent: "testing"
+        comment: "🎯 CRITICAL BUG FIXED! ROOT CAUSE IDENTIFIED: The delete_announcement function was not properly handling ObjectId conversion for MongoDB _id field queries. SOLUTION IMPLEMENTED: Updated delete function to properly convert announcement_id to ObjectId when querying _id field, while maintaining compatibility with UUID id field. COMPREHENSIVE TESTING RESULTS: ✅ LOGIN: admin@mikelcoffee.com/admin123 works perfectly ✅ CREATE: Announcements created successfully with proper ObjectId ✅ DELETE: DELETE /api/announcements/{id} now returns 200 OK instead of 404 ✅ VERIFICATION: Deleted announcements properly removed from database and GET /api/announcements list. Fixed the exact issue user was experiencing - announcement delete functionality now working perfectly without 404 errors!"
+
 ## test_plan:
   current_focus:
     - "All critical tasks completed"
