@@ -304,8 +304,8 @@
                 const surname = document.getElementById('surname').value.trim();
                 const store = document.getElementById('store').value.trim();
                 
-                if (!name || !surname || !selectedPosition || !store) {
-                    showMessage('Tüm alanları doldurunuz', 'error');
+                if (!name || !surname || !selectedPosition) {
+                    showMessage('Ad, soyad ve pozisyon alanları zorunludur', 'error');
                     return;
                 }
             }
