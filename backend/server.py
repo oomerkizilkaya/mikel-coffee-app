@@ -413,21 +413,33 @@ async def get_stores(current_user: User = Depends(get_current_user)):
             "employee_count": employee_count
         })
     
-# Test endpoint to make first user admin (only for development)
-@api_router.post("/test/make-admin")
-async def make_first_user_admin():
-    # Find the first user (by creation date)
-    first_user = await db.users.find_one(sort=[("created_at", 1)])
-    if not first_user:
-        raise HTTPException(status_code=404, detail="No users found")
-    
-    # Make them admin
-    await db.users.update_one(
-        {"_id": first_user["_id"]},
-        {"$set": {"is_admin": True}}
+# Test endpoint to migrate old users and make first user admin
+@api_router.post("/test/migrate-db")
+async def migrate_database():
+    # Add store field to users who don't have it
+    await db.users.update_many(
+        {"store": {"$exists": False}},
+        {"$set": {"store": "Bilinmiyor"}}
     )
     
-    return {"message": f"User {first_user['email']} is now admin"}
+    # Add special_role field to users who don't have it
+    await db.users.update_many(
+        {"special_role": {"$exists": False}},
+        {"$set": {"special_role": None}}
+    )
+    
+    # Make first user admin
+    first_user = await db.users.find_one(sort=[("created_at", 1)])
+    if first_user:
+        await db.users.update_one(
+            {"_id": first_user["_id"]},
+            {"$set": {"is_admin": True}}
+        )
+    
+    return {
+        "message": "Database migrated successfully", 
+        "admin_user": first_user["email"] if first_user else None
+    }
 
 # Statistics Routes (for admin dashboard)
 @api_router.get("/stats")
