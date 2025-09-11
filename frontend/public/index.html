@@ -2161,6 +2161,14 @@
                         </div>
                         <div class="post-content">
                             <div class="post-text">${post.content}</div>
+                            ${post.image_url ? `
+                                <div class="post-media">
+                                    ${post.image_url.startsWith('data:video/') ? 
+                                        `<video src="${post.image_url}" controls style="width:100%;max-height:400px;border-radius:8px;margin-top:10px;"></video>` :
+                                        `<img src="${post.image_url}" alt="Post media" style="width:100%;max-height:400px;object-fit:cover;border-radius:8px;margin-top:10px;">`
+                                    }
+                                </div>
+                            ` : ''}
                         </div>
                         <div class="post-actions">
                             <button class="action-btn like-btn" onclick="togglePostLike('${post._id}')">
