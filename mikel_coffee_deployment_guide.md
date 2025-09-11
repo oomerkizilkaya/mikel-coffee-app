@@ -7,7 +7,7 @@
 - **Gereksinimler:** Modern web tarayıcısı (Chrome, Safari, Firefox, Edge)
 
 ## 🔗 Uygulama Linki
-**Ana URL:** https://employee-register-3.preview.emergentagent.com/
+**Ana URL:** https://mikelstaff.preview.emergentagent.com/
 
 ---
 
@@ -38,7 +38,7 @@
 ### **Yöntem 2: QR Kod İle Kolay Erişim**
 ```
 QR KODU BASTIRILACAK ALAN
-[QR Code for: https://employee-register-3.preview.emergentagent.com/]
+[QR Code for: https://mikelstaff.preview.emergentagent.com/]
 ```
 
 ### **Yöntem 3: Email/WhatsApp Dağıtımı**
@@ -50,7 +50,7 @@ Merhaba [Çalışan Adı],
 
 Mikel Coffee Çalışan Sistemi artık hazır! 🎉
 
-🔗 Uygulama Linki: https://employee-register-3.preview.emergentagent.com/
+🔗 Uygulama Linki: https://mikelstaff.preview.emergentagent.com/
 
 📲 Kurulum Adımları:
 • iPhone: Safari'de aç → Paylaş → Ana Ekrana Ekle

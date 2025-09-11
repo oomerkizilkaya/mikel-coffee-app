@@ -10,7 +10,7 @@ import time
 from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://employee-register-3.preview.emergentagent.com/api"
+BASE_URL = "https://mikelstaff.preview.emergentagent.com/api"
 HEADERS = {"Content-Type": "application/json"}
 
 # Test data

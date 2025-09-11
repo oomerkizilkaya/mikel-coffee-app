@@ -817,7 +817,7 @@
                         store: document.getElementById('store').value.trim() || null
                     };
 
-                const response = await fetch(`https://employee-register-3.preview.emergentagent.com/api/auth/${endpoint}`, {
+                const response = await fetch(`https://mikelstaff.preview.emergentagent.com/api/auth/${endpoint}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(body)
@@ -936,7 +936,7 @@
         async function loadAnnouncements() {
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch('https://employee-register-3.preview.emergentagent.com/api/announcements', {
+                const response = await fetch('https://mikelstaff.preview.emergentagent.com/api/announcements', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (response.ok) {
@@ -1049,7 +1049,7 @@
             
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch('https://employee-register-3.preview.emergentagent.com/api/announcements', {
+                const response = await fetch('https://mikelstaff.preview.emergentagent.com/api/announcements', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1086,7 +1086,7 @@
             
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch('https://employee-register-3.preview.emergentagent.com/api/exam-results', {
+                const response = await fetch('https://mikelstaff.preview.emergentagent.com/api/exam-results', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
@@ -1175,7 +1175,7 @@
             
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch('https://employee-register-3.preview.emergentagent.com/api/users', {
+                const response = await fetch('https://mikelstaff.preview.emergentagent.com/api/users', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
@@ -1246,7 +1246,7 @@
             
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch('https://employee-register-3.preview.emergentagent.com/api/exam-results', {
+                const response = await fetch('https://mikelstaff.preview.emergentagent.com/api/exam-results', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1305,7 +1305,7 @@
         async function exportToExcel() {
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch('https://employee-register-3.preview.emergentagent.com/api/admin/export/users', {
+                const response = await fetch('https://mikelstaff.preview.emergentagent.com/api/admin/export/users', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
@@ -1337,7 +1337,7 @@
             
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch('https://employee-register-3.preview.emergentagent.com/api/users', {
+                const response = await fetch('https://mikelstaff.preview.emergentagent.com/api/users', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
