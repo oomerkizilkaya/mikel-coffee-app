@@ -464,9 +464,8 @@ async def register(user_data: UserRegister):
     # Hash password
     hashed_password = hash_password(user_data.password)
     
-    # Check if this is the first user (admin)
-    user_count = await db.users.count_documents({})
-    is_admin = user_count == 0
+    # Only admins can create admin accounts - no automatic admin
+    is_admin = False
     
     # Create user document
     user_doc = {
