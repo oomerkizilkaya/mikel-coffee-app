@@ -872,6 +872,15 @@ async def update_profile(profile_update: ProfileUpdate, current_user: User = Dep
         profile["_id"] = str(profile["_id"])
     return Profile(**profile)
 
+@api_router.get("/profiles", response_model=List[Profile])
+async def get_all_profiles(current_user: User = Depends(get_current_user)):
+    profiles = await db.profiles.find().to_list(length=None)
+    # Convert ObjectId to string for each profile
+    for profile in profiles:
+        if "_id" in profile:
+            profile["_id"] = str(profile["_id"])
+    return [Profile(**profile) for profile in profiles]
+
 # Include the router in the main app
 app.include_router(api_router)
 
