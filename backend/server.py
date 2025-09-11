@@ -506,13 +506,22 @@ async def delete_announcement(announcement_id: str, current_user: User = Depends
     if not (current_user.is_admin or current_user.position == 'trainer' or current_user.special_role == 'eğitim departmanı'):
         raise HTTPException(status_code=403, detail="Not authorized")
     
-    # Try both _id and id fields for compatibility
-    announcement = await db.announcements.find_one({"$or": [{"_id": announcement_id}, {"id": announcement_id}]})
+    # Try both _id (as ObjectId) and id (as string) fields for compatibility
+    query_conditions = [{"id": announcement_id}]  # UUID field
+    
+    # Try to convert to ObjectId for _id field
+    try:
+        query_conditions.append({"_id": ObjectId(announcement_id)})
+    except:
+        # If not a valid ObjectId, also try as string
+        query_conditions.append({"_id": announcement_id})
+    
+    announcement = await db.announcements.find_one({"$or": query_conditions})
     if not announcement:
         raise HTTPException(status_code=404, detail="Announcement not found")
     
-    # Delete using the same identifier
-    await db.announcements.delete_one({"$or": [{"_id": announcement_id}, {"id": announcement_id}]})
+    # Delete using the same query conditions
+    await db.announcements.delete_one({"$or": query_conditions})
     return {"message": "Announcement deleted"}
 
 # Admin Routes for User Management
