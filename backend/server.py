@@ -329,9 +329,11 @@ async def get_exam_results(employee_id: Optional[str] = None, current_user: User
 # Announcements Routes
 @api_router.post("/announcements", response_model=Announcement)
 async def create_announcement(announcement_data: AnnouncementCreate, current_user: User = Depends(get_current_user)):
-    # Only trainers can create announcements
-    if current_user.position != "trainer" and not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Only trainers can create announcements")
+    # Only trainers and education department can create announcements
+    if (current_user.position != "trainer" and 
+        current_user.special_role != "eğitim departmanı" and 
+        not current_user.is_admin):
+        raise HTTPException(status_code=403, detail="Only trainers and education department can create announcements")
     
     announcement_doc = {
         "title": announcement_data.title,
@@ -366,6 +368,52 @@ async def delete_announcement(announcement_id: str, current_user: User = Depends
     
     await db.announcements.delete_one({"_id": ObjectId(announcement_id)})
     return {"message": "Announcement deleted successfully"}
+
+# Admin Routes for User Management
+@api_router.put("/admin/users/{user_id}/special-role")
+async def assign_special_role(user_id: str, user_update: UserUpdate, current_user: User = Depends(get_current_user)):
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Only admin can assign special roles")
+    
+    # Validate special role
+    if user_update.special_role and user_update.special_role not in SPECIAL_ROLES:
+        raise HTTPException(status_code=400, detail="Invalid special role")
+    
+    # Update user
+    result = await db.users.update_one(
+        {"_id": ObjectId(user_id)},
+        {"$set": {"special_role": user_update.special_role}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Get updated user
+    user = await db.users.find_one({"_id": ObjectId(user_id)}, {"password": 0})
+    if user:
+        user["_id"] = str(user["_id"])
+        return User(**user)
+    
+    raise HTTPException(status_code=404, detail="User not found")
+
+@api_router.get("/admin/stores")
+async def get_stores(current_user: User = Depends(get_current_user)):
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Only admin can view store data")
+    
+    # Get unique stores from users
+    stores = await db.users.distinct("store")
+    
+    # Get statistics for each store
+    store_stats = []
+    for store in stores:
+        employee_count = await db.users.count_documents({"store": store})
+        store_stats.append({
+            "store": store,
+            "employee_count": employee_count
+        })
+    
+    return store_stats
 
 # Statistics Routes (for admin dashboard)
 @api_router.get("/stats")
