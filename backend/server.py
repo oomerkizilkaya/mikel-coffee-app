@@ -146,6 +146,7 @@ class AnnouncementCreate(BaseModel):
     title: str
     content: str
     is_urgent: bool = False
+    image_url: Optional[str] = None
 
 class Token(BaseModel):
     access_token: str
