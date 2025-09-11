@@ -828,15 +828,13 @@ async def toggle_announcement_like(announcement_id: str, current_user: User = De
         return {"liked": True}
 
 @api_router.get("/profile", response_model=Profile)
-async def get_profile(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    current_user = await get_current_user(credentials)
-    
-    profile = await db.profiles.find_one({"user_id": current_user["employee_id"]})
+async def get_profile(current_user: User = Depends(get_current_user)):
+    profile = await db.profiles.find_one({"user_id": current_user.employee_id})
     if not profile:
         # Create default profile
         profile_data = {
             "id": str(uuid.uuid4()),
-            "user_id": current_user["employee_id"],
+            "user_id": current_user.employee_id,
             "profile_image_url": None,
             "bio": None,
             "updated_at": datetime.utcnow()
