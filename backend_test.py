@@ -501,4 +501,7 @@ if __name__ == "__main__":
     summary = tester.run_all_tests()
     
     # Exit with error code if tests failed
-    exit(0 if summary["failed"] == 0 else 1)
+    if summary:
+        exit(0 if summary["failed"] == 0 else 1)
+    else:
+        exit(1)
