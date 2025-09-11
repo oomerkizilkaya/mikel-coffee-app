@@ -1587,38 +1587,58 @@
                     </div>
                 </div>
 
-                <div class="feed">
-                    <div class="profile-section">
-                        <div class="profile-header">
-                            <div class="profile-avatar">${userInitials}</div>
-                            <div class="profile-info">
-                                <div class="profile-name">${currentUser.name} ${currentUser.surname}</div>
-                                <div class="profile-details">
-                                    🏷️ ${currentUser.employee_id} • 💼 ${currentUser.position?.charAt(0).toUpperCase() + currentUser.position?.slice(1)}
-                                    ${currentUser.store ? ` • 🏪 ${currentUser.store}` : ''}
+                <div class="feed-container">
+                    <div class="main-feed">
+                        <div class="profile-section">
+                            <div class="profile-header">
+                                <div class="profile-avatar" onclick="showProfile()">
+                                    <img src="${currentUser.profile_image_url || ''}" alt="Profil" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="avatar-initials" style="display:none;">${userInitials}</div>
                                 </div>
-                                <div class="profile-badges">
-                                    ${currentUser.is_admin ? '<span class="badge admin-badge">Admin</span>' : ''}
-                                    ${currentUser.special_role ? '<span class="badge edu-badge">Eğitim</span>' : ''}
-                                    ${!currentUser.is_admin && !currentUser.special_role ? '<span class="badge employee-badge">Çalışan</span>' : ''}
+                                <div class="profile-info">
+                                    <div class="profile-name">${currentUser.name} ${currentUser.surname}</div>
+                                    <div class="profile-details">
+                                        💼 ${currentUser.position?.charAt(0).toUpperCase() + currentUser.position?.slice(1)}
+                                        ${currentUser.store ? ` • 🏪 ${currentUser.store}` : ''}
+                                    </div>
+                                    <div class="profile-badges">
+                                        ${currentUser.is_admin ? '<span class="badge admin-badge">Admin</span>' : ''}
+                                        ${currentUser.special_role ? '<span class="badge edu-badge">Eğitim</span>' : ''}
+                                        ${!currentUser.is_admin && !currentUser.special_role ? '<span class="badge employee-badge">Çalışan</span>' : ''}
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    ${canPost ? `
-                    <div class="create-post-section">
-                        <textarea class="form-control" id="socialPostContent" placeholder="Ne düşünüyorsun?" maxlength="280"></textarea>
-                        <div class="post-actions-bar">
-                            <input type="file" id="imageUpload" accept="image/*" style="display:none">
-                            <button class="btn-secondary" onclick="document.getElementById('imageUpload').click()">📷 Fotoğraf</button>
-                            <button class="btn" onclick="createSocialPost()">Paylaş</button>
+                        ${canPost ? `
+                        <div class="create-post-section">
+                            <div class="create-post-avatar">
+                                <img src="${currentUser.profile_image_url || ''}" alt="Profil" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <div class="avatar-initials" style="display:none;">${userInitials}</div>
+                            </div>
+                            <div class="create-post-input">
+                                <textarea class="form-control" id="socialPostContent" placeholder="Ne düşünüyorsun?" maxlength="280"></textarea>
+                                <div class="post-actions-bar">
+                                    <input type="file" id="imageUpload" accept="image/*" style="display:none">
+                                    <button class="btn-secondary" onclick="document.getElementById('imageUpload').click()">📷 Fotoğraf</button>
+                                    <button class="btn" onclick="createSocialPost()">Paylaş</button>
+                                </div>
+                            </div>
+                        </div>
+                        ` : ''}
+
+                        <div id="postsContainer">
+                            ${renderSocialPosts()}
                         </div>
                     </div>
-                    ` : ''}
 
-                    <div id="postsContainer">
-                        ${renderSocialPosts()}
+                    <div class="sidebar">
+                        <div class="sidebar-section">
+                            <h3>Çalışan Profilleri</h3>
+                            <div id="usersList">
+                                ${renderUsersList()}
+                            </div>
+                        </div>
                     </div>
                 </div>
 
