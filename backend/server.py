@@ -475,7 +475,9 @@ async def create_announcement(announcement_data: AnnouncementCreate, current_use
         not current_user.is_admin):
         raise HTTPException(status_code=403, detail="Only trainers and education department can create announcements")
     
+    announcement_id = str(uuid.uuid4())
     announcement_doc = {
+        "id": announcement_id,
         "title": announcement_data.title,
         "content": announcement_data.content,
         "is_urgent": announcement_data.is_urgent,
