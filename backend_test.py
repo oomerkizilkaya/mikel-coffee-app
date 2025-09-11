@@ -417,7 +417,19 @@ class BackendTester:
         else:
             self.log_test("All users view announcements", False, "Users failed to view announcements", response["data"])
         
-        # Test 4: Creator can delete announcement
+        # Test 4: Test announcement like functionality
+        if announcement_id:
+            response = self.make_request("POST", f"/announcements/{announcement_id}/like", token=self.tokens.get("barista"))
+            if response["success"]:
+                like_result = response["data"]
+                if "liked" in like_result:
+                    self.log_test("Announcement like functionality", True, f"User successfully liked announcement: {like_result}")
+                else:
+                    self.log_test("Announcement like functionality", False, f"Like response missing 'liked' field: {like_result}")
+            else:
+                self.log_test("Announcement like functionality", False, "Failed to like announcement", response["data"])
+        
+        # Test 5: Creator can delete announcement
         if announcement_id:
             response = self.make_request("DELETE", f"/announcements/{announcement_id}", token=self.tokens.get("admin"))
             if response["success"]:
