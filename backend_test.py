@@ -828,8 +828,15 @@ class BackendTester:
         }
 
 if __name__ == "__main__":
+    import sys
+    
     tester = BackendTester()
-    summary = tester.run_all_tests()
+    
+    # Check if we should run only the profile photo test
+    if len(sys.argv) > 1 and sys.argv[1] == "--profile-photo-only":
+        summary = tester.run_profile_photo_test_only()
+    else:
+        summary = tester.run_all_tests()
     
     # Exit with error code if tests failed
     if summary:
