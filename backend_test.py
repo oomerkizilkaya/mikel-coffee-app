@@ -594,6 +594,10 @@ class BackendTester:
             self.test_exam_results_system()
             self.test_announcements_system()
             
+            # Run new tests for social media features and specific admin user
+            self.test_specific_admin_user()
+            self.test_social_media_features()
+            
         except Exception as e:
             self.log_test("Test Suite Execution", False, f"Critical error during testing: {str(e)}")
         
