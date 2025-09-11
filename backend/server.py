@@ -931,6 +931,31 @@ async def update_my_profile(user_update: UserUpdate, current_user: User = Depend
         updated_user["_id"] = str(updated_user["_id"])
     return User(**updated_user)
 
+@api_router.delete("/admin/users/{employee_id}")
+async def delete_user(employee_id: str, current_user: User = Depends(get_current_user)):
+    # Only admin can delete users
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Only admin can delete users")
+    
+    # Cannot delete yourself
+    if employee_id == current_user.employee_id:
+        raise HTTPException(status_code=400, detail="Cannot delete yourself")
+    
+    # Check if user exists
+    user_to_delete = await db.users.find_one({"employee_id": employee_id})
+    if not user_to_delete:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Delete user and related data
+    await db.users.delete_one({"employee_id": employee_id})
+    await db.profiles.delete_many({"user_id": employee_id})
+    await db.posts.delete_many({"author_id": employee_id})
+    await db.exam_results.delete_many({"employee_id": employee_id})
+    await db.likes.delete_many({"user_id": employee_id})
+    await db.comments.delete_many({"author_id": employee_id})
+    
+    return {"message": f"User {employee_id} and all related data deleted successfully"}
+
 # Include the router in the main app
 app.include_router(api_router)
 
