@@ -2257,7 +2257,7 @@
                                 💬 ${post.comments_count || 0}
                             </button>
                             ${(currentUser.is_admin || post.author_id === currentUser.employee_id) ? `
-                                <button class="action-btn delete-btn" onclick="deletePost('${post._id}')" title="Sil">
+                                <button class="action-btn delete-btn" onclick="deletePost('${post.id || post._id}')" title="Sil">
                                     🗑️
                                 </button>
                             ` : ''}
