@@ -571,7 +571,7 @@
 
 ## test_plan:
   current_focus:
-    - "Profile photo display bug in Ana Sayfa announcements"
+    - "Comprehensive Security Firewall Testing"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
