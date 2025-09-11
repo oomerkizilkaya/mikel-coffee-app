@@ -453,6 +453,129 @@ class BackendTester:
         else:
             self.log_test("Password hashing verification", False, "Password hashing/verification failed", response["data"])
 
+    def test_specific_admin_user(self):
+        """Test specific admin user registration and login as requested"""
+        print("\n=== Testing Specific Admin User (admin@mikelcoffee.com) ===")
+        
+        # Test 1: Register specific admin user
+        admin_data = {
+            "name": "Admin",
+            "surname": "User", 
+            "email": "admin@mikelcoffee.com",
+            "password": "admin123",
+            "position": "trainer",
+            "store": "merkez"
+        }
+        
+        response = self.make_request("POST", "/auth/register", admin_data)
+        if response["success"]:
+            self.tokens["specific_admin"] = response["data"]["access_token"]
+            self.users["specific_admin"] = response["data"]["user"]
+            user = response["data"]["user"]
+            
+            if user["name"] == "Admin" and user["surname"] == "User" and user["store"] == "merkez":
+                self.log_test("Specific admin registration", True, f"Admin user registered successfully with employee ID {user['employee_id']}")
+            else:
+                self.log_test("Specific admin registration", False, f"Admin user data incorrect: {user}")
+        else:
+            self.log_test("Specific admin registration", False, "Failed to register specific admin user", response["data"])
+            return
+        
+        # Test 2: Login with specific admin credentials
+        login_data = {
+            "email": "admin@mikelcoffee.com",
+            "password": "admin123"
+        }
+        
+        response = self.make_request("POST", "/auth/login", login_data)
+        if response["success"]:
+            token = response["data"]["access_token"]
+            user = response["data"]["user"]
+            
+            if token and user["email"] == "admin@mikelcoffee.com" and user["position"] == "trainer":
+                self.log_test("Specific admin login", True, "Admin user login successful with correct JWT token and user data")
+                # Store token for social media tests
+                self.tokens["social_admin"] = token
+            else:
+                self.log_test("Specific admin login", False, "Admin login response missing required data")
+        else:
+            self.log_test("Specific admin login", False, "Admin login failed", response["data"])
+
+    def test_social_media_features(self):
+        """Test new social media endpoints"""
+        print("\n=== Testing Social Media Features ===")
+        
+        # Use the specific admin token for social media tests
+        admin_token = self.tokens.get("social_admin") or self.tokens.get("specific_admin") or self.tokens.get("admin")
+        
+        # Test 1: GET /api/posts (should return empty array initially)
+        response = self.make_request("GET", "/posts", token=admin_token)
+        if response["success"]:
+            posts = response["data"]
+            if isinstance(posts, list):
+                self.log_test("GET posts endpoint", True, f"Posts endpoint returned array with {len(posts)} posts")
+            else:
+                self.log_test("GET posts endpoint", False, f"Expected array, got: {type(posts)}")
+        else:
+            self.log_test("GET posts endpoint", False, "Failed to get posts", response["data"])
+        
+        # Test 2: POST /api/posts (create a test post)
+        post_data = {
+            "content": "Bu harika bir kahve deneyimi! Mikel Coffee'de çalışmak çok keyifli. ☕️",
+            "image_url": "https://example.com/coffee-image.jpg"
+        }
+        
+        response = self.make_request("POST", "/posts", post_data, token=admin_token)
+        post_id = None
+        if response["success"]:
+            post = response["data"]
+            post_id = post.get("id") or post.get("_id")
+            if post["content"] == post_data["content"] and post_id:
+                self.log_test("POST create post", True, f"Post created successfully with ID: {post_id}")
+            else:
+                self.log_test("POST create post", False, f"Post data incorrect: {post}")
+        else:
+            self.log_test("POST create post", False, "Failed to create post", response["data"])
+        
+        # Test 3: POST /api/posts/{post_id}/like (test like functionality)
+        if post_id:
+            response = self.make_request("POST", f"/posts/{post_id}/like", token=admin_token)
+            if response["success"]:
+                like_result = response["data"]
+                if "liked" in like_result:
+                    self.log_test("POST like post", True, f"Post like functionality working: {like_result}")
+                else:
+                    self.log_test("POST like post", False, f"Like response missing 'liked' field: {like_result}")
+            else:
+                self.log_test("POST like post", False, "Failed to like post", response["data"])
+        
+        # Test 4: GET /api/profile (test profile endpoint)
+        response = self.make_request("GET", "/profile", token=admin_token)
+        if response["success"]:
+            profile = response["data"]
+            if "user_id" in profile:
+                self.log_test("GET profile endpoint", True, f"Profile endpoint working, user_id: {profile['user_id']}")
+            else:
+                self.log_test("GET profile endpoint", False, f"Profile missing user_id: {profile}")
+        else:
+            self.log_test("GET profile endpoint", False, "Failed to get profile", response["data"])
+        
+        # Test 5: PUT /api/profile (test profile update)
+        profile_update = {
+            "bio": "Mikel Coffee'de trainer olarak çalışıyorum. Kahve tutkunu! ☕️",
+            "profile_image_url": "https://example.com/admin-avatar.jpg"
+        }
+        
+        response = self.make_request("PUT", "/profile", profile_update, token=admin_token)
+        if response["success"]:
+            updated_profile = response["data"]
+            if updated_profile["bio"] == profile_update["bio"]:
+                self.log_test("PUT profile update", True, "Profile updated successfully")
+            else:
+                self.log_test("PUT profile update", False, f"Profile update failed: {updated_profile}")
+        else:
+            self.log_test("PUT profile update", False, "Failed to update profile", response["data"])
+
     def run_all_tests(self):
         """Run all test suites"""
         print("🚀 Starting Comprehensive Backend Testing for Corporate Coffee Employee Registration System")
