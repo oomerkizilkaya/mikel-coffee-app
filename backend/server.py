@@ -769,9 +769,7 @@ async def create_comment(post_id: str, comment: CommentCreate, current_user: Use
     return Comment(**comment_data)
 
 @api_router.get("/posts/{post_id}/comments", response_model=List[Comment])
-async def get_comments(post_id: str, credentials: HTTPAuthorizationCredentials = Depends(security)):
-    current_user = await get_current_user(credentials)
-    
+async def get_comments(post_id: str, current_user: User = Depends(get_current_user)):
     comments = await db.comments.find({"post_id": post_id}).sort("created_at", 1).to_list(length=None)
     return [Comment(**comment) for comment in comments]
 
