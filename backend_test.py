@@ -969,6 +969,9 @@ class BackendTester:
             self.test_specific_admin_user()
             self.test_social_media_features()
             
+            # Run the Make Admin functionality test
+            self.test_make_admin_functionality()
+            
             # Run the specific profile photo visibility test
             self.test_profile_photo_visibility_issue()
             
