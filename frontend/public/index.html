@@ -2000,8 +2000,10 @@
                         ${canPost ? `
                         <div class="create-post-section">
                             <div class="create-post-avatar">
-                                <img src="${currentUser.profile_image_url || ''}" alt="Profil" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                <div class="avatar-initials" style="display:none;">${userInitials}</div>
+                                ${userMap_global[currentUser.employee_id]?.profile_image_url ? 
+                                    `<img src="${userMap_global[currentUser.employee_id].profile_image_url}" alt="Profil" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` :
+                                    `<div class="avatar-initials">${userInitials}</div>`
+                                }
                             </div>
                             <div class="create-post-input">
                                 <textarea class="form-control" id="socialPostContent" placeholder="Ne düşünüyorsun?" maxlength="280"></textarea>
