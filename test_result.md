@@ -620,6 +620,7 @@
   test_priority: "high_first"
   completed_urgent:
     - "Profile photo visibility in announcements backend verification"
+    - "Make Admin Button Functionality"
 
 ## agent_communication:
   - agent: "main"
