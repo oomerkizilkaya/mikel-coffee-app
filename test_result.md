@@ -511,12 +511,9 @@
 
 ## test_plan:
   current_focus:
-    - "Post deletion fix testing"
-    - "Profile edit access fix testing"
-    - "Profile photo display fix testing"
-    - "Names everywhere fix testing"
-    - "Profile photo integration testing"
-  stuck_tasks: []
+    - "Complete Profile Edit System"
+  stuck_tasks:
+    - "Complete Profile Edit System"
   test_all: false
   test_priority: "high_first"
 
