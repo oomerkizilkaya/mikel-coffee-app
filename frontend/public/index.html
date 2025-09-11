@@ -429,10 +429,10 @@
                             </div>
                             ` : ''}
                             
-                            ${user.is_admin ? `
+                            ${(user.is_admin || user.special_role === 'eğitim departmanı') ? `
                             <div class="menu-item admin-item" onclick="showAdminPanel()">
-                                <h3>⚙️ Yönetici Paneli</h3>
-                                <p>Sistem yönetimi</p>
+                                <h3>⚙️ Çalışan Yönetimi</h3>
+                                <p>Çalışanları görüntüle ve düzenle</p>
                             </div>
                             ` : ''}
                         </div>
