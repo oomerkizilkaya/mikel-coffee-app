@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Mikel Coffee - Çalışan Sistemi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #F5E6D3;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: #8B4513;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+            margin-bottom: 0;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .logo {
+            width: 50px;
+            height: 50px;
+            border-radius: 25px;
+            margin: 0 auto 10px;
+            background: white;
+            display: block;
+        }
+        
+        .form-container {
+            background: white;
+            padding: 30px;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        
+        .tabs {
+            display: flex;
+            background: #f0f0f0;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            padding: 4px;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            border-radius: 6px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 16px;
+            color: #666;
+            transition: all 0.2s;
+        }
+        
+        .tab.active {
+            background: #8B4513;
+            color: white;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            background: #fafafa;
+            transition: all 0.2s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #8B4513;
+            background: white;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: #8B4513;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover {
+            background: #654321;
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .register-fields {
+            display: none;
+        }
+        
+        .register-fields.active {
+            display: block;
+        }
+        
+        .error {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        .success {
+            color: #28a745;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        
+        .position-list {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            background: white;
+        }
+        
+        .position-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .position-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .position-item:last-child {
+            border-bottom: none;
+        }
+        
+        .position-item.selected {
+            background: #8B4513;
+            color: white;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .form-container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://customer-assets.emergentagent.com/job_0f64345d-2f6b-41c8-af15-208e01ade896/artifacts/fwptedkg_M%C4%B0KEL%20LOGOSU.png" 
+                 alt="Mikel Coffee" class="logo">
+            <h1>Mikel Coffee</h1>
+            <p>Çalışan Sistemi</p>
+        </div>
+        
+        <div class="form-container">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('login')">Giriş Yap</button>
+                <button class="tab" onclick="switchTab('register')">Kayıt Ol</button>
+            </div>
+            
+            <form id="authForm">
+                <div class="register-fields">
+                    <div class="form-group">
+                        <label>Adınız</label>
+                        <input type="text" class="form-control" id="name" placeholder="Adınız">
+                    </div>
+                    <div class="form-group">
+                        <label>Soyadınız</label>
+                        <input type="text" class="form-control" id="surname" placeholder="Soyadınız">
+                    </div>
+                    <div class="form-group">
+                        <label>Mağaza</label>
+                        <input type="text" class="form-control" id="store" placeholder="Hangi mağaza (örn: Kadıköy, Merkez)">
+                    </div>
+                    <div class="form-group">
+                        <label>Pozisyon</label>
+                        <input type="text" class="form-control" id="position" placeholder="Pozisyonunuzu seçin" readonly onclick="togglePositions()">
+                        <div class="position-list" id="positionList" style="display:none;">
+                            <div class="position-item" onclick="selectPosition('servis personeli')">Servis Personeli</div>
+                            <div class="position-item" onclick="selectPosition('barista')">Barista</div>
+                            <div class="position-item" onclick="selectPosition('supervizer')">Supervizer</div>
+                            <div class="position-item" onclick="selectPosition('müdür yardımcısı')">Müdür Yardımcısı</div>
+                            <div class="position-item" onclick="selectPosition('mağaza müdürü')">Mağaza Müdürü</div>
+                            <div class="position-item" onclick="selectPosition('trainer')">Trainer</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>E-posta</label>
+                    <input type="email" class="form-control" id="email" placeholder="E-posta adresiniz" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Şifre</label>
+                    <input type="password" class="form-control" id="password" placeholder="Şifreniz" required>
+                </div>
+                
+                <button type="submit" class="btn" id="submitBtn">Giriş Yap</button>
+                <div id="message"></div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let isLoginMode = true;
+        let selectedPosition = '';
+
+        function switchTab(mode) {
+            isLoginMode = (mode === 'login');
+            const tabs = document.querySelectorAll('.tab');
+            const registerFields = document.querySelector('.register-fields');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (isLoginMode) {
+                registerFields.classList.remove('active');
+                submitBtn.textContent = 'Giriş Yap';
+            } else {
+                registerFields.classList.add('active');
+                submitBtn.textContent = 'Kayıt Ol';
+            }
+        }
+
+        function togglePositions() {
+            const positionList = document.getElementById('positionList');
+            positionList.style.display = positionList.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function selectPosition(position) {
+            selectedPosition = position;
+            document.getElementById('position').value = position.charAt(0).toUpperCase() + position.slice(1);
+            document.getElementById('positionList').style.display = 'none';
+        }
+
+        document.getElementById('authForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const messageDiv = document.getElementById('message');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            if (!email || !password) {
+                showMessage('E-posta ve şifre alanları zorunludur', 'error');
+                return;
+            }
+            
+            if (!isLoginMode) {
+                const name = document.getElementById('name').value.trim();
+                const surname = document.getElementById('surname').value.trim();
+                const store = document.getElementById('store').value.trim();
+                
+                if (!name || !surname || !selectedPosition || !store) {
+                    showMessage('Tüm alanları doldurunuz', 'error');
+                    return;
+                }
+            }
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'İşleniyor...';
+            
+            try {
+                const endpoint = isLoginMode ? 'login' : 'register';
+                const body = isLoginMode 
+                    ? { email: email.toLowerCase(), password }
+                    : {
+                        email: email.toLowerCase(),
+                        password,
+                        name: document.getElementById('name').value.trim(),
+                        surname: document.getElementById('surname').value.trim(),
+                        position: selectedPosition,
+                        store: document.getElementById('store').value.trim()
+                    };
+
+                const response = await fetch(`https://employee-register-3.preview.emergentagent.com/api/auth/${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('auth_token', data.access_token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    showMessage(isLoginMode 
+                        ? `Hoş geldiniz, ${data.user.name} ${data.user.surname}!`
+                        : `Kayıt başarılı! Sicil numaranız: ${data.user.employee_id}`, 'success');
+                    
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                } else {
+                    showMessage(data.detail || 'Bir hata oluştu', 'error');
+                }
+            } catch (error) {
+                showMessage('Bağlantı hatası. Lütfen tekrar deneyin.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = isLoginMode ? 'Giriş Yap' : 'Kayıt Ol';
+            }
+        });
+
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.innerHTML = `<div class="${type}">${text}</div>`;
+            setTimeout(() => messageDiv.innerHTML = '', 5000);
+        }
+
+        // Check if user is already logged in
+        window.onload = function() {
+            const token = localStorage.getItem('auth_token');
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            
+            if (token && user.name) {
+                document.body.innerHTML = `
+                    <div class="container">
+                        <div class="header">
+                            <img src="https://customer-assets.emergentagent.com/job_0f64345d-2f6b-41c8-af15-208e01ade896/artifacts/fwptedkg_M%C4%B0KEL%20LOGOSU.png" 
+                                 alt="Mikel Coffee" class="logo">
+                            <h1>Mikel Coffee</h1>
+                            <p>Çalışan Sistemi</p>
+                        </div>
+                        <div class="form-container">
+                            <h2 style="color: #8B4513; margin-bottom: 20px;">Hoş Geldiniz!</h2>
+                            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                                <p><strong>${user.name} ${user.surname}</strong></p>
+                                <p>Sicil No: ${user.employee_id}</p>
+                                <p>Pozisyon: ${user.position}</p>
+                                <p>Mağaza: ${user.store || 'Bilinmiyor'}</p>
+                                ${user.is_admin ? '<p style="color: red; font-weight: bold;">YÖNETİCİ</p>' : ''}
+                                ${user.special_role ? '<p style="color: blue; font-weight: bold;">Eğitim Departmanı</p>' : ''}
+                            </div>
+                            <button class="btn" onclick="logout()" style="background: #dc3545;">Çıkış Yap</button>
+                            <div style="margin-top: 20px; text-align: center;">
+                                <p style="color: #666; font-size: 14px;">Daha fazla özellik için mobil uygulamayı ana ekranınıza ekleyin</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        };
+
+        function logout() {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user');
+            window.location.reload();
+        }
+    </script>
+</body>
+</html>
