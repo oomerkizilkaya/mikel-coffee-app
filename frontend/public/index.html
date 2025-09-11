@@ -1720,6 +1720,10 @@
                 const statusColor = result.passed ? '#4CAF50' : '#FF5722';
                 const statusText = result.passed ? 'GEÇTİ' : 'KALDI';
                 
+                // Get user info from userMap
+                const user = userMap_global[result.employee_id];
+                const userName = user ? `${user.name} ${user.surname}` : 'Bilinmeyen Kullanıcı';
+                
                 return `
                     <div style="border: 1px solid #DBDBDB; border-radius: 8px; padding: 16px; margin-bottom: 12px; border-left: 4px solid ${statusColor};">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -1735,6 +1739,18 @@
                                 ${statusText}
                             </span>
                         </div>
+                        
+                        <div style="background: #F8F9FA; border-radius: 6px; padding: 12px; margin-bottom: 12px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                <span style="font-size: 14px; color: #495057;">👤 Öğrenci:</span>
+                                <strong style="color: #262626;">${userName}</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="font-size: 14px; color: #495057;">🏷️ Sicil No:</span>
+                                <strong style="color: #262626;">${result.employee_id}</strong>
+                            </div>
+                        </div>
+                        
                         <div style="background: #FAFAFA; border-radius: 6px; padding: 12px;">
                             <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
                                 <span style="font-size: 14px;">Puan:</span>
