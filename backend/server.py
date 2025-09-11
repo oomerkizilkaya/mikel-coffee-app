@@ -941,18 +941,31 @@ async def get_statistics(current_user: User = Depends(get_current_user)):
 # Social Media Endpoints
 
 @api_router.post("/posts", response_model=Post)
-async def create_post(post: PostCreate, current_user: User = Depends(get_current_user)):
+async def create_post(post: PostCreate, request: Request, current_user: User = Depends(get_current_user)):
+    # Input validation and sanitization
+    content = input_validator.sanitize_input(post.content.strip()) if post.content else ""
+    
+    if not content and not post.image_url:
+        raise HTTPException(status_code=400, detail="Content or media is required")
+    
+    if content and not input_validator.validate_content_size(content):
+        raise HTTPException(status_code=413, detail="Content too large")
+    
     post_data = {
         "_id": str(uuid.uuid4()),
         "author_id": current_user.employee_id,
-        "content": post.content,
-        "image_url": post.image_url,
+        "content": content,
+        "image_url": input_validator.sanitize_input(post.image_url) if post.image_url else None,
         "created_at": datetime.utcnow(),
         "likes_count": 0,
         "comments_count": 0
     }
     
     await db.posts.insert_one(post_data)
+    
+    # Security logging
+    print(f"🔐 SECURITY LOG - Post created by: {current_user.email} from IP: {request.client.host}")
+    
     return Post(**post_data)
 
 @api_router.get("/posts", response_model=List[Post])
