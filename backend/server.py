@@ -69,6 +69,7 @@ class UserRegister(BaseModel):
     email: EmailStr
     password: str
     position: str
+    store: str
 
     class Config:
         json_encoders = {
@@ -86,6 +87,8 @@ class User(BaseModel):
     surname: str
     email: EmailStr
     position: str
+    store: str
+    special_role: Optional[str] = None  # "eğitim departmanı" or None
     is_admin: bool = False
     created_at: datetime = Field(default_factory=datetime.utcnow)
     
@@ -94,6 +97,9 @@ class User(BaseModel):
         json_encoders = {
             ObjectId: str
         }
+
+class UserUpdate(BaseModel):
+    special_role: Optional[str] = None
 
 class ExamResult(BaseModel):
     id: Optional[str] = Field(alias="_id")
