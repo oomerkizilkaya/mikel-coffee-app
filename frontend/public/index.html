@@ -1962,6 +1962,13 @@
                                             ${user.special_role ? ' • <span style="color: #405DE6; font-weight: 600;">🎓 Eğitim</span>' : ''}
                                         </div>
                                     </div>
+                                    <div class="user-actions">
+                                        ${user.employee_id !== currentUser.employee_id ? `
+                                            <button class="action-btn delete-btn" onclick="deleteUser('${user.employee_id}', '${user.name} ${user.surname}')" title="Çalışanı Sil">
+                                                🗑️
+                                            </button>
+                                        ` : '<span style="color: #8E8E8E; font-size: 12px;">Kendinizi silemezsiniz</span>'}
+                                    </div>
                                 </div>
                             `;
                         }).join('')}
