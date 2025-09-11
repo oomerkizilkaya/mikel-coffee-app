@@ -1544,11 +1544,47 @@
             }
         }
 
-        function showSocialFeed() {
-            // Bu akışta kullanıcıların kendi gönderilerini görebilecekleri alan
-            document.getElementById('modalTitle').textContent = 'Sosyal Akış';
-            document.getElementById('modalBody').innerHTML = `
-                <div class="social-feed">
+        async function showSocialFeed() {
+            await loadSocialPosts(); // Load posts first
+            
+            const userInitials = (currentUser.name?.[0] || '') + (currentUser.surname?.[0] || '');
+            const canPost = currentUser.is_admin || currentUser.position === 'trainer' || currentUser.special_role === 'eğitim departmanı';
+            
+            document.getElementById('app').innerHTML = `
+                <div class="header">
+                    <div class="header-content">
+                        <div class="logo-section">
+                            <img src="https://customer-assets.emergentagent.com/job_0f64345d-2f6b-41c8-af15-208e01ade896/artifacts/fwptedkg_M%C4%B0KEL%20LOGOSU.png" 
+                                 alt="Mikel Coffee" class="logo">
+                            <div class="brand-name">Mikel Coffee</div>
+                        </div>
+                        <div class="header-actions">
+                            <button class="logout-btn" onclick="showProfile()" title="Profil">👤</button>
+                            <button class="logout-btn" onclick="logout()" title="Çıkış">🚪</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feed">
+                    <div class="profile-section">
+                        <div class="profile-header">
+                            <div class="profile-avatar">${userInitials}</div>
+                            <div class="profile-info">
+                                <div class="profile-name">${currentUser.name} ${currentUser.surname}</div>
+                                <div class="profile-details">
+                                    🏷️ ${currentUser.employee_id} • 💼 ${currentUser.position?.charAt(0).toUpperCase() + currentUser.position?.slice(1)}
+                                    ${currentUser.store ? ` • 🏪 ${currentUser.store}` : ''}
+                                </div>
+                                <div class="profile-badges">
+                                    ${currentUser.is_admin ? '<span class="badge admin-badge">Admin</span>' : ''}
+                                    ${currentUser.special_role ? '<span class="badge edu-badge">Eğitim</span>' : ''}
+                                    ${!currentUser.is_admin && !currentUser.special_role ? '<span class="badge employee-badge">Çalışan</span>' : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    ${canPost ? `
                     <div class="create-post-section">
                         <textarea class="form-control" id="socialPostContent" placeholder="Ne düşünüyorsun?" maxlength="280"></textarea>
                         <div class="post-actions-bar">
@@ -1557,11 +1593,56 @@
                             <button class="btn" onclick="createSocialPost()">Paylaş</button>
                         </div>
                     </div>
-                    <div id="socialPosts">Yükleniyor...</div>
+                    ` : ''}
+
+                    <div id="postsContainer">
+                        ${renderSocialPosts()}
+                    </div>
+                </div>
+
+                <div class="bottom-nav">
+                    <div class="nav-item" onclick="showFeed()">
+                        <div class="nav-icon">🏠</div>
+                        <div class="nav-label">Ana Sayfa</div>
+                    </div>
+                    <div class="nav-item active" onclick="showSocialFeed()">
+                        <div class="nav-icon">💬</div>
+                        <div class="nav-label">Akış</div>
+                    </div>
+                    <div class="nav-item" onclick="showExamResults()">
+                        <div class="nav-icon">📊</div>
+                        <div class="nav-label">Sınavlar</div>
+                    </div>
+                    ${(currentUser.position === 'barista' || currentUser.position === 'supervizer') ? `
+                    <div class="nav-item" onclick="showManagementExam()">
+                        <div class="nav-icon">🎯</div>
+                        <div class="nav-label">Yönetim</div>
+                    </div>
+                    ` : ''}
+                    ${canPost ? `
+                    <div class="nav-item" onclick="showExamEntry()">
+                        <div class="nav-icon">📝</div>
+                        <div class="nav-label">Sınav</div>
+                    </div>
+                    ` : ''}
+                    ${(currentUser.is_admin || currentUser.special_role === 'eğitim departmanı') ? `
+                    <div class="nav-item" onclick="showUserManagement()">
+                        <div class="nav-icon">👥</div>
+                        <div class="nav-label">Çalışanlar</div>
+                    </div>
+                    ` : ''}
+                </div>
+
+                <div id="modalOverlay" class="modal-overlay" style="display: none;" onclick="closeModal()">
+                    <div class="modal-content" onclick="event.stopPropagation()">
+                        <div class="modal-header">
+                            <div class="modal-title" id="modalTitle"></div>
+                            <button onclick="closeModal()" class="close-btn">✕</button>
+                        </div>
+                        <div id="modalBody" class="modal-body"></div>
+                    </div>
                 </div>
             `;
-            document.getElementById('modalOverlay').style.display = 'flex';
-            loadSocialPosts();
         }
 
         async function createSocialPost() {
