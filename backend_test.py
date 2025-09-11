@@ -995,6 +995,20 @@ class BackendTester:
         # Print summary
         self.print_summary()
     
+    def run_make_admin_test_only(self):
+        """Run only the Make Admin functionality test"""
+        print("👑 Running Make Admin Functionality Test Only")
+        print(f"🌐 Testing against: {self.base_url}")
+        print("=" * 80)
+        
+        try:
+            self.test_make_admin_functionality()
+        except Exception as e:
+            self.log_test("Make Admin Test", False, f"Critical error during testing: {str(e)}")
+        
+        # Print summary
+        self.print_summary()
+    
     def print_summary(self):
         """Print test results summary"""
         print("\n" + "=" * 80)
