@@ -182,7 +182,7 @@ export default function Index() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#8B4513" />
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Kahve Şirketi</Text>
+        <Text style={styles.headerTitle}>Mikel Coffee</Text>
         <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
           <Text style={styles.logoutButtonText}>Çıkış</Text>
         </TouchableOpacity>
