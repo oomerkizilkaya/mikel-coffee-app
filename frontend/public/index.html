@@ -2722,8 +2722,17 @@
                 if (response.ok) {
                     showToast('Duyuru silindi! 🗑️');
                     await loadAnnouncements();
-                    // Re-render posts
-                    document.getElementById('postsContainer').innerHTML = renderPosts();
+                    // Re-render posts in all containers
+                    const postsContainer = document.getElementById('postsContainer');
+                    if (postsContainer) {
+                        postsContainer.innerHTML = renderPosts();
+                    }
+                    
+                    // Check if we're on homepage and refresh
+                    const homePostsContainer = document.querySelector('.feed .posts-container');
+                    if (homePostsContainer) {
+                        homePostsContainer.innerHTML = renderPosts();
+                    }
                 } else {
                     showToast('Silme hatası');
                 }
