@@ -1038,7 +1038,7 @@ async def update_my_profile(user_update: UserUpdate, current_user: User = Depend
     if user_update.surname is not None:
         update_data["surname"] = user_update.surname
     if user_update.position is not None:
-        if user_update.position not in ALLOWED_POSITIONS:
+        if user_update.position not in POSITIONS:
             raise HTTPException(status_code=400, detail="Invalid position")
         update_data["position"] = user_update.position
     if user_update.store is not None:
