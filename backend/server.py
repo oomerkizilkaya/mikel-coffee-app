@@ -436,10 +436,19 @@ async def migrate_database():
             {"$set": {"is_admin": True}}
         )
     
-    return {
-        "message": "Database migrated successfully", 
-        "admin_user": first_user["email"] if first_user else None
-    }
+# Test endpoint to make specific user admin
+@api_router.post("/test/make-admin/{user_email}")
+async def make_user_admin(user_email: str):
+    user = await db.users.find_one({"email": user_email})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    await db.users.update_one(
+        {"_id": user["_id"]},
+        {"$set": {"is_admin": True}}
+    )
+    
+    return {"message": f"User {user_email} is now admin"}
 
 # Statistics Routes (for admin dashboard)
 @api_router.get("/stats")
