@@ -1199,6 +1199,56 @@ async def delete_user(employee_id: str, current_user: User = Depends(get_current
     
     return {"message": f"User {employee_id} and all related data deleted successfully"}
 
+class AdminStatusUpdate(BaseModel):
+    is_admin: bool
+    reason: Optional[str] = None
+
+@api_router.put("/admin/users/{employee_id}/admin-status")
+async def update_admin_status(
+    employee_id: str, 
+    admin_update: AdminStatusUpdate, 
+    request: Request,
+    current_user: User = Depends(get_current_user)
+):
+    # Only admin can grant or revoke admin privileges
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Only existing admins can grant or revoke admin privileges")
+    
+    # Cannot modify your own admin status
+    if employee_id == current_user.employee_id:
+        raise HTTPException(status_code=400, detail="Cannot modify your own admin status")
+    
+    # Check if target user exists
+    target_user = await db.users.find_one({"employee_id": employee_id})
+    if not target_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Input validation
+    reason = input_validator.sanitize_input(admin_update.reason) if admin_update.reason else None
+    
+    # Update admin status
+    await db.users.update_one(
+        {"employee_id": employee_id},
+        {"$set": {"is_admin": admin_update.is_admin}}
+    )
+    
+    # Security logging
+    action = "granted" if admin_update.is_admin else "revoked"
+    print(f"🔐 SECURITY LOG - Admin privileges {action} for user: {employee_id} by admin: {current_user.email} from IP: {request.client.host}")
+    if reason:
+        print(f"🔐 SECURITY LOG - Reason: {reason}")
+    
+    # Get updated user
+    updated_user = await db.users.find_one({"employee_id": employee_id})
+    updated_user["_id"] = str(updated_user["_id"])
+    
+    return {
+        "message": f"Admin privileges {action} successfully",
+        "user": User(**updated_user),
+        "action_by": current_user.email,
+        "reason": reason
+    }
+
 # Include the router in the main app
 app.include_router(api_router)
 
