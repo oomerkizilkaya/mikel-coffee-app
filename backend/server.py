@@ -215,8 +215,6 @@ class Profile(BaseModel):
 class ProfileUpdate(BaseModel):
     profile_image_url: Optional[str] = None
     bio: Optional[str] = None
-    token_type: str
-    user: User
 
 # Helper Functions
 def hash_password(password: str) -> str:
