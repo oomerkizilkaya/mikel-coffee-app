@@ -1431,6 +1431,11 @@
                             <button class="action-btn like-btn" onclick="toggleAnnouncementLike('${announcement.id}')">
                                 ❤️ ${announcement.likes_count || 0}
                             </button>
+                            ${(currentUser.is_admin || currentUser.special_role === 'eğitim departmanı' || announcement.created_by === currentUser.employee_id) ? `
+                                <button class="action-btn delete-btn" onclick="deleteAnnouncement('${announcement.id}')" title="Sil">
+                                    🗑️
+                                </button>
+                            ` : ''}
                         </div>
                     </div>
                 `;
