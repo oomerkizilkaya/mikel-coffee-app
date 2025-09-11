@@ -305,6 +305,9 @@ async def get_exam_results(employee_id: Optional[str] = None, current_user: User
         query["employee_id"] = employee_id
     
     results = await db.exam_results.find(query).sort("exam_date", -1).to_list(1000)
+    # Convert ObjectId to string for each result
+    for result in results:
+        result["_id"] = str(result["_id"])
     return [ExamResult(**result) for result in results]
 
 # Announcements Routes
