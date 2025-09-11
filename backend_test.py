@@ -770,8 +770,25 @@ class BackendTester:
             self.test_specific_admin_user()
             self.test_social_media_features()
             
+            # Run the specific profile photo visibility test
+            self.test_profile_photo_visibility_issue()
+            
         except Exception as e:
             self.log_test("Test Suite Execution", False, f"Critical error during testing: {str(e)}")
+        
+        # Print summary
+        self.print_summary()
+
+    def run_profile_photo_test_only(self):
+        """Run only the profile photo visibility test"""
+        print("🔍 Running Profile Photo Visibility Test Only")
+        print(f"🌐 Testing against: {self.base_url}")
+        print("=" * 80)
+        
+        try:
+            self.test_profile_photo_visibility_issue()
+        except Exception as e:
+            self.log_test("Profile Photo Test", False, f"Critical error during testing: {str(e)}")
         
         # Print summary
         self.print_summary()
