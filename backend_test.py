@@ -578,6 +578,178 @@ class BackendTester:
         else:
             self.log_test("PUT profile update", False, "Failed to update profile", response["data"])
 
+    def test_profile_photo_visibility_issue(self):
+        """Test the specific profile photo visibility issue reported"""
+        print("\n=== Testing Profile Photo Visibility Issue ===")
+        
+        # Step 1: Create admin user as requested
+        admin_data = {
+            "name": "Admin",
+            "surname": "User",
+            "email": "admin@mikelcoffee.com",
+            "password": "admin123",
+            "position": "trainer",
+            "store": "merkez"
+        }
+        
+        response = self.make_request("POST", "/auth/register", admin_data)
+        admin_token = None
+        if response["success"]:
+            admin_token = response["data"]["access_token"]
+            user = response["data"]["user"]
+            self.log_test("STEP 1: Create admin user", True, f"Admin user created with employee ID: {user['employee_id']}")
+        else:
+            # Try login if user already exists
+            login_data = {
+                "email": "admin@mikelcoffee.com",
+                "password": "admin123"
+            }
+            response = self.make_request("POST", "/auth/login", login_data)
+            if response["success"]:
+                admin_token = response["data"]["access_token"]
+                user = response["data"]["user"]
+                self.log_test("STEP 1: Login existing admin", True, f"Logged in as existing admin with ID: {user['employee_id']}")
+            else:
+                self.log_test("STEP 1: Create/Login admin", False, "Failed to create or login admin user", response["data"])
+                return
+        
+        if not admin_token:
+            self.log_test("STEP 1: Admin token", False, "No admin token available")
+            return
+        
+        # Step 2: Create test announcement
+        announcement_data = {
+            "title": "Test Profile Photo",
+            "content": "Testing if profile photos appear in announcements",
+            "is_urgent": False
+        }
+        
+        response = self.make_request("POST", "/announcements", announcement_data, token=admin_token)
+        announcement_id = None
+        if response["success"]:
+            announcement = response["data"]
+            announcement_id = announcement.get("id") or announcement.get("_id")
+            self.log_test("STEP 2: Create test announcement", True, f"Test announcement created with ID: {announcement_id}")
+        else:
+            self.log_test("STEP 2: Create test announcement", False, "Failed to create test announcement", response["data"])
+        
+        # Step 3: Upload profile photo with base64 image
+        # Using a small test base64 image (1x1 pixel PNG)
+        test_base64_image = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
+        
+        profile_update = {
+            "profile_image_url": test_base64_image,
+            "bio": "Admin user testing profile photos"
+        }
+        
+        response = self.make_request("PUT", "/profile", profile_update, token=admin_token)
+        if response["success"]:
+            updated_profile = response["data"]
+            if updated_profile.get("profile_image_url") == test_base64_image:
+                self.log_test("STEP 3: Upload profile photo", True, "Profile photo uploaded successfully with base64 data")
+            else:
+                self.log_test("STEP 3: Upload profile photo", False, f"Profile photo not saved correctly: {updated_profile.get('profile_image_url', 'None')[:50]}...")
+        else:
+            self.log_test("STEP 3: Upload profile photo", False, "Failed to upload profile photo", response["data"])
+        
+        # Step 4: Test profile photo visibility - GET /api/announcements
+        response = self.make_request("GET", "/announcements", token=admin_token)
+        if response["success"]:
+            announcements = response["data"]
+            if isinstance(announcements, list) and len(announcements) > 0:
+                # Check if our test announcement exists
+                test_announcement = None
+                for ann in announcements:
+                    if ann.get("title") == "Test Profile Photo":
+                        test_announcement = ann
+                        break
+                
+                if test_announcement:
+                    self.log_test("STEP 4a: Verify announcement exists", True, f"Test announcement found in list of {len(announcements)} announcements")
+                    # Log announcement details for debugging
+                    print(f"   Announcement details: created_by={test_announcement.get('created_by')}, title={test_announcement.get('title')}")
+                else:
+                    self.log_test("STEP 4a: Verify announcement exists", False, f"Test announcement not found in {len(announcements)} announcements")
+            else:
+                self.log_test("STEP 4a: Verify announcement exists", False, f"No announcements found or invalid response: {type(announcements)}")
+        else:
+            self.log_test("STEP 4a: GET announcements", False, "Failed to get announcements", response["data"])
+        
+        # Step 5: Test profile photo visibility - GET /api/profiles
+        response = self.make_request("GET", "/profiles", token=admin_token)
+        if response["success"]:
+            profiles = response["data"]
+            if isinstance(profiles, list):
+                # Find admin's profile
+                admin_profile = None
+                for profile in profiles:
+                    if profile.get("profile_image_url") == test_base64_image:
+                        admin_profile = profile
+                        break
+                
+                if admin_profile:
+                    self.log_test("STEP 4b: Verify profile photo exists", True, f"Admin profile found with correct photo in {len(profiles)} profiles")
+                    print(f"   Profile details: user_id={admin_profile.get('user_id')}, has_image={bool(admin_profile.get('profile_image_url'))}")
+                else:
+                    self.log_test("STEP 4b: Verify profile photo exists", False, f"Admin profile with photo not found in {len(profiles)} profiles")
+                    # Debug: show all profiles
+                    for i, profile in enumerate(profiles):
+                        print(f"   Profile {i}: user_id={profile.get('user_id')}, has_image={bool(profile.get('profile_image_url'))}")
+            else:
+                self.log_test("STEP 4b: GET profiles", False, f"Invalid profiles response: {type(profiles)}")
+        else:
+            self.log_test("STEP 4b: GET profiles", False, "Failed to get profiles", response["data"])
+        
+        # Step 6: Test profile photo visibility - GET /api/users
+        response = self.make_request("GET", "/users", token=admin_token)
+        if response["success"]:
+            users = response["data"]
+            if isinstance(users, list):
+                # Find admin user
+                admin_user = None
+                for user in users:
+                    if user.get("email") == "admin@mikelcoffee.com":
+                        admin_user = user
+                        break
+                
+                if admin_user:
+                    self.log_test("STEP 4c: Verify user data", True, f"Admin user found in {len(users)} users")
+                    print(f"   User details: employee_id={admin_user.get('employee_id')}, name={admin_user.get('name')} {admin_user.get('surname')}, position={admin_user.get('position')}")
+                else:
+                    self.log_test("STEP 4c: Verify user data", False, f"Admin user not found in {len(users)} users")
+            else:
+                self.log_test("STEP 4c: GET users", False, f"Invalid users response: {type(users)}")
+        else:
+            self.log_test("STEP 4c: GET users", False, "Failed to get users", response["data"])
+        
+        # Step 7: Cross-reference data to identify the issue
+        print("\n   🔍 DEBUGGING PROFILE PHOTO VISIBILITY:")
+        
+        # Get user data again
+        response = self.make_request("GET", "/auth/me", token=admin_token)
+        if response["success"]:
+            current_user = response["data"]
+            employee_id = current_user.get("employee_id")
+            print(f"   Current user employee_id: {employee_id}")
+            
+            # Get profile data again
+            response = self.make_request("GET", "/profile", token=admin_token)
+            if response["success"]:
+                profile = response["data"]
+                profile_user_id = profile.get("user_id")
+                has_image = bool(profile.get("profile_image_url"))
+                print(f"   Profile user_id: {profile_user_id}, has_image: {has_image}")
+                
+                # Check if user_id matches employee_id
+                if profile_user_id == employee_id:
+                    self.log_test("STEP 5: Data consistency check", True, "Profile user_id matches user employee_id - data is consistent")
+                else:
+                    self.log_test("STEP 5: Data consistency check", False, f"Profile user_id ({profile_user_id}) does not match employee_id ({employee_id}) - this could cause frontend issues")
+            else:
+                self.log_test("STEP 5: Profile data check", False, "Failed to get profile data for consistency check")
+        else:
+            self.log_test("STEP 5: User data check", False, "Failed to get current user data for consistency check")
+
     def run_all_tests(self):
         """Run all test suites"""
         print("🚀 Starting Comprehensive Backend Testing for Corporate Coffee Employee Registration System")
