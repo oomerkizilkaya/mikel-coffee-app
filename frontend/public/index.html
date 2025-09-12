@@ -1620,6 +1620,13 @@
     </div>
 
     <script>
+        // Backend URL konfigürasyonu
+        const BACKEND_URL = window.location.hostname.includes('localhost') 
+            ? 'http://localhost:8001' 
+            : `${window.location.protocol}//${window.location.hostname}`;
+        
+        console.log('🔧 BACKEND_URL configured as:', BACKEND_URL);
+        
         let currentUser = null;
         let announcements = [];
         let socialPosts = [];
