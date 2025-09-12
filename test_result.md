@@ -866,8 +866,8 @@
 
 ## test_plan:
   current_focus:
-    - "File Deletion Feature for Administrators" - NEEDS TESTING ⏳
-    - "File Unlike (Beğenmeyi Geri Alma) Functionality" - NEEDS TESTING ⏳
+    - "File Deletion Feature for Administrators" - TESTING COMPLETE ✅
+    - "File Unlike (Beğenmeyi Geri Alma) Functionality" - TESTING COMPLETE ✅
   stuck_tasks:
     - "Comprehensive Security Firewall System"
   test_all: false
@@ -883,6 +883,8 @@
     - "Announcement likes system and likes_count display"
     - "Mobile Push Notifications (Telefonda bildirim alacakları şekilde)"
     - "File Display System Fix (Dosya gözükmüyor, açılmıyor, tuşlama yapılmıyor)"
+    - "File Deletion API Endpoint for Administrators"
+    - "File Like/Unlike API Endpoint"
 
 ## agent_communication:
   - agent: "main"
