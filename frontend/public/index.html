@@ -1980,14 +1980,12 @@
                     (author.name?.[0] || '') + (author.surname?.[0] || '') : 
                     (announcement.created_by ? announcement.created_by.slice(-2) : '??');
                 
-                // Enhanced Debug logging
-                console.log(`🔍 RENDERPOST DEBUG - Announcement by: ${announcement.created_by}`);
-                console.log(`🔍 RENDERPOST DEBUG - Author data:`, author);
-                console.log(`🔍 RENDERPOST DEBUG - userMap_global:`, userMap_global);
-                if (author && author.profile_image_url) {
-                    console.log(`🔍 RENDERPOST DEBUG - Author ${announcement.created_by} has profile image:`, author.profile_image_url.substring(0, 100) + '...');
+                // Simple debug logging (no loops)
+                const hasProfilePhoto = author && author.profile_image_url;
+                if (hasProfilePhoto) {
+                    console.log(`✅ Rendering profile photo for ${announcement.created_by}`);
                 } else {
-                    console.log(`🔍 RENDERPOST DEBUG - Author ${announcement.created_by} NO profile image, showing initials:`, authorInitials);
+                    console.log(`⭕ No profile photo for ${announcement.created_by}, using initials: ${authorInitials}`);
                 }
                 
                 return `
