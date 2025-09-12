@@ -2220,10 +2220,10 @@
         }
 
         async function showSocialFeed() {
-            await loadSocialPosts(); // Load posts first
+            await loadUsersWithProfiles(); // Load users and profiles first
             
             const userInitials = (currentUser.name?.[0] || '') + (currentUser.surname?.[0] || '');
-            const canPost = true; // Herkes gönderi oluşturabilir!
+            const canUpload = currentUser.is_admin; // Sadece yöneticiler yükleyebilir
             
             document.getElementById('app').innerHTML = `
                 <div class="header">
@@ -2241,52 +2241,43 @@
                 </div>
 
                 <div class="feed">
-                    <div class="profile-section">
-                        <div class="profile-header">
-                            <div class="profile-avatar" onclick="showProfile()">
-                                ${userMap_global[currentUser.employee_id]?.profile_image_url ? 
-                                    `<img src="${userMap_global[currentUser.employee_id].profile_image_url}" alt="Profil" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` :
-                                    `<div class="avatar-initials">${userInitials}</div>`
-                                }
-                            </div>
-                            <div class="profile-info">
-                                <div class="profile-name">${currentUser.name} ${currentUser.surname}</div>
-                                <div class="profile-details">
-                                    💼 ${currentUser.position?.charAt(0).toUpperCase() + currentUser.position?.slice(1)}
-                                    ${currentUser.store ? ` • 🏪 ${currentUser.store}` : ''}
-                                </div>
-                                <div class="profile-badges">
-                                    ${currentUser.is_admin ? '<span class="badge admin-badge">Admin</span>' : ''}
-                                    ${currentUser.special_role ? '<span class="badge edu-badge">Eğitim</span>' : ''}
-                                    ${!currentUser.is_admin && !currentUser.special_role ? '<span class="badge employee-badge">Çalışan</span>' : ''}
-                                </div>
-                            </div>
+                    <div class="files-header">
+                        <div class="files-title">
+                            <div class="files-icon">📁</div>
+                            <div class="files-text">Dosyalar</div>
+                        </div>
+                        ${canUpload ? `
+                        <button class="btn upload-btn" onclick="showUploadModal()">⬆️ Yükle</button>
+                        ` : ''}
+                    </div>
+
+                    <div class="files-categories">
+                        <div class="category-item" onclick="showVideos()">
+                            <div class="category-icon">🎥</div>
+                            <div class="category-title">Videolar</div>
+                            <div class="category-count" id="videosCount">0</div>
+                        </div>
+                        <div class="category-item" onclick="showPhotos()">
+                            <div class="category-icon">📸</div>
+                            <div class="category-title">Fotoğraflar</div>
+                            <div class="category-count" id="photosCount">0</div>
+                        </div>
+                        <div class="category-item" onclick="showForms()">
+                            <div class="category-icon">📄</div>
+                            <div class="category-title">Formlar</div>
+                            <div class="category-count" id="formsCount">0</div>
                         </div>
                     </div>
 
-                    ${canPost ? `
-                    <div class="create-post-section">
-                        <div class="create-post-avatar">
-                            ${userMap_global[currentUser.employee_id]?.profile_image_url ? 
-                                `<img src="${userMap_global[currentUser.employee_id].profile_image_url}" alt="Profil" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` :
-                                `<div class="avatar-initials">${userInitials}</div>`
-                            }
-                        </div>
-                        <div class="create-post-input">
-                            <textarea class="form-control" id="socialPostContent" placeholder="Ne düşünüyorsun?" maxlength="280"></textarea>
-                            <div id="mediaPreview" style="display:none; margin:10px 0;"></div>
-                            <div class="post-actions-bar">
-                                <input type="file" id="postMediaUpload" accept="image/*,video/*" style="display:none" onchange="handlePostMediaUpload(event)">
-                                <button class="btn-secondary" onclick="document.getElementById('postMediaUpload').click()">📷 Medya</button>
-                                <button class="btn-secondary" onclick="clearPostMedia()">❌ Temizle</button>
-                                <button class="btn" onclick="createSocialPost()">Paylaş</button>
+                    <div id="filesContainer">
+                        <div class="files-welcome">
+                            <div class="welcome-icon">📁</div>
+                            <div class="welcome-text">
+                                <h3>Dosyalar Bölümüne Hoş Geldiniz</h3>
+                                <p>Yukarıdan bir kategori seçerek dosyaları görüntüleyebilirsiniz.</p>
+                                ${canUpload ? '<p>Yönetici olarak dosya yükleyebilirsiniz.</p>' : '<p>Dosyaları görüntüleyebilir ve beğenebilirsiniz.</p>'}
                             </div>
                         </div>
-                    </div>
-                    ` : ''}
-
-                    <div id="postsContainer">
-                        ${renderSocialPosts()}
                     </div>
                 </div>
 
@@ -2296,7 +2287,7 @@
                         <div class="nav-label">Ana Sayfa</div>
                     </div>
                     <div class="nav-item active" onclick="showSocialFeed()">
-                        <div class="nav-icon">💬</div>
+                        <div class="nav-icon">📁</div>
                         <div class="nav-label">Dosyalar</div>
                     </div>
                     <div class="nav-item" onclick="showExamResults()">
@@ -2309,7 +2300,7 @@
                         <div class="nav-label">Yönetim</div>
                     </div>
                     ` : ''}
-                    ${canPost ? `
+                    ${(currentUser.is_admin || currentUser.special_role === 'eğitim departmanı') ? `
                     <div class="nav-item" onclick="showExamEntry()">
                         <div class="nav-icon">📝</div>
                         <div class="nav-label">Sınav</div>
@@ -2333,6 +2324,9 @@
                     </div>
                 </div>
             `;
+            
+            // Initialize file counts
+            updateFileCounts();
         }
 
         let selectedPostMedia = null;
