@@ -1407,9 +1407,9 @@ async def upload_file(
         file_content = await file.read()
         file_size = len(file_content)
         
-        # 5GB limit check
-        if file_size > 5 * 1024 * 1024 * 1024:
-            raise HTTPException(status_code=413, detail="File size exceeds 5GB limit")
+        # 100GB limit check
+        if file_size > 100 * 1024 * 1024 * 1024:
+            raise HTTPException(status_code=413, detail="File size exceeds 100GB limit")
         
         # Dosya dokümanı oluştur
         file_doc = {
