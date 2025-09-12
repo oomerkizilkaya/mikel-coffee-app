@@ -700,10 +700,10 @@
 
 ## test_plan:
   current_focus:
-    - "Profile Photos Display on Homepage (Ana Sayfa)"
+    - "Profile Photos Display on Homepage (Ana Sayfa)" - COMPLETED ✅
+    - "Push Notifications System" - COMPLETED ✅
   stuck_tasks:
     - "Comprehensive Security Firewall System"
-    - "Profile Photos Display on Homepage (Ana Sayfa)"
   test_all: false
   test_priority: "high_first"
   completed_urgent:
@@ -713,6 +713,7 @@
     - "Registration with start date field (İşe Giriş Tarihi) - Frontend Implementation"
     - "Comprehensive Notification System with Bell Icon and Badge"
     - "Push Notifications System"
+    - "Profile Photos Display on Homepage (Ana Sayfa)"
 
 ## agent_communication:
   - agent: "main"
