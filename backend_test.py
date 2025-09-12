@@ -1816,7 +1816,11 @@ class BackendTester:
         announcement_id = None
         if response["success"]:
             announcement = response["data"]
-            announcement_id = announcement.get("id") or announcement.get("_id")
+            # Use the UUID id field, not the MongoDB _id field for notification comparison
+            announcement_id = announcement.get("id")
+            if not announcement_id:
+                # Fallback to _id if id is not available
+                announcement_id = announcement.get("_id")
             self.log_test("STEP 4: Create announcement", True, f"Announcement created successfully: {announcement_id}")
         else:
             self.log_test("STEP 4: Create announcement", False, "Failed to create announcement", response["data"])
