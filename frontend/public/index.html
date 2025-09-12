@@ -3726,6 +3726,7 @@
                         <button onclick="downloadFile('${file.id}')" style="padding: 8px 16px; background: #0095F6; color: white; border: none; border-radius: 8px; cursor: pointer;">
                             ⬇️ İndir
                         </button>
+                        ${currentUser?.is_admin ? `
                         <button onclick="toggleFileLike('${file.id}')" style="padding: 8px 16px; background: #fff; border: 1px solid #DBDBDB; border-radius: 8px; cursor: pointer;">
                             ❤️ ${file.likes_count || 0}
                         </button>
@@ -3735,6 +3736,7 @@
                         <button onclick="if(confirm('Bu dosyayı silmek istediğinizden emin misiniz?')) { deleteFile('${file.id}', '${file.title}'); closeModal(); }" style="padding: 8px 16px; background: #ff3040; color: white; border: none; border-radius: 8px; cursor: pointer;">
                             🗑️ Sil
                         </button>
+                        ` : ''}
                         <button onclick="closeModal()" style="padding: 8px 16px; background: #8E8E8E; color: white; border: none; border-radius: 8px; cursor: pointer;">
                             Kapat
                         </button>
