@@ -2883,12 +2883,50 @@
         let currentFileCategory = null;
         let filesData = [];
 
-        function updateFileCounts() {
-            // Bu fonksiyon backend'den dosya sayılarını çekecek
-            // Şimdilik mock data ile başlayalım
-            document.getElementById('videosCount').textContent = '0 dosya';
-            document.getElementById('photosCount').textContent = '0 dosya'; 
-            document.getElementById('formsCount').textContent = '0 dosya';
+        async function updateFileCounts() {
+            try {
+                const token = localStorage.getItem('auth_token');
+                
+                // Video sayısını getir
+                const videoResponse = await fetch('https://baristalink.preview.emergentagent.com/api/files?type=video/*', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const videos = videoResponse.ok ? await videoResponse.json() : [];
+                
+                // Fotoğraf sayısını getir
+                const photoResponse = await fetch('https://baristalink.preview.emergentagent.com/api/files?type=image/*', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const photos = photoResponse.ok ? await photoResponse.json() : [];
+                
+                // Form sayısını getir
+                const formResponse = await fetch('https://baristalink.preview.emergentagent.com/api/files?type=application/*', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const forms = formResponse.ok ? await formResponse.json() : [];
+                
+                // Sayıları güncelle
+                const videosCountEl = document.getElementById('videosCount');
+                const photosCountEl = document.getElementById('photosCount');
+                const formsCountEl = document.getElementById('formsCount');
+                
+                if (videosCountEl) videosCountEl.textContent = `${videos.length} dosya`;
+                if (photosCountEl) photosCountEl.textContent = `${photos.length} dosya`;
+                if (formsCountEl) formsCountEl.textContent = `${forms.length} dosya`;
+                
+                console.log('📊 FILE COUNTS - Videos:', videos.length, 'Photos:', photos.length, 'Forms:', forms.length);
+                
+            } catch (error) {
+                console.error('❌ Error updating file counts:', error);
+                // Fallback to 0
+                const videosCountEl = document.getElementById('videosCount');
+                const photosCountEl = document.getElementById('photosCount');
+                const formsCountEl = document.getElementById('formsCount');
+                
+                if (videosCountEl) videosCountEl.textContent = '0 dosya';
+                if (photosCountEl) photosCountEl.textContent = '0 dosya';
+                if (formsCountEl) formsCountEl.textContent = '0 dosya';
+            }
         }
 
         async function showVideos() {
