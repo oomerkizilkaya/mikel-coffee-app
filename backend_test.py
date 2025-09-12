@@ -1175,6 +1175,20 @@ class BackendTester:
         # Print summary
         self.print_summary()
     
+    def run_start_date_test_only(self):
+        """Run only the start_date functionality test"""
+        print("📅 Running Start Date Field Functionality Test Only")
+        print(f"🌐 Testing against: {self.base_url}")
+        print("=" * 80)
+        
+        try:
+            self.test_start_date_functionality()
+        except Exception as e:
+            self.log_test("Start Date Test", False, f"Critical error during testing: {str(e)}")
+        
+        # Print summary
+        self.print_summary()
+    
     def run_make_admin_test_only(self):
         """Run only the Make Admin functionality test"""
         print("👑 Running Make Admin Functionality Test Only")
