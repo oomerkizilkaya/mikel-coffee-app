@@ -1570,6 +1570,40 @@ async def toggle_file_like(file_id: str, current_user: User = Depends(get_curren
         print(f"❌ FILE LIKE ERROR: {e}")
         return {"liked": False}
 
+@api_router.delete("/files/{file_id}")
+async def delete_file(file_id: str, current_user: User = Depends(get_current_user)):
+    """Dosya silme - Sadece adminler"""
+    
+    # Sadece adminler dosya silebilir
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Only admins can delete files")
+    
+    try:
+        # Dosyanın varlığını kontrol et
+        file_doc = await db.files.find_one({"id": file_id})
+        
+        if not file_doc:
+            raise HTTPException(status_code=404, detail="File not found")
+        
+        # Dosyayı sil
+        delete_result = await db.files.delete_one({"id": file_id})
+        
+        if delete_result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="File not found")
+        
+        # Dosya ile ilgili beğenileri de sil
+        await db.likes.delete_many({"file_id": file_id})
+        
+        print(f"📁 FILE DELETED - {file_doc['title']} by admin {current_user.employee_id}")
+        
+        return {"message": "File deleted successfully", "filename": file_doc['title']}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ DELETE FILE ERROR: {e}")
+        raise HTTPException(status_code=500, detail=f"File deletion failed: {str(e)}")
+
 # Push Notification Models and Endpoints
 class PushSubscription(BaseModel):
     endpoint: str
