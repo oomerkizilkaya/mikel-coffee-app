@@ -3380,6 +3380,44 @@
             }
         }
 
+        async function deleteFile(fileId, fileName) {
+            // Onay diyalogu göster
+            const confirmDelete = confirm(`⚠️ DİKKAT!\n\n"${fileName}" adlı dosyayı kalıcı olarak silmek istediğinizden emin misiniz?\n\nBu işlem GERİ ALINAMAZ!`);
+            
+            if (!confirmDelete) {
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('auth_token');
+                const response = await fetch(`https://teammikel.preview.emergentagent.com/api/files/${fileId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    showToast(`✅ "${result.filename}" başarıyla silindi`);
+                    closeModal(); // Modal açıksa kapat
+                    
+                    // Güncel kategoriyi yenile
+                    if (currentFileCategory === 'videos') showVideos();
+                    else if (currentFileCategory === 'photos') showPhotos(); 
+                    else if (currentFileCategory === 'forms') showForms();
+                    else {
+                        // Ana dosya sayfasındaysak sayıları güncelle
+                        updateFileCounts();
+                    }
+                } else {
+                    const error = await response.json();
+                    showToast(`❌ Silme hatası: ${error.detail || 'Bilinmeyen hata'}`);
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+                showToast('❌ Bağlantı hatası');
+            }
+        }
+
         function downloadFile(fileId) {
             const token = localStorage.getItem('auth_token');
             window.open(`https://teammikel.preview.emergentagent.com/api/files/${fileId}/download?token=${token}`, '_blank');
