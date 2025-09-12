@@ -834,6 +834,30 @@
         agent: "testing"
         comment: "✅ CRITICAL BUG FIXED SUCCESSFULLY! Applied the missing $inc operations to announcement like endpoint. TECHNICAL FIX: Added await db.announcements.update_one({'_id': ObjectId(announcement_id)}, {'$inc': {'likes_count': 1}}) for likes and {'$inc': {'likes_count': -1}} for unlikes at lines 1183 and 1193 in server.py. VERIFICATION TEST: Created test announcement with likes_count = 0, liked it, verified likes_count incremented to 1 correctly. The frontend ❤️ ${announcement.likes_count || 0} will now display actual like counts. IMPACT RESOLVED: Users can now see real-time like counts on announcements, matching the behavior of posts like system."
 
+  - task: "File Deletion API Endpoint for Administrators"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "EXISTING ENDPOINT VERIFIED: DELETE /api/files/{file_id} endpoint already implemented with admin-only permissions, proper file validation, and cleanup of related likes. Working correctly."
+
+  - task: "File Like/Unlike API Endpoint"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "EXISTING ENDPOINT VERIFIED: POST /api/files/{file_id}/like endpoint already implemented with toggle functionality, proper likes_count updating, and error handling. Working correctly for both like and unlike operations."
+
 ## test_plan:
   current_focus:
     - "File Display System Fix (Dosya gözükmüyor, açılmıyor, tuşlama yapılmıyor)" - TESTED ✅ FULLY WORKING
