@@ -3218,7 +3218,7 @@
                         <div class="files-icon">🎥</div>
                         <div class="files-text">Videolar</div>
                     </div>
-                    <button class="btn upload-btn" onclick="showUploadModal('video')">⬆️ Video Yükle</button>
+                    ${currentUser?.is_admin ? `<button class="btn upload-btn" onclick="showUploadModal('video')">⬆️ Video Yükle</button>` : ''}
                 </div>
                 <div class="files-grid" id="videosGrid">
                     ${renderFiles('video')}
