@@ -2189,20 +2189,20 @@ class BackendTester:
         print(f"\n✅ Announcement Likes System Testing Complete - Tested likes_count field, like/unlike toggle, multiple users, and edge cases")
 
     def run_focused_tests(self):
-        """Run focused tests for the 3 specific user-reported issues"""
-        print("🎯 Starting Focused Backend Testing for 3 User-Reported Issues")
+        """Run focused tests for the announcement likes system"""
+        print("🎯 Starting Focused Backend Testing for Announcement Likes System")
         print("=" * 80)
         print("Testing:")
-        print("1. Excel Export with Start Date (İşe Giriş Tarihi)")
-        print("2. Push Notification System (Telefona Bildirim)")
-        print("3. Notification Creation When Announcements Are Made")
+        print("1. Announcement Model likes_count field")
+        print("2. Like Toggle Endpoint functionality")
+        print("3. Announcement Retrieval with likes_count")
+        print("4. Like Count Initialization and Updates")
+        print("5. Multiple Users Liking Same Announcement")
         print("=" * 80)
         
         try:
-            # Test the 3 specific issues
-            self.test_excel_export_with_start_date()
-            self.test_push_notification_system()
-            self.test_notification_creation_on_announcements()
+            # Test the announcement likes system
+            self.test_announcement_likes_system()
             
         except Exception as e:
             self.log_test("Focused test execution", False, f"Test execution failed with error: {str(e)}")
