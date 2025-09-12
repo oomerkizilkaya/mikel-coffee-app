@@ -898,7 +898,7 @@ async def export_users_excel(current_user: User = Depends(get_current_user)):
         else:
             formatted_date = "Bilinmiyor"
         
-        ws.cell(row=row, column=9, value=formatted_date)
+        ws.cell(row=row, column=10, value=formatted_date)
     
     # Auto-adjust column widths
     for column in ws.columns:
