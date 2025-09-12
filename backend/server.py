@@ -1528,11 +1528,24 @@ async def download_file(file_id: str, request: Request, token: str = None):
     print(f"🔍 DEBUG - File found, returning download for user: {current_user.employee_id}")
     
     try:
+        # Filename'i güvenli hale getir (Turkish characters için)
+        safe_filename = file_doc['filename']
+        try:
+            # ASCII olmayan karakterleri encode et
+            safe_filename.encode('ascii')
+        except UnicodeEncodeError:
+            # ASCII olmayan karakterler varsa, güvenli bir alternatif oluştur
+            import unicodedata
+            safe_filename = unicodedata.normalize('NFKD', safe_filename)
+            safe_filename = safe_filename.encode('ascii', 'ignore').decode('ascii')
+            if not safe_filename:
+                safe_filename = "download_file"
+        
         # Binary content'i döndür
         return Response(
             content=file_doc["file_content"],
             media_type=file_doc["content_type"],
-            headers={"Content-Disposition": f"attachment; filename={file_doc['filename']}"}
+            headers={"Content-Disposition": f"attachment; filename={safe_filename}"}
         )
     except Exception as e:
         print(f"❌ RESPONSE CREATION ERROR: {e}")
