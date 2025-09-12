@@ -843,7 +843,7 @@ async def export_users_excel(current_user: User = Depends(get_current_user)):
     # Headers
     headers = [
         "Sicil No", "Ad", "Soyad", "E-posta", "Pozisyon", 
-        "Mağaza", "Özel Rol", "Admin", "Kayıt Tarihi"
+        "Mağaza", "İşe Giriş Tarihi", "Özel Rol", "Admin", "Kayıt Tarihi"
     ]
     
     # Style headers
