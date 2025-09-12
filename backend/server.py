@@ -744,6 +744,12 @@ async def create_announcement(announcement_data: AnnouncementCreate, request: Re
         sender_id=current_user.employee_id
     )
     
+    # Tüm kullanıcılara push notification da gönder
+    await send_push_notifications_to_all_users(
+        "🔔 Yeni Duyuru - Mikel Coffee",
+        f"{title[:100]}{'...' if len(title) > 100 else ''}"
+    )
+    
     return Announcement(**announcement_doc)
 
 @api_router.get("/announcements", response_model=List[Announcement])
