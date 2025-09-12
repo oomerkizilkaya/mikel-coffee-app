@@ -1467,10 +1467,29 @@ async def get_files(type: str = None, current_user: User = Depends(get_current_u
         return []
 
 @api_router.get("/files/{file_id}/download")
-async def download_file(file_id: str, current_user: User = Depends(get_current_user)):
-    """Dosya indirme"""
+async def download_file(file_id: str, token: str = None, current_user: User = Depends(get_current_user)):
+    """Dosya indirme - token URL parameter veya header ile"""
     
     try:
+        # Token URL parameter olarak gelirse, onu manual verify et
+        if token and not current_user:
+            try:
+                # Token'ı decode et
+                payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+                employee_id = payload.get("employee_id")
+                if employee_id:
+                    # Kullanıcıyı database'den al
+                    user_doc = await db.users.find_one({"employee_id": employee_id})
+                    if user_doc:
+                        current_user = User(**user_doc)
+            except Exception as e:
+                print(f"Token decode error: {e}")
+                pass
+        
+        # Hala kullanıcı yoksa 403
+        if not current_user:
+            raise HTTPException(status_code=403, detail="Authentication required")
+        
         # Dosyayı bul
         file_doc = await db.files.find_one({"id": file_id})
         
