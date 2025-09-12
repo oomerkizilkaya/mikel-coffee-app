@@ -2957,7 +2957,10 @@
 
         async function showPhotos() {
             currentFileCategory = 'photos';
+            console.log('📸 SHOW PHOTOS - Loading photos...');
+            
             await loadFiles('image/*');
+            console.log('📸 SHOW PHOTOS - Files loaded:', filesData.length);
             
             document.getElementById('filesContainer').innerHTML = `
                 <div class="files-header">
@@ -2974,6 +2977,8 @@
                     ${renderFiles('image')}
                 </div>
             `;
+            
+            console.log('📸 SHOW PHOTOS - Grid HTML set, files rendered');
         }
 
         async function showForms() {
