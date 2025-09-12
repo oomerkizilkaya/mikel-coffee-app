@@ -3223,6 +3223,11 @@
                                 <button class="file-download-btn" onclick="event.stopPropagation(); downloadFile('${file.id}')" title="İndir">
                                     ⬇️
                                 </button>
+                                ${currentUser.is_admin ? `
+                                <button class="file-delete-btn" onclick="event.stopPropagation(); deleteFile('${file.id}', '${file.title}')" title="Sil">
+                                    🗑️
+                                </button>
+                                ` : ''}
                             </div>
                         </div>
                     </div>
