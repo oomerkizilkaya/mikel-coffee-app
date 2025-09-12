@@ -3253,6 +3253,9 @@
                                     ⬇️
                                 </button>
                                 ${currentUser.is_admin ? `
+                                <button class="file-edit-btn" onclick="event.stopPropagation(); editFile('${file.id}', '${file.title}', '${file.description || ''}')" title="Düzenle">
+                                    ✏️
+                                </button>
                                 <button class="file-delete-btn" onclick="event.stopPropagation(); deleteFile('${file.id}', '${file.title}')" title="Sil">
                                     🗑️
                                 </button>
