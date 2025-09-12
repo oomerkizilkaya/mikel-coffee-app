@@ -1916,6 +1916,278 @@ class BackendTester:
         # This is verified by the announcement creation triggering both systems
         self.log_test("STEP 8: Dual notification system", True, "Announcement creation triggers both in-app notifications (verified above) and push notifications (check backend logs for push attempts)")
 
+    def test_announcement_likes_system(self):
+        """Test announcement likes system and likes_count field - COMPREHENSIVE TESTING"""
+        print("\n=== Testing Announcement Likes System and likes_count Field ===")
+        
+        # Step 1: Setup admin user for testing
+        admin_token = None
+        admin_user = None
+        
+        # Try to login with existing admin
+        login_data = {
+            "email": "admin@mikelcoffee.com",
+            "password": "admin123"
+        }
+        
+        response = self.make_request("POST", "/auth/login", login_data)
+        if response["success"]:
+            admin_token = response["data"]["access_token"]
+            admin_user = response["data"]["user"]
+            self.log_test("STEP 1: Admin login for likes testing", True, f"Admin logged in: {admin_user['employee_id']}")
+        else:
+            # Create admin if doesn't exist
+            admin_data = {
+                "name": "Likes",
+                "surname": "Admin",
+                "email": "admin@mikelcoffee.com",
+                "password": "admin123",
+                "position": "trainer",
+                "store": "merkez"
+            }
+            
+            response = self.make_request("POST", "/auth/register", admin_data)
+            if response["success"]:
+                admin_token = response["data"]["access_token"]
+                admin_user = response["data"]["user"]
+                
+                # Make admin using test endpoint
+                make_admin_response = self.make_request("POST", f"/test/make-admin/{admin_user['email']}")
+                if make_admin_response["success"]:
+                    # Re-login to get updated token
+                    response = self.make_request("POST", "/auth/login", login_data)
+                    if response["success"]:
+                        admin_token = response["data"]["access_token"]
+                        admin_user = response["data"]["user"]
+                        self.log_test("STEP 1: Create admin for likes testing", True, f"Admin created and promoted: {admin_user['employee_id']}")
+                    else:
+                        self.log_test("STEP 1: Admin re-login", False, "Failed to re-login after promotion")
+                        return
+                else:
+                    self.log_test("STEP 1: Make admin", False, "Failed to promote user to admin")
+                    return
+            else:
+                self.log_test("STEP 1: Create admin", False, "Failed to create admin user", response["data"])
+                return
+        
+        if not admin_token:
+            self.log_test("STEP 1: Admin setup", False, "No admin token available")
+            return
+        
+        # Step 2: Create test users for liking
+        test_users = []
+        for i in range(3):
+            user_data = {
+                "name": f"LikeUser{i+1}",
+                "surname": "Test",
+                "email": f"likeuser{i+1}@mikelcoffee.com",
+                "password": "testpass123",
+                "position": "barista",
+                "store": "test_store"
+            }
+            
+            response = self.make_request("POST", "/auth/register", user_data)
+            if response["success"]:
+                test_users.append({
+                    "token": response["data"]["access_token"],
+                    "user": response["data"]["user"]
+                })
+        
+        if len(test_users) < 3:
+            self.log_test("STEP 2: Create test users", False, f"Only created {len(test_users)} out of 3 test users")
+        else:
+            self.log_test("STEP 2: Create test users", True, f"Created {len(test_users)} test users for likes testing")
+        
+        # Step 3: Create test announcement and verify likes_count initialization
+        announcement_data = {
+            "title": "Test Likes Count",
+            "content": "Testing if announcements have likes_count field and it starts at 0",
+            "is_urgent": False
+        }
+        
+        response = self.make_request("POST", "/announcements", announcement_data, token=admin_token)
+        announcement_id = None
+        if response["success"]:
+            announcement = response["data"]
+            announcement_id = announcement.get("id") or announcement.get("_id")
+            likes_count = announcement.get("likes_count")
+            
+            if likes_count == 0:
+                self.log_test("STEP 3a: Announcement likes_count initialization", True, f"New announcement starts with likes_count = 0")
+            else:
+                self.log_test("STEP 3a: Announcement likes_count initialization", False, f"Expected likes_count = 0, got: {likes_count}")
+            
+            if announcement_id:
+                self.log_test("STEP 3b: Announcement creation", True, f"Test announcement created with ID: {announcement_id}")
+            else:
+                self.log_test("STEP 3b: Announcement creation", False, "Announcement ID not found in response")
+        else:
+            self.log_test("STEP 3: Create test announcement", False, "Failed to create test announcement", response["data"])
+            return
+        
+        # Step 4: Test GET /api/announcements returns likes_count field
+        response = self.make_request("GET", "/announcements", token=admin_token)
+        if response["success"]:
+            announcements = response["data"]
+            if isinstance(announcements, list) and len(announcements) > 0:
+                # Find our test announcement
+                test_announcement = None
+                for ann in announcements:
+                    if ann.get("title") == "Test Likes Count":
+                        test_announcement = ann
+                        break
+                
+                if test_announcement:
+                    if "likes_count" in test_announcement:
+                        likes_count = test_announcement.get("likes_count")
+                        if likes_count == 0:
+                            self.log_test("STEP 4: GET announcements includes likes_count", True, f"Announcement in list has likes_count = {likes_count}")
+                        else:
+                            self.log_test("STEP 4: GET announcements includes likes_count", False, f"Expected likes_count = 0, got: {likes_count}")
+                    else:
+                        self.log_test("STEP 4: GET announcements includes likes_count", False, "likes_count field missing from announcement in list")
+                else:
+                    self.log_test("STEP 4: Find test announcement", False, "Test announcement not found in announcements list")
+            else:
+                self.log_test("STEP 4: GET announcements", False, f"No announcements found or invalid response: {type(announcements)}")
+        else:
+            self.log_test("STEP 4: GET announcements", False, "Failed to get announcements", response["data"])
+        
+        # Step 5: Test POST /api/announcements/{id}/like functionality (first like)
+        if announcement_id:
+            response = self.make_request("POST", f"/announcements/{announcement_id}/like", token=test_users[0]["token"])
+            if response["success"]:
+                like_result = response["data"]
+                if like_result.get("liked") == True:
+                    self.log_test("STEP 5a: First like toggle", True, f"User successfully liked announcement: {like_result}")
+                else:
+                    self.log_test("STEP 5a: First like toggle", False, f"Like response incorrect: {like_result}")
+            else:
+                self.log_test("STEP 5a: First like toggle", False, "Failed to like announcement", response["data"])
+            
+            # Step 5b: Verify likes_count incremented in database
+            response = self.make_request("GET", "/announcements", token=admin_token)
+            if response["success"]:
+                announcements = response["data"]
+                test_announcement = None
+                for ann in announcements:
+                    if (ann.get("id") == announcement_id or ann.get("_id") == announcement_id):
+                        test_announcement = ann
+                        break
+                
+                if test_announcement:
+                    likes_count = test_announcement.get("likes_count")
+                    if likes_count == 1:
+                        self.log_test("STEP 5b: Likes count increment", True, f"likes_count correctly incremented to {likes_count}")
+                    else:
+                        self.log_test("STEP 5b: Likes count increment", False, f"Expected likes_count = 1, got: {likes_count}")
+                else:
+                    self.log_test("STEP 5b: Find announcement after like", False, "Could not find announcement after like")
+            else:
+                self.log_test("STEP 5b: Verify likes count increment", False, "Failed to get announcements after like")
+        
+        # Step 6: Test unlike functionality (toggle off)
+        if announcement_id:
+            response = self.make_request("POST", f"/announcements/{announcement_id}/like", token=test_users[0]["token"])
+            if response["success"]:
+                like_result = response["data"]
+                if like_result.get("liked") == False:
+                    self.log_test("STEP 6a: Unlike toggle", True, f"User successfully unliked announcement: {like_result}")
+                else:
+                    self.log_test("STEP 6a: Unlike toggle", False, f"Unlike response incorrect: {like_result}")
+            else:
+                self.log_test("STEP 6a: Unlike toggle", False, "Failed to unlike announcement", response["data"])
+            
+            # Step 6b: Verify likes_count decremented
+            response = self.make_request("GET", "/announcements", token=admin_token)
+            if response["success"]:
+                announcements = response["data"]
+                test_announcement = None
+                for ann in announcements:
+                    if (ann.get("id") == announcement_id or ann.get("_id") == announcement_id):
+                        test_announcement = ann
+                        break
+                
+                if test_announcement:
+                    likes_count = test_announcement.get("likes_count")
+                    if likes_count == 0:
+                        self.log_test("STEP 6b: Likes count decrement", True, f"likes_count correctly decremented to {likes_count}")
+                    else:
+                        self.log_test("STEP 6b: Likes count decrement", False, f"Expected likes_count = 0, got: {likes_count}")
+                else:
+                    self.log_test("STEP 6b: Find announcement after unlike", False, "Could not find announcement after unlike")
+            else:
+                self.log_test("STEP 6b: Verify likes count decrement", False, "Failed to get announcements after unlike")
+        
+        # Step 7: Test multiple users liking same announcement
+        if announcement_id and len(test_users) >= 3:
+            # Have all 3 test users like the announcement
+            for i, user in enumerate(test_users):
+                response = self.make_request("POST", f"/announcements/{announcement_id}/like", token=user["token"])
+                if response["success"]:
+                    like_result = response["data"]
+                    if like_result.get("liked") == True:
+                        self.log_test(f"STEP 7a: User {i+1} like", True, f"User {i+1} successfully liked announcement")
+                    else:
+                        self.log_test(f"STEP 7a: User {i+1} like", False, f"User {i+1} like failed: {like_result}")
+                else:
+                    self.log_test(f"STEP 7a: User {i+1} like", False, f"User {i+1} failed to like announcement", response["data"])
+            
+            # Verify final likes_count = 3
+            response = self.make_request("GET", "/announcements", token=admin_token)
+            if response["success"]:
+                announcements = response["data"]
+                test_announcement = None
+                for ann in announcements:
+                    if (ann.get("id") == announcement_id or ann.get("_id") == announcement_id):
+                        test_announcement = ann
+                        break
+                
+                if test_announcement:
+                    likes_count = test_announcement.get("likes_count")
+                    if likes_count == 3:
+                        self.log_test("STEP 7b: Multiple users likes count", True, f"likes_count correctly shows {likes_count} after 3 users liked")
+                    else:
+                        self.log_test("STEP 7b: Multiple users likes count", False, f"Expected likes_count = 3, got: {likes_count}")
+                else:
+                    self.log_test("STEP 7b: Find announcement after multiple likes", False, "Could not find announcement after multiple likes")
+            else:
+                self.log_test("STEP 7b: Verify multiple likes count", False, "Failed to get announcements after multiple likes")
+        
+        # Step 8: Test announcement model has likes_count field by default
+        # Create another announcement to verify likes_count field is always present
+        announcement_data2 = {
+            "title": "Second Test Announcement",
+            "content": "Testing likes_count field presence",
+            "is_urgent": True
+        }
+        
+        response = self.make_request("POST", "/announcements", announcement_data2, token=admin_token)
+        if response["success"]:
+            announcement2 = response["data"]
+            if "likes_count" in announcement2 and announcement2["likes_count"] == 0:
+                self.log_test("STEP 8: Announcement model has likes_count", True, "All new announcements have likes_count field defaulting to 0")
+            else:
+                self.log_test("STEP 8: Announcement model has likes_count", False, f"likes_count field missing or incorrect: {announcement2.get('likes_count')}")
+        else:
+            self.log_test("STEP 8: Create second announcement", False, "Failed to create second test announcement", response["data"])
+        
+        # Step 9: Test edge cases - invalid announcement ID
+        response = self.make_request("POST", "/announcements/invalid_id_123/like", token=test_users[0]["token"])
+        if not response["success"] and response["status_code"] == 404:
+            self.log_test("STEP 9: Invalid announcement ID", True, "Correctly rejected like request for invalid announcement ID")
+        else:
+            self.log_test("STEP 9: Invalid announcement ID", False, "Should reject like request for invalid announcement ID", response["data"])
+        
+        # Step 10: Test unauthorized access (no token)
+        response = self.make_request("POST", f"/announcements/{announcement_id}/like")
+        if not response["success"] and response["status_code"] in [401, 403]:
+            self.log_test("STEP 10: Unauthorized like access", True, "Correctly rejected like request without authentication")
+        else:
+            self.log_test("STEP 10: Unauthorized like access", False, "Should reject like request without authentication", response["data"])
+        
+        print(f"\n✅ Announcement Likes System Testing Complete - Tested likes_count field, like/unlike toggle, multiple users, and edge cases")
+
     def run_focused_tests(self):
         """Run focused tests for the 3 specific user-reported issues"""
         print("🎯 Starting Focused Backend Testing for 3 User-Reported Issues")
