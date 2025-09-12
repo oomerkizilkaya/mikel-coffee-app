@@ -3199,9 +3199,7 @@
                         <div class="files-icon">📸</div>
                         <div class="files-text">Fotoğraflar</div>
                     </div>
-                    ${currentUser.is_admin ? `
                     <button class="btn upload-btn" onclick="showUploadModal('image')">⬆️ Fotoğraf Yükle</button>
-                    ` : ''}
                 </div>
                 <div class="files-grid" id="photosGrid">
                     ${renderFiles('image')}
