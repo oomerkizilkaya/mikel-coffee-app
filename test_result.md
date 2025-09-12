@@ -809,7 +809,7 @@
 
 ## test_plan:
   current_focus:
-    - "File Display System Fix (Dosya gözükmüyor, açılmıyor, tuşlama yapılmıyor)" - TESTED ✅ PARTIALLY WORKING
+    - "File Display System Fix (Dosya gözükmüyor, açılmıyor, tuşlama yapılmıyor)" - TESTED ✅ FULLY WORKING
     - "Mobile Push Notifications (Telefonda bildirim alacakları şekilde)" - TESTED ✅ FULLY WORKING
   stuck_tasks:
     - "Comprehensive Security Firewall System"
@@ -825,6 +825,7 @@
     - "Profile Photos Display on Homepage (Ana Sayfa)"
     - "Announcement likes system and likes_count display"
     - "Mobile Push Notifications (Telefonda bildirim alacakları şekilde)"
+    - "File Display System Fix (Dosya gözükmüyor, açılmıyor, tuşlama yapılmıyor)"
 
 ## agent_communication:
   - agent: "testing"
