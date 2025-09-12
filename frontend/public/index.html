@@ -2739,26 +2739,39 @@
         let swRegistration = null;
 
         async function initializePushNotifications() {
-            if ('serviceWorker' in navigator && 'PushManager' in window) {
-                try {
-                    // Register service worker
-                    swRegistration = await navigator.serviceWorker.register('/sw.js');
-                    console.log('✅ Service Worker registered:', swRegistration);
+            console.log('🔔 INIT PUSH - Starting push notification initialization...');
+            
+            if (!('serviceWorker' in navigator)) {
+                console.log('❌ INIT PUSH - Service Worker not supported');
+                return;
+            }
+            
+            if (!('PushManager' in window)) {
+                console.log('❌ INIT PUSH - Push Manager not supported');
+                return;
+            }
 
-                    // Request notification permission
-                    const permission = await Notification.requestPermission();
-                    console.log('📱 Notification permission:', permission);
+            try {
+                // Register service worker
+                console.log('🔔 INIT PUSH - Registering service worker...');
+                swRegistration = await navigator.serviceWorker.register('/sw.js');
+                console.log('✅ INIT PUSH - Service Worker registered:', swRegistration);
 
-                    if (permission === 'granted') {
-                        await subscribeUserToPush();
-                    } else {
-                        console.log('❌ Notification permission denied');
-                    }
-                } catch (error) {
-                    console.error('❌ Service Worker registration failed:', error);
+                // Request notification permission
+                console.log('🔔 INIT PUSH - Requesting notification permission...');
+                const permission = await Notification.requestPermission();
+                console.log('📱 INIT PUSH - Notification permission:', permission);
+
+                if (permission === 'granted') {
+                    console.log('🔔 INIT PUSH - Permission granted, subscribing to push...');
+                    await subscribeUserToPush();
+                } else {
+                    console.log('❌ INIT PUSH - Notification permission denied');
+                    showToast('📱 Bildirim izni reddedildi');
                 }
-            } else {
-                console.log('❌ Push notifications not supported');
+            } catch (error) {
+                console.error('❌ INIT PUSH - Service Worker registration failed:', error);
+                showToast('❌ Push bildirim sistemi hatası');
             }
         }
 
