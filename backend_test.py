@@ -2845,7 +2845,7 @@ class BackendTester:
     def print_focused_summary(self):
         """Print focused test results summary"""
         print("\n" + "=" * 80)
-        print("🎯 FOCUSED TESTING SUMMARY - FILE MANAGEMENT FEATURES")
+        print("🎯 FOCUSED TESTING SUMMARY - FILE UPLOAD & MANAGEMENT FEATURES")
         print("=" * 80)
         
         total_tests = len(self.test_results)
@@ -2858,12 +2858,16 @@ class BackendTester:
         print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
         
         # Group results by test area
+        file_upload_tests = [r for r in self.test_results if "upload" in r["test"].lower()]
         file_deletion_tests = [r for r in self.test_results if "file deletion" in r["test"].lower() or "delete" in r["test"].lower()]
         file_like_tests = [r for r in self.test_results if "file like" in r["test"].lower() or "unlike" in r["test"].lower()]
+        file_listing_tests = [r for r in self.test_results if "list" in r["test"].lower() or "filter" in r["test"].lower()]
         
         print(f"\n📊 TEST BREAKDOWN:")
-        print(f"1. File Deletion Tests: {sum(1 for r in file_deletion_tests if r['success'])}/{len(file_deletion_tests)} passed")
-        print(f"2. File Like/Unlike Tests: {sum(1 for r in file_like_tests if r['success'])}/{len(file_like_tests)} passed")
+        print(f"1. File Upload Tests: {sum(1 for r in file_upload_tests if r['success'])}/{len(file_upload_tests)} passed")
+        print(f"2. File Listing Tests: {sum(1 for r in file_listing_tests if r['success'])}/{len(file_listing_tests)} passed")
+        print(f"3. File Deletion Tests: {sum(1 for r in file_deletion_tests if r['success'])}/{len(file_deletion_tests)} passed")
+        print(f"4. File Like/Unlike Tests: {sum(1 for r in file_like_tests if r['success'])}/{len(file_like_tests)} passed")
         
         if failed_tests > 0:
             print("\n❌ FAILED TESTS:")
@@ -2871,7 +2875,7 @@ class BackendTester:
                 if not result["success"]:
                     print(f"   • {result['test']}: {result['message']}")
         
-        print("\n🎉 File management features testing completed!")
+        print("\n🎉 File upload and management features testing completed!")
         print("=" * 80)
 
     def run_all_tests(self):
