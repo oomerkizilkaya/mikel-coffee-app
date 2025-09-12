@@ -2762,6 +2762,40 @@
             updateFileCounts();
         }
 
+        // Wrapper functions for category clicks (sync wrapper for async functions)
+        function clickVideos() {
+            console.log('🎥 CLICK VIDEOS - Button clicked');
+            try {
+                showVideos();
+                console.log('🎥 CLICK VIDEOS - Function called successfully');
+            } catch (error) {
+                console.error('🎥 CLICK VIDEOS - Error:', error);
+                showToast('❌ Video kategorisi yüklenemedi');
+            }
+        }
+
+        function clickPhotos() {
+            console.log('📸 CLICK PHOTOS - Button clicked');
+            try {
+                showPhotos();
+                console.log('📸 CLICK PHOTOS - Function called successfully');
+            } catch (error) {
+                console.error('📸 CLICK PHOTOS - Error:', error);
+                showToast('❌ Fotoğraf kategorisi yüklenemedi');
+            }
+        }
+
+        function clickForms() {
+            console.log('📄 CLICK FORMS - Button clicked');
+            try {
+                showForms();
+                console.log('📄 CLICK FORMS - Function called successfully');
+            } catch (error) {
+                console.error('📄 CLICK FORMS - Error:', error);
+                showToast('❌ Form kategorisi yüklenemedi');
+            }
+        }
+
         // Service worker registration for push notifications
         let swRegistration = null;
 
