@@ -3222,6 +3222,8 @@
 
         function renderFiles(type) {
             console.log('🔍 RENDER FILES - Type:', type, 'Files count:', filesData.length);
+            console.log('🔍 CURRENT USER:', currentUser);
+            console.log('🔍 IS ADMIN:', currentUser?.is_admin);
             
             if (filesData.length === 0) {
                 const typeNames = {
@@ -3235,7 +3237,7 @@
                         <div class="welcome-icon">${type === 'video' ? '🎥' : type === 'image' ? '📸' : '📄'}</div>
                         <div class="welcome-text">
                             <h3>Henüz ${typeNames[type]} yok</h3>
-                            <p>${currentUser.is_admin ? 'İlk dosyayı siz yükleyebilirsiniz.' : 'Yöneticiler dosya yüklediğinde burada görüntülenecek.'}</p>
+                            <p>${currentUser?.is_admin ? 'İlk dosyayı siz yükleyebilirsiniz.' : 'Yöneticiler dosya yüklediğinde burada görüntülenecek.'}</p>
                         </div>
                     </div>
                 `;
@@ -3265,7 +3267,7 @@
                                 <button class="file-download-btn" onclick="event.stopPropagation(); downloadFile('${file.id}')" title="İndir">
                                     ⬇️
                                 </button>
-                                ${currentUser.is_admin ? `
+                                ${currentUser?.is_admin ? `
                                 <button class="file-edit-btn" onclick="event.stopPropagation(); editFile('${file.id}', '${file.title}', '${file.description || ''}')" title="Düzenle">
                                     ✏️
                                 </button>
