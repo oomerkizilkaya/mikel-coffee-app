@@ -1249,47 +1249,6 @@ class UserUpdate(BaseModel):
     position: Optional[str] = None
     store: Optional[str] = None
 
-@api_router.get("/users/me", response_model=User)
-async def get_current_user_profile(current_user: User = Depends(get_current_user)):
-    """Mevcut kullanıcının profil bilgilerini getir"""
-    return current_user
-
-@api_router.put("/users/me")
-async def update_current_user_profile(user_update: dict, current_user: User = Depends(get_current_user)):
-    """Mevcut kullanıcının profil bilgilerini güncelle"""
-    
-    # Update user data
-    update_data = {}
-    if "name" in user_update:
-        update_data["name"] = user_update["name"]
-    if "surname" in user_update:
-        update_data["surname"] = user_update["surname"]
-    if "position" in user_update:
-        update_data["position"] = user_update["position"]
-    if "store" in user_update:
-        update_data["store"] = user_update["store"]
-    if "password" in user_update and user_update["password"]:
-        # Hash new password
-        hashed_password = bcrypt.hashpw(user_update["password"].encode('utf-8'), bcrypt.gensalt())
-        update_data["password"] = hashed_password
-    
-    if update_data:
-        result = await db.users.update_one(
-            {"employee_id": current_user.employee_id},
-            {"$set": update_data}
-        )
-        
-        if result.matched_count == 0:
-            raise HTTPException(status_code=404, detail="User not found")
-    
-    # Return updated user
-    updated_user = await db.users.find_one({"employee_id": current_user.employee_id})
-    if updated_user:
-        updated_user["_id"] = str(updated_user["_id"])
-        return {"message": "Profile updated successfully", "user": User(**updated_user)}
-    
-    raise HTTPException(status_code=404, detail="User not found")
-
 
 
 @api_router.delete("/admin/users/{employee_id}")
