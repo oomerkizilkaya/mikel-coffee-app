@@ -1152,6 +1152,9 @@ class BackendTester:
             # Run the specific profile photo visibility test
             self.test_profile_photo_visibility_issue()
             
+            # Run the start_date functionality test
+            self.test_start_date_functionality()
+            
         except Exception as e:
             self.log_test("Test Suite Execution", False, f"Critical error during testing: {str(e)}")
         
