@@ -104,6 +104,30 @@
 
 ## user_problem_statement: "Kurumsal kahve firması çalışan kayıt uygulaması - otomatik sicil numarası ile kayıt, pozisyon seçimi, trainer duyuruları, sınav sistemi"
 
+  - task: "File Deletion Feature for Administrators"
+    implemented: true
+    working: "NA"
+    file: "public/index.html"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "NEW FEATURE: Added admin-only file deletion functionality. Added deleteFile() function with confirmation dialog, delete buttons (🗑️) in file grids and preview modals, proper CSS styling, and admin security checks."
+
+  - task: "File Unlike (Beğenmeyi Geri Alma) Functionality"
+    implemented: true
+    working: "NA"
+    file: "public/index.html"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "EXISTING FEATURE VERIFIED: toggleFileLike() function already implemented and working perfectly. Supports both like and unlike actions with toggle functionality. Backend endpoint POST /api/files/{file_id}/like handles both operations correctly."
+
 ## backend:
   - task: "User authentication and registration system"
     implemented: true
