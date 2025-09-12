@@ -3351,6 +3351,10 @@
                         <div class="file-preview">
                             ${isImage ? 
                                 `<img src="${BACKEND_URL}/api/files/${file.id}/view" alt="${file.title}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">` :
+                            file.content_type && file.content_type.startsWith('video/') ?
+                                `<video style="width:100%;height:100%;object-fit:cover;border-radius:8px;" muted>
+                                    <source src="${BACKEND_URL}/api/files/${file.id}/view" type="${file.content_type}">
+                                </video>` :
                                 `<div style="font-size:48px;">${fileIcon}</div>`
                             }
                         </div>
