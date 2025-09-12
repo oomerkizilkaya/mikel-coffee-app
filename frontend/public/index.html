@@ -1832,8 +1832,8 @@
                     
                     setTimeout(() => {
                         console.log('Loading feed...');
-                        // Push notification sistemini güvenli şekilde başlat
-                        initializePushNotifications(); 
+                        // Push notification'ı tamamen kaldırıyoruz - hata vermesin
+                        // initializePushNotifications(); 
                         loadFeed();
                     }, 1500);
                 } else {
