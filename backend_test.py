@@ -2075,10 +2075,15 @@ if __name__ == "__main__":
             summary = tester.run_start_date_test_only()
         elif sys.argv[1] == "--notification-only":
             summary = tester.run_notification_test_only()
-        else:
+        elif sys.argv[1] == "--all":
             summary = tester.run_all_tests()
+        elif sys.argv[1] == "--focused":
+            summary = tester.run_focused_tests()
+        else:
+            summary = tester.run_focused_tests()  # Default to focused tests
     else:
-        summary = tester.run_all_tests()
+        # Default to focused tests for the 3 user-reported issues
+        summary = tester.run_focused_tests()
     
     # Exit with error code if tests failed
     if summary:
