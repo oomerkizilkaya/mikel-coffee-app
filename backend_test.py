@@ -1126,6 +1126,281 @@ class BackendTester:
         else:
             self.log_test("STEP 5: User data check", False, "Failed to get current user data for consistency check")
 
+    def test_notification_system(self):
+        """Test comprehensive notification system functionality"""
+        print("\n=== Testing Notification System ===")
+        
+        # Step 1: Setup admin user for testing
+        admin_token = None
+        admin_user = None
+        
+        # Try to login with existing admin
+        login_data = {
+            "email": "admin@mikelcoffee.com",
+            "password": "admin123"
+        }
+        
+        response = self.make_request("POST", "/auth/login", login_data)
+        if response["success"]:
+            admin_token = response["data"]["access_token"]
+            admin_user = response["data"]["user"]
+            self.log_test("STEP 1: Admin login for notifications", True, f"Admin logged in: {admin_user['employee_id']}")
+        else:
+            # Create admin if doesn't exist
+            admin_data = {
+                "name": "Notification",
+                "surname": "Admin",
+                "email": "admin@mikelcoffee.com",
+                "password": "admin123",
+                "position": "trainer",
+                "store": "merkez"
+            }
+            
+            response = self.make_request("POST", "/auth/register", admin_data)
+            if response["success"]:
+                admin_token = response["data"]["access_token"]
+                admin_user = response["data"]["user"]
+                
+                # Make admin using test endpoint
+                make_admin_response = self.make_request("POST", f"/test/make-admin/{admin_user['email']}")
+                if make_admin_response["success"]:
+                    # Re-login to get updated token
+                    response = self.make_request("POST", "/auth/login", login_data)
+                    if response["success"]:
+                        admin_token = response["data"]["access_token"]
+                        admin_user = response["data"]["user"]
+                        self.log_test("STEP 1: Create admin for notifications", True, f"Admin created and promoted: {admin_user['employee_id']}")
+                    else:
+                        self.log_test("STEP 1: Admin re-login", False, "Failed to re-login after promotion")
+                        return
+                else:
+                    self.log_test("STEP 1: Make admin", False, "Failed to promote user to admin")
+                    return
+            else:
+                self.log_test("STEP 1: Create admin", False, "Failed to create admin user", response["data"])
+                return
+        
+        if not admin_token:
+            self.log_test("STEP 1: Admin setup", False, "No admin token available")
+            return
+        
+        # Step 2: Create multiple test users to receive notifications
+        test_users = []
+        for i in range(3):
+            user_data = {
+                "name": f"NotifUser{i+1}",
+                "surname": "Test",
+                "email": f"notifuser{i+1}@mikelcoffee.com",
+                "password": "testpass123",
+                "position": "barista",
+                "store": "test_store"
+            }
+            
+            response = self.make_request("POST", "/auth/register", user_data)
+            if response["success"]:
+                test_users.append({
+                    "token": response["data"]["access_token"],
+                    "user": response["data"]["user"]
+                })
+        
+        if len(test_users) < 3:
+            self.log_test("STEP 2: Create test users", False, f"Only created {len(test_users)} out of 3 test users")
+        else:
+            self.log_test("STEP 2: Create test users", True, f"Created {len(test_users)} test users for notification testing")
+        
+        # Step 3: Test notification endpoints without notifications (should be empty)
+        response = self.make_request("GET", "/notifications", token=test_users[0]["token"])
+        if response["success"]:
+            notifications = response["data"]
+            if isinstance(notifications, list) and len(notifications) == 0:
+                self.log_test("STEP 3: Empty notifications list", True, "GET /notifications returns empty list initially")
+            else:
+                self.log_test("STEP 3: Empty notifications list", False, f"Expected empty list, got: {notifications}")
+        else:
+            self.log_test("STEP 3: GET notifications endpoint", False, "Failed to access notifications endpoint", response["data"])
+        
+        # Step 4: Test unread count (should be 0 initially)
+        response = self.make_request("GET", "/notifications/unread-count", token=test_users[0]["token"])
+        if response["success"]:
+            count_data = response["data"]
+            if count_data.get("unread_count") == 0:
+                self.log_test("STEP 4: Initial unread count", True, "Unread count is 0 initially")
+            else:
+                self.log_test("STEP 4: Initial unread count", False, f"Expected 0, got: {count_data}")
+        else:
+            self.log_test("STEP 4: GET unread count endpoint", False, "Failed to get unread count", response["data"])
+        
+        # Step 5: Create announcement to trigger mass notifications
+        announcement_data = {
+            "title": "🔔 Test Notification System",
+            "content": "This announcement should create notifications for all users in the system.",
+            "is_urgent": True
+        }
+        
+        response = self.make_request("POST", "/announcements", announcement_data, token=admin_token)
+        announcement_id = None
+        if response["success"]:
+            announcement = response["data"]
+            announcement_id = announcement.get("id") or announcement.get("_id")
+            self.log_test("STEP 5: Create announcement", True, f"Announcement created with ID: {announcement_id}")
+        else:
+            self.log_test("STEP 5: Create announcement", False, "Failed to create announcement", response["data"])
+            return
+        
+        # Step 6: Verify notifications were created for all users
+        # Wait a moment for notifications to be processed
+        import time
+        time.sleep(1)
+        
+        notifications_created = 0
+        for i, test_user in enumerate(test_users):
+            response = self.make_request("GET", "/notifications", token=test_user["token"])
+            if response["success"]:
+                notifications = response["data"]
+                if isinstance(notifications, list) and len(notifications) > 0:
+                    # Check if notification is about our announcement
+                    found_notification = False
+                    for notif in notifications:
+                        if (notif.get("title") == "🔔 Yeni Duyuru" and 
+                            "Test Notification System" in notif.get("message", "")):
+                            found_notification = True
+                            notifications_created += 1
+                            
+                            # Verify notification structure
+                            required_fields = ["id", "user_id", "title", "message", "type", "read", "created_at"]
+                            if all(field in notif for field in required_fields):
+                                self.log_test(f"STEP 6a: Notification structure user {i+1}", True, "Notification has all required fields")
+                            else:
+                                missing_fields = [f for f in required_fields if f not in notif]
+                                self.log_test(f"STEP 6a: Notification structure user {i+1}", False, f"Missing fields: {missing_fields}")
+                            
+                            # Verify notification content
+                            if (notif.get("type") == "announcement" and 
+                                notif.get("read") == False and
+                                notif.get("user_id") == test_user["user"]["employee_id"]):
+                                self.log_test(f"STEP 6b: Notification content user {i+1}", True, "Notification content is correct")
+                            else:
+                                self.log_test(f"STEP 6b: Notification content user {i+1}", False, f"Incorrect content: {notif}")
+                            break
+                    
+                    if not found_notification:
+                        self.log_test(f"STEP 6: User {i+1} notification", False, f"Notification not found for user {i+1}")
+                else:
+                    self.log_test(f"STEP 6: User {i+1} notification", False, f"No notifications found for user {i+1}")
+            else:
+                self.log_test(f"STEP 6: User {i+1} notification", False, f"Failed to get notifications for user {i+1}")
+        
+        if notifications_created == len(test_users):
+            self.log_test("STEP 6: Mass notification creation", True, f"Notifications created for all {notifications_created} users")
+        else:
+            self.log_test("STEP 6: Mass notification creation", False, f"Only {notifications_created} out of {len(test_users)} users received notifications")
+        
+        # Step 7: Test unread count after notification creation
+        response = self.make_request("GET", "/notifications/unread-count", token=test_users[0]["token"])
+        if response["success"]:
+            count_data = response["data"]
+            if count_data.get("unread_count") >= 1:
+                self.log_test("STEP 7: Unread count after notification", True, f"Unread count increased to {count_data.get('unread_count')}")
+            else:
+                self.log_test("STEP 7: Unread count after notification", False, f"Unread count should be >= 1, got: {count_data}")
+        else:
+            self.log_test("STEP 7: Unread count after notification", False, "Failed to get unread count after notification")
+        
+        # Step 8: Test mark notification as read
+        # Get the first user's notifications to find notification ID
+        response = self.make_request("GET", "/notifications", token=test_users[0]["token"])
+        notification_id = None
+        if response["success"]:
+            notifications = response["data"]
+            if len(notifications) > 0:
+                notification_id = notifications[0].get("id") or notifications[0].get("_id")
+                
+                # Mark as read
+                response = self.make_request("PUT", f"/notifications/{notification_id}/read", token=test_users[0]["token"])
+                if response["success"]:
+                    self.log_test("STEP 8a: Mark notification as read", True, "Successfully marked notification as read")
+                    
+                    # Verify unread count decreased
+                    response = self.make_request("GET", "/notifications/unread-count", token=test_users[0]["token"])
+                    if response["success"]:
+                        count_data = response["data"]
+                        if count_data.get("unread_count") == 0:
+                            self.log_test("STEP 8b: Unread count after read", True, "Unread count decreased to 0 after marking as read")
+                        else:
+                            self.log_test("STEP 8b: Unread count after read", False, f"Unread count should be 0, got: {count_data.get('unread_count')}")
+                    else:
+                        self.log_test("STEP 8b: Unread count after read", False, "Failed to get unread count after marking as read")
+                else:
+                    self.log_test("STEP 8a: Mark notification as read", False, "Failed to mark notification as read", response["data"])
+        
+        # Step 9: Test notification access control (user can only access their own notifications)
+        if notification_id:
+            # Try to mark another user's notification as read
+            response = self.make_request("PUT", f"/notifications/{notification_id}/read", token=test_users[1]["token"])
+            if not response["success"] and response["status_code"] == 404:
+                self.log_test("STEP 9: Notification access control", True, "User cannot access other users' notifications")
+            else:
+                self.log_test("STEP 9: Notification access control", False, "User should not be able to access other users' notifications", response["data"])
+        
+        # Step 10: Test notification model validation by creating another announcement
+        announcement_data2 = {
+            "title": "Second Test Notification",
+            "content": "Testing notification system with second announcement.",
+            "is_urgent": False
+        }
+        
+        response = self.make_request("POST", "/announcements", announcement_data2, token=admin_token)
+        if response["success"]:
+            # Wait for notifications to be created
+            time.sleep(1)
+            
+            # Check if users received the second notification
+            response = self.make_request("GET", "/notifications", token=test_users[0]["token"])
+            if response["success"]:
+                notifications = response["data"]
+                if len(notifications) >= 2:
+                    self.log_test("STEP 10: Multiple notifications", True, f"User has {len(notifications)} notifications after second announcement")
+                else:
+                    self.log_test("STEP 10: Multiple notifications", False, f"Expected >= 2 notifications, got {len(notifications)}")
+            else:
+                self.log_test("STEP 10: Multiple notifications", False, "Failed to get notifications after second announcement")
+        else:
+            self.log_test("STEP 10: Second announcement", False, "Failed to create second announcement", response["data"])
+        
+        # Step 11: Test notification system integration with announcement deletion
+        if announcement_id:
+            # Delete the first announcement
+            response = self.make_request("DELETE", f"/announcements/{announcement_id}", token=admin_token)
+            if response["success"]:
+                self.log_test("STEP 11: Announcement deletion", True, "Successfully deleted announcement")
+                
+                # Notifications should still exist even after announcement deletion
+                response = self.make_request("GET", "/notifications", token=test_users[1]["token"])
+                if response["success"]:
+                    notifications = response["data"]
+                    if len(notifications) > 0:
+                        self.log_test("STEP 11: Notifications persist after deletion", True, "Notifications remain after announcement deletion")
+                    else:
+                        self.log_test("STEP 11: Notifications persist after deletion", False, "Notifications should persist after announcement deletion")
+                else:
+                    self.log_test("STEP 11: Check notifications after deletion", False, "Failed to check notifications after announcement deletion")
+            else:
+                self.log_test("STEP 11: Announcement deletion", False, "Failed to delete announcement", response["data"])
+
+    def run_notification_test_only(self):
+        """Run only the notification system test"""
+        print("🔔 Running Notification System Test Only")
+        print(f"🌐 Testing against: {self.base_url}")
+        print("=" * 80)
+        
+        try:
+            self.test_notification_system()
+        except Exception as e:
+            self.log_test("Notification System Test", False, f"Critical error during testing: {str(e)}")
+        
+        # Print summary
+        self.print_summary()
+
     def run_all_tests(self):
         """Run all test suites"""
         print("🚀 Starting Comprehensive Backend Testing for Corporate Coffee Employee Registration System")
@@ -1154,6 +1429,9 @@ class BackendTester:
             
             # Run the start_date functionality test
             self.test_start_date_functionality()
+            
+            # Run the notification system test
+            self.test_notification_system()
             
         except Exception as e:
             self.log_test("Test Suite Execution", False, f"Critical error during testing: {str(e)}")
