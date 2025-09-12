@@ -2766,27 +2766,42 @@
 
         async function subscribeUserToPush() {
             try {
+                // Generic VAPID key for testing - production'da gerçek key olmalı
+                const applicationServerKey = 'BMqn_wh_FWYhSkyKpF3_UVhcJK9o3B6hbTNP7KwrDWKqp2jGfqYfkRhq5CVwBr8B_lPPGkkF5LjDV4Aa8T8LZzo';
+                
                 const subscription = await swRegistration.pushManager.subscribe({
                     userVisibleOnly: true,
-                    applicationServerKey: urlBase64ToUint8Array('BP6gYZmNDw9zLwGKt-FgXeWGpK8FVOYPk8OUo2kJl3XfQYzDxr3Cl6iqPKZs1P2J7qCVhWJWktWKqZKpGWJQ7Y8')
+                    applicationServerKey: urlBase64ToUint8Array(applicationServerKey)
                 });
 
                 console.log('✅ User subscribed to push notifications:', subscription);
 
                 // Send subscription to backend
                 const token = localStorage.getItem('auth_token');
-                await fetch('https://baristalink.preview.emergentagent.com/api/push/subscribe', {
+                const response = await fetch('https://baristalink.preview.emergentagent.com/api/push/subscribe', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(subscription)
+                    body: JSON.stringify({
+                        endpoint: subscription.endpoint,
+                        keys: {
+                            p256dh: subscription.keys.p256dh,
+                            auth: subscription.keys.auth
+                        }
+                    })
                 });
 
-                console.log('✅ Push subscription sent to backend');
+                if (response.ok) {
+                    console.log('✅ Push subscription sent to backend');
+                    showToast('📱 Push bildirimleri aktif!');
+                } else {
+                    console.error('❌ Failed to send subscription to backend');
+                }
             } catch (error) {
                 console.error('❌ Failed to subscribe to push notifications:', error);
+                showToast('❌ Push bildirim hatası');
             }
         }
 
