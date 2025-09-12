@@ -3190,9 +3190,24 @@
         }
 
         async function showVideos() {
-            currentFileCategory = 'videos';
-            console.log('🎥 SHOW VIDEOS - Loading videos...');
+            console.log('🎥 SHOW VIDEOS BAŞLADI');
             
+            // Ensure currentUser is loaded
+            if (!currentUser) {
+                const savedUserData = localStorage.getItem('user');
+                if (savedUserData) {
+                    currentUser = JSON.parse(savedUserData);
+                    console.log('🔧 CURRENT USER RELOADED:', currentUser);
+                }
+            }
+            
+            console.log('🔍 CURRENT USER:', currentUser);
+            console.log('🔍 IS ADMIN:', currentUser?.is_admin);
+            
+            // Set category for refresh purposes
+            currentFileCategory = 'videos';
+            
+            // Load videos data first
             await loadFiles('video/*');
             console.log('🎥 SHOW VIDEOS - Files loaded:', filesData.length);
             
@@ -3209,8 +3224,6 @@
                     ${renderFiles('video')}
                 </div>
             `;
-            
-            console.log('🎥 SHOW VIDEOS - Grid HTML set, files rendered');
         }
 
         async function showPhotos() {
