@@ -1473,70 +1473,70 @@ async def download_file(file_id: str, request: Request, token: str = None):
     current_user = None
     print(f"🔍 DEBUG - Download request for file_id: {file_id}, token: {token is not None}")
     
+    # İlk olarak Authorization header'ını kontrol et
+    auth_header = request.headers.get("authorization") if request else None
+    print(f"🔍 DEBUG - Auth header present: {auth_header is not None}")
+    
+    if auth_header and auth_header.startswith("Bearer "):
+        try:
+            token_from_header = auth_header.split(" ")[1]
+            payload = jwt.decode(token_from_header, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+            user_id = payload.get("sub")
+            if user_id:
+                user_doc = await db.users.find_one({"_id": ObjectId(user_id)})
+                if user_doc:
+                    user_doc["_id"] = str(user_doc["_id"])
+                    current_user = User(**user_doc)
+                    print(f"🔍 DEBUG - User authenticated via header: {current_user.employee_id}")
+        except Exception as e:
+            print(f"Header token decode error: {e}")
+            pass
+    
+    # Token URL parameter olarak gelirse, onu manual verify et
+    if token and not current_user:
+        print(f"🔍 DEBUG - Trying URL token authentication")
+        try:
+            # Token'ı decode et
+            payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+            print(f"🔍 DEBUG - Token payload: {payload}")
+            employee_id = payload.get("employee_id")
+            print(f"🔍 DEBUG - Employee ID from token: {employee_id}")
+            if employee_id:
+                # Kullanıcıyı database'den al
+                user_doc = await db.users.find_one({"employee_id": employee_id})
+                print(f"🔍 DEBUG - User found in DB: {user_doc is not None}")
+                if user_doc:
+                    user_doc["_id"] = str(user_doc["_id"])
+                    current_user = User(**user_doc)
+                    print(f"🔍 DEBUG - User authenticated via URL token: {current_user.employee_id}")
+        except Exception as e:
+            print(f"URL token decode error: {e}")
+            pass
+    
+    # Hala kullanıcı yoksa 403
+    if not current_user:
+        print(f"🔍 DEBUG - No user authenticated, returning 403")
+        raise HTTPException(status_code=403, detail="Authentication required")
+    
+    # Dosyayı bul
+    file_doc = await db.files.find_one({"id": file_id})
+    
+    if not file_doc:
+        print(f"🔍 DEBUG - File not found: {file_id}")
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    print(f"🔍 DEBUG - File found, returning download for user: {current_user.employee_id}")
+    
     try:
-        # İlk olarak Authorization header'ını kontrol et
-        auth_header = request.headers.get("authorization") if request else None
-        print(f"🔍 DEBUG - Auth header present: {auth_header is not None}")
-        
-        if auth_header and auth_header.startswith("Bearer "):
-            try:
-                token_from_header = auth_header.split(" ")[1]
-                payload = jwt.decode(token_from_header, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-                user_id = payload.get("sub")
-                if user_id:
-                    user_doc = await db.users.find_one({"_id": ObjectId(user_id)})
-                    if user_doc:
-                        user_doc["_id"] = str(user_doc["_id"])
-                        current_user = User(**user_doc)
-                        print(f"🔍 DEBUG - User authenticated via header: {current_user.employee_id}")
-            except Exception as e:
-                print(f"Header token decode error: {e}")
-                pass
-        
-        # Token URL parameter olarak gelirse, onu manual verify et
-        if token and not current_user:
-            print(f"🔍 DEBUG - Trying URL token authentication")
-            try:
-                # Token'ı decode et
-                payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-                print(f"🔍 DEBUG - Token payload: {payload}")
-                employee_id = payload.get("employee_id")
-                print(f"🔍 DEBUG - Employee ID from token: {employee_id}")
-                if employee_id:
-                    # Kullanıcıyı database'den al
-                    user_doc = await db.users.find_one({"employee_id": employee_id})
-                    print(f"🔍 DEBUG - User found in DB: {user_doc is not None}")
-                    if user_doc:
-                        user_doc["_id"] = str(user_doc["_id"])
-                        current_user = User(**user_doc)
-                        print(f"🔍 DEBUG - User authenticated via URL token: {current_user.employee_id}")
-            except Exception as e:
-                print(f"URL token decode error: {e}")
-                pass
-        
-        # Hala kullanıcı yoksa 403
-        if not current_user:
-            print(f"🔍 DEBUG - No user authenticated, returning 403")
-            raise HTTPException(status_code=403, detail="Authentication required")
-        
-        # Dosyayı bul
-        file_doc = await db.files.find_one({"id": file_id})
-        
-        if not file_doc:
-            raise HTTPException(status_code=404, detail="File not found")
-        
-        print(f"🔍 DEBUG - File found, returning download for user: {current_user.employee_id}")
-        
         # Binary content'i döndür
         return Response(
             content=file_doc["file_content"],
             media_type=file_doc["content_type"],
             headers={"Content-Disposition": f"attachment; filename={file_doc['filename']}"}
         )
-        
     except Exception as e:
-        print(f"❌ DOWNLOAD FILE ERROR: {e}")
-        raise HTTPException(status_code=500, detail="Download failed")
+        print(f"❌ RESPONSE CREATION ERROR: {e}")
+        raise HTTPException(status_code=500, detail=f"Response creation failed: {str(e)}")
 
 @api_router.post("/files/{file_id}/like")
 async def toggle_file_like(file_id: str, current_user: User = Depends(get_current_user)):
