@@ -3303,11 +3303,8 @@
                                 ${formatFileSize(file.size)} • ${formatDate(file.created_at)}
                             </div>
                             <div class="file-actions">
-                                <button class="action-btn like-btn" onclick="event.stopPropagation(); toggleFileLike('${file.id}')">
-                                    ❤️ ${file.likes_count || 0}
-                                </button>
                                 <button class="action-btn delete-btn" onclick="event.stopPropagation(); deleteFile('${file.id}', '${file.title}')" title="Sil">
-                                    🗑️
+                                    🗑️ SİL
                                 </button>
                             </div>
                         </div>
