@@ -3499,8 +3499,25 @@
 
         // Profile Functions
         async function showProfile(userId = null) {
-            const targetUser = userId ? userMap_global[userId] : currentUser;
+            // Önce kullanıcı profil verilerini yükle
+            await loadUsersWithProfiles();
+            
+            const targetUser = userId ? userMap_global[userId] : userMap_global[currentUser.employee_id];
             const isOwnProfile = !userId || userId === currentUser.employee_id;
+            
+            // Profil bilgileri eksikse currentUser'dan al
+            const profileUser = {
+                ...targetUser,
+                employee_id: targetUser?.employee_id || currentUser.employee_id,
+                name: targetUser?.name || currentUser.name,
+                surname: targetUser?.surname || currentUser.surname,
+                position: targetUser?.position || currentUser.position,
+                store: targetUser?.store || currentUser.store,
+                profile_image_url: targetUser?.profile_image_url || null
+            };
+            
+            console.log('🔍 PROFILE DEBUG - Showing profile for:', profileUser.employee_id);
+            console.log('🔍 PROFILE DEBUG - Has profile image:', profileUser.profile_image_url ? 'YES' : 'NO');
             
             // Load user's posts if viewing specific user
             let userPosts = [];
