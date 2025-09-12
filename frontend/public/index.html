@@ -2983,7 +2983,10 @@
 
         async function showForms() {
             currentFileCategory = 'forms';
+            console.log('📄 SHOW FORMS - Loading forms...');
+            
             await loadFiles('application/*');
+            console.log('📄 SHOW FORMS - Files loaded:', filesData.length);
             
             document.getElementById('filesContainer').innerHTML = `
                 <div class="files-header">
@@ -3000,6 +3003,8 @@
                     ${renderFiles('document')}
                 </div>
             `;
+            
+            console.log('📄 SHOW FORMS - Grid HTML set, files rendered');
         }
 
         async function loadFiles(fileType) {
