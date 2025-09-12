@@ -278,6 +278,7 @@ class User(BaseModel):
     email: EmailStr
     position: str
     store: str
+    start_date: Optional[str] = None  # İşe giriş tarihi
     special_role: Optional[str] = None  # "eğitim departmanı" or None
     is_admin: bool = False
     created_at: datetime = Field(default_factory=datetime.utcnow)
