@@ -1360,6 +1360,80 @@ async def get_unread_notifications_count(current_user: User = Depends(get_curren
     
     return {"unread_count": count}
 
+# Push Notification Models and Endpoints
+class PushSubscription(BaseModel):
+    endpoint: str
+    keys: dict
+
+@api_router.post("/push/subscribe")
+async def subscribe_to_push(subscription: PushSubscription, current_user: User = Depends(get_current_user)):
+    """Kullanıcının push notification subscription'ını kaydet"""
+    
+    # Kullanıcının mevcut subscription'ını güncelle veya yeni oluştur
+    await db.push_subscriptions.update_one(
+        {"user_id": current_user.employee_id},
+        {
+            "$set": {
+                "user_id": current_user.employee_id,
+                "endpoint": subscription.endpoint,
+                "keys": subscription.keys,
+                "created_at": datetime.utcnow()
+            }
+        },
+        upsert=True
+    )
+    
+    return {"message": "Push subscription saved successfully"}
+
+@api_router.post("/push/send-test")
+async def send_test_push(current_user: User = Depends(get_current_user)):
+    """Test push notification gönder (admin only)"""
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Only admin can send test notifications")
+    
+    # Bu endpoint test amaçlı - gerçek push notification gönderimi için
+    # web push library'si gerekiyor (pywebpush)
+    return {"message": "Test push notification would be sent (requires pywebpush implementation)"}
+
+async def send_push_notification_to_user(user_id: str, title: str, body: str):
+    """Kullanıcıya push notification gönder"""
+    try:
+        # Kullanıcının push subscription'ını al
+        subscription_doc = await db.push_subscriptions.find_one({"user_id": user_id})
+        
+        if subscription_doc:
+            # Gerçek implementasyon için pywebpush library'si gerekiyor
+            # Şimdilik console'a log yazdıralım
+            print(f"📱 PUSH NOTIFICATION - User: {user_id}, Title: {title}, Body: {body}")
+            print(f"📱 PUSH SUBSCRIPTION: {subscription_doc['endpoint']}")
+            
+            # TODO: Implement actual push notification sending with pywebpush
+            # from pywebpush import webpush, WebPushException
+            # webpush(subscription_info=subscription_doc, data=json.dumps({
+            #     "title": title,
+            #     "body": body
+            # }), vapid_private_key="path/to/private_key.pem", vapid_claims={"sub": "mailto:admin@mikelcoffee.com"})
+            
+        else:
+            print(f"📱 NO PUSH SUBSCRIPTION found for user: {user_id}")
+            
+    except Exception as e:
+        print(f"❌ Error sending push notification: {e}")
+
+async def send_push_notifications_to_all_users(title: str, body: str):
+    """Tüm kullanıcılara push notification gönder"""
+    try:
+        # Tüm push subscription'ları al
+        subscriptions = await db.push_subscriptions.find({}).to_list(1000)
+        
+        print(f"📱 SENDING PUSH TO {len(subscriptions)} USERS: {title}")
+        
+        for subscription in subscriptions:
+            await send_push_notification_to_user(subscription["user_id"], title, body)
+            
+    except Exception as e:
+        print(f"❌ Error sending push notifications to all users: {e}")
+
 # Include the router in the main app
 app.include_router(api_router)
 
