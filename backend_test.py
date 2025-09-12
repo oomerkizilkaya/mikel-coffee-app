@@ -2814,19 +2814,25 @@ class BackendTester:
         print(f"   📊 Uploaded {len(uploaded_file_ids)} test files during testing")
 
     def run_focused_tests(self):
-        """Run focused tests for the announcement likes system and file management"""
-        print("🎯 Starting Focused Backend Testing for File Management Features")
+        """Run focused tests for file upload functionality and file management"""
+        print("🎯 Starting Focused Backend Testing for File Upload Issue")
         print("=" * 80)
         print("Testing:")
-        print("1. File Deletion API (DELETE /api/files/{file_id})")
-        print("2. File Like/Unlike API (POST /api/files/{file_id}/like)")
-        print("3. Admin-only file deletion permissions")
-        print("4. File likes_count increment/decrement")
-        print("5. Authentication and error handling")
+        print("1. File Upload API (POST /api/files/upload)")
+        print("2. File Listing API (GET /api/files with type filters)")
+        print("3. File Download API (GET /api/files/{id}/download)")
+        print("4. File Like API (POST /api/files/{id}/like)")
+        print("5. File Delete API (DELETE /api/files/{id})")
+        print("6. File Edit API (PUT /api/files/{id})")
+        print("7. Admin-only permissions for upload/edit/delete")
+        print("8. Authentication and error handling")
         print("=" * 80)
         
         try:
-            # Test the file management features
+            # Test the file upload functionality (user reported issue)
+            self.test_file_upload_functionality()
+            
+            # Test other file management features
             self.test_file_deletion_functionality()
             self.test_file_like_unlike_functionality()
             
