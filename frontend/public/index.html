@@ -4008,14 +4008,6 @@
                 showToast('❌ Bağlantı hatası');
             }
         }
-                } else {
-                    showToast('Güncelleme hatası - bazı bilgiler kaydedilemedi');
-                }
-            } catch (error) {
-                showToast('Bağlantı hatası');
-                console.error('Profile update error:', error);
-            }
-        }
 
         function openPostModal(postId) {
             const post = socialPosts.find(p => p._id === postId);
