@@ -1304,6 +1304,43 @@ async def update_admin_status(
         "reason": reason
     }
 
+# Notification Endpoints
+@api_router.get("/notifications", response_model=List[Notification])
+async def get_user_notifications(current_user: User = Depends(get_current_user)):
+    """Kullanıcının bildirimlerini getir"""
+    notifications = await db.notifications.find(
+        {"user_id": current_user.employee_id}
+    ).sort("created_at", -1).limit(50).to_list(50)
+    
+    # Convert ObjectId to string
+    for notification in notifications:
+        notification["_id"] = str(notification["_id"])
+    
+    return [Notification(**notif) for notif in notifications]
+
+@api_router.put("/notifications/{notification_id}/read")
+async def mark_notification_as_read(notification_id: str, current_user: User = Depends(get_current_user)):
+    """Bildirimi okundu olarak işaretle"""
+    result = await db.notifications.update_one(
+        {"_id": notification_id, "user_id": current_user.employee_id},
+        {"$set": {"read": True}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    
+    return {"message": "Notification marked as read"}
+
+@api_router.get("/notifications/unread-count")
+async def get_unread_notifications_count(current_user: User = Depends(get_current_user)):
+    """Okunmamış bildirim sayısını getir"""
+    count = await db.notifications.count_documents({
+        "user_id": current_user.employee_id,
+        "read": False
+    })
+    
+    return {"unread_count": count}
+
 # Include the router in the main app
 app.include_router(api_router)
 
