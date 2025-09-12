@@ -1467,7 +1467,7 @@ async def get_files(type: str = None, current_user: User = Depends(get_current_u
         return []
 
 @api_router.get("/files/{file_id}/download")
-async def download_file(file_id: str, token: str = None, current_user: User = Depends(get_current_user)):
+async def download_file(file_id: str, token: str = None, current_user: User = None):
     """Dosya indirme - token URL parameter veya header ile"""
     
     try:
