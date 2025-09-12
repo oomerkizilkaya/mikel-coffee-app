@@ -3214,9 +3214,24 @@
         }
 
         async function showPhotos() {
-            currentFileCategory = 'photos';
-            console.log('📸 SHOW PHOTOS - Loading photos...');
+            console.log('📸 SHOW PHOTOS BAŞLADI');
             
+            // Ensure currentUser is loaded
+            if (!currentUser) {
+                const savedUserData = localStorage.getItem('user');
+                if (savedUserData) {
+                    currentUser = JSON.parse(savedUserData);
+                    console.log('🔧 CURRENT USER RELOADED:', currentUser);
+                }
+            }
+            
+            console.log('🔍 CURRENT USER:', currentUser);
+            console.log('🔍 IS ADMIN:', currentUser?.is_admin);
+            
+            // Set category for refresh purposes
+            currentFileCategory = 'photos';
+            
+            // Load photos data first
             await loadFiles('image/*');
             console.log('📸 SHOW PHOTOS - Files loaded:', filesData.length);
             
@@ -3233,8 +3248,6 @@
                     ${renderFiles('image')}
                 </div>
             `;
-            
-            console.log('📸 SHOW PHOTOS - Grid HTML set, files rendered');
         }
 
         async function showForms() {
