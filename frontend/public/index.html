@@ -1817,6 +1817,7 @@
         async function loadFeed() {
             await loadAnnouncements();
             await loadUsersWithProfiles(); // Ana sayfada profil fotoğrafları için
+            await updateNotificationCount(); // Bildirim sayısını güncelle
             
             const userInitials = (currentUser.name?.[0] || '') + (currentUser.surname?.[0] || '');
             const canPost = currentUser.is_admin || currentUser.position === 'trainer' || currentUser.special_role === 'eğitim departmanı';
