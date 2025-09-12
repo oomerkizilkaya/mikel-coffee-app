@@ -3532,7 +3532,7 @@
                     <div class="header-content">
                         <div class="logo-section">
                             <button onclick="showFeed()" style="background:none;border:none;color:#262626;font-size:24px;">←</button>
-                            <div class="brand-name">${targetUser.name} ${targetUser.surname}</div>
+                            <div class="brand-name">${profileUser.name} ${profileUser.surname}</div>
                         </div>
                         <div class="header-actions">
                             ${isOwnProfile ? '<button class="logout-btn" onclick="showSettings()" title="Ayarlar">⚙️</button>' : ''}
@@ -3545,16 +3545,16 @@
                     <div class="profile-header-section">
                         <div class="profile-image-container">
                             <div class="profile-picture-instagram" id="profilePictureDisplay">
-                                ${targetUser.profile_image_url ? 
-                                    `<img src="${targetUser.profile_image_url}" alt="Profil" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` :
-                                    `${targetUser.name?.[0] || ''}${targetUser.surname?.[0] || ''}`
+                                ${profileUser.profile_image_url ? 
+                                    `<img src="${profileUser.profile_image_url}" alt="Profil" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` :
+                                    `${profileUser.name?.[0] || ''}${profileUser.surname?.[0] || ''}`
                                 }
                             </div>
                         </div>
                         
                         <div class="profile-info-instagram">
                             <div class="profile-name-section">
-                                <h2 class="profile-username">${targetUser.name} ${targetUser.surname}</h2>
+                                <h2 class="profile-username">${profileUser.name} ${profileUser.surname}</h2>
                                 ${isOwnProfile ? '<button class="edit-profile-btn" onclick="editProfile()">Profili Düzenle</button>' : ''}
                             </div>
                             
@@ -3566,8 +3566,8 @@
                             </div>
                             
                             <div class="profile-bio">
-                                <strong>${targetUser.position?.charAt(0).toUpperCase() + targetUser.position?.slice(1)}</strong>
-                                ${targetUser.store ? `<br>📍 ${targetUser.store}` : ''}
+                                <strong>${profileUser.position?.charAt(0).toUpperCase() + profileUser.position?.slice(1)}</strong>
+                                ${profileUser.store ? `<br>📍 ${profileUser.store}` : ''}
                                 <div id="userBio">Yükleniyor...</div>
                             </div>
                         </div>
