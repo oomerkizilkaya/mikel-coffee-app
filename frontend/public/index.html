@@ -2762,37 +2762,141 @@
             updateFileCounts();
         }
 
-        // Wrapper functions for category clicks (sync wrapper for async functions)
-        function clickVideos() {
-            console.log('🎥 CLICK VIDEOS - Button clicked');
-            try {
-                showVideos();
-                console.log('🎥 CLICK VIDEOS - Function called successfully');
-            } catch (error) {
-                console.error('🎥 CLICK VIDEOS - Error:', error);
-                showToast('❌ Video kategorisi yüklenemedi');
+        // Simple file category loader - KESIN ÇÖZÜM
+        function loadFileCategory(category) {
+            console.log('📁 LOAD CATEGORY:', category);
+            
+            let categoryName, categoryIcon, fileType;
+            
+            if (category === 'videos') {
+                categoryName = 'Videolar';
+                categoryIcon = '🎥';
+                fileType = 'video/*';
+            } else if (category === 'photos') {
+                categoryName = 'Fotoğraflar';
+                categoryIcon = '📸';
+                fileType = 'image/*';
+            } else if (category === 'forms') {
+                categoryName = 'Formlar';
+                categoryIcon = '📄';
+                fileType = 'application/*';
             }
+            
+            console.log('📁 Loading files for:', categoryName);
+            
+            // Immediately show loading screen
+            document.getElementById('filesContainer').innerHTML = `
+                <div class="files-header">
+                    <div class="files-title">
+                        <button onclick="showSocialFeed()" style="background:none;border:none;font-size:20px;color:#262626;cursor:pointer;">←</button>
+                        <div class="files-icon">${categoryIcon}</div>
+                        <div class="files-text">${categoryName}</div>
+                    </div>
+                    ${currentUser.is_admin ? `<button class="btn upload-btn" onclick="showUploadModal('${category}')">⬆️ Yükle</button>` : ''}
+                </div>
+                <div class="files-grid">
+                    <div style="text-align:center;padding:50px;color:#8E8E8E;">
+                        <div style="font-size:32px;margin-bottom:10px;">⏳</div>
+                        <div>Yükleniyor...</div>
+                    </div>
+                </div>
+            `;
+            
+            // Load files from backend
+            const token = localStorage.getItem('auth_token');
+            fetch(`https://baristalink.preview.emergentagent.com/api/files?type=${fileType}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            .then(response => response.json())
+            .then(files => {
+                console.log('📁 Files loaded:', files.length);
+                
+                let filesHTML = '';
+                if (files.length === 0) {
+                    filesHTML = `
+                        <div style="text-align:center;padding:50px;color:#8E8E8E;">
+                            <div style="font-size:48px;margin-bottom:15px;">${categoryIcon}</div>
+                            <div style="font-size:18px;margin-bottom:10px;">Henüz ${categoryName.toLowerCase()} yok</div>
+                            <div style="font-size:14px;">${currentUser.is_admin ? 'İlk dosyayı siz yükleyebilirsiniz.' : 'Yöneticiler dosya yüklediğinde burada görünecek.'}</div>
+                        </div>
+                    `;
+                } else {
+                    filesHTML = files.map(file => `
+                        <div class="file-item" onclick="openFileViewer('${file.id}', '${file.title}', '${file.content_type}')">
+                            <div class="file-preview">
+                                ${file.content_type.startsWith('image/') ? 
+                                    `<img src="https://baristalink.preview.emergentagent.com/api/files/${file.id}/download" alt="${file.title}" style="width:100%;height:150px;object-fit:cover;border-radius:8px;">` :
+                                    `<div style="font-size:48px;display:flex;align-items:center;justify-content:center;height:150px;">${getFileIcon(file.content_type)}</div>`
+                                }
+                            </div>
+                            <div class="file-info">
+                                <div class="file-title">${file.title}</div>
+                                <div class="file-meta">${formatFileSize(file.size)}</div>
+                                <div class="file-actions">
+                                    <button class="file-like-btn" onclick="event.stopPropagation(); toggleFileLike('${file.id}')">❤️ ${file.likes_count || 0}</button>
+                                    <button class="file-download-btn" onclick="event.stopPropagation(); downloadFile('${file.id}')" title="İndir">⬇️</button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+                
+                // Update the files grid
+                document.getElementById('filesContainer').innerHTML = `
+                    <div class="files-header">
+                        <div class="files-title">
+                            <button onclick="showSocialFeed()" style="background:none;border:none;font-size:20px;color:#262626;cursor:pointer;">←</button>
+                            <div class="files-icon">${categoryIcon}</div>
+                            <div class="files-text">${categoryName}</div>
+                        </div>
+                        ${currentUser.is_admin ? `<button class="btn upload-btn" onclick="showUploadModal('${category}')">⬆️ Yükle</button>` : ''}
+                    </div>
+                    <div class="files-grid">
+                        ${filesHTML}
+                    </div>
+                `;
+            })
+            .catch(error => {
+                console.error('📁 Error loading files:', error);
+                document.getElementById('filesContainer').innerHTML = `
+                    <div class="files-header">
+                        <div class="files-title">
+                            <button onclick="showSocialFeed()" style="background:none;border:none;font-size:20px;color:#262626;cursor:pointer;">←</button>
+                            <div class="files-icon">${categoryIcon}</div>
+                            <div class="files-text">${categoryName}</div>
+                        </div>
+                    </div>
+                    <div class="files-grid">
+                        <div style="text-align:center;padding:50px;color:#FF0000;">
+                            <div style="font-size:32px;margin-bottom:10px;">❌</div>
+                            <div>Dosyalar yüklenemedi</div>
+                        </div>
+                    </div>
+                `;
+            });
         }
 
-        function clickPhotos() {
-            console.log('📸 CLICK PHOTOS - Button clicked');
-            try {
-                showPhotos();
-                console.log('📸 CLICK PHOTOS - Function called successfully');
-            } catch (error) {
-                console.error('📸 CLICK PHOTOS - Error:', error);
-                showToast('❌ Fotoğraf kategorisi yüklenemedi');
-            }
-        }
-
-        function clickForms() {
-            console.log('📄 CLICK FORMS - Button clicked');
-            try {
-                showForms();
-                console.log('📄 CLICK FORMS - Function called successfully');
-            } catch (error) {
-                console.error('📄 CLICK FORMS - Error:', error);
-                showToast('❌ Form kategorisi yüklenemedi');
+        function openFileViewer(fileId, fileName, contentType) {
+            console.log('📄 Opening file:', fileName);
+            
+            if (contentType.startsWith('image/')) {
+                // Show image in modal
+                document.getElementById('modalTitle').textContent = fileName;
+                document.getElementById('modalBody').innerHTML = `
+                    <div style="text-align:center;padding:20px;">
+                        <img src="https://baristalink.preview.emergentagent.com/api/files/${fileId}/download" 
+                             alt="${fileName}" 
+                             style="max-width:100%;max-height:70vh;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15);">
+                        <div style="margin-top:15px;">
+                            <button class="btn" onclick="downloadFile('${fileId}')">⬇️ İndir</button>
+                            <button class="btn-secondary" onclick="closeModal()">Kapat</button>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('modalOverlay').style.display = 'flex';
+            } else {
+                // Direct download for other files
+                downloadFile(fileId);
             }
         }
 
