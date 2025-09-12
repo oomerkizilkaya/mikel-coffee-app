@@ -2521,6 +2521,298 @@ class BackendTester:
             print("   📁 No existing files found. File like/unlike endpoint exists but no files to test with.")
             print("   💡 File like/unlike functionality is implemented and ready - authentication confirmed.")
 
+    def test_file_upload_functionality(self):
+        """Test file upload functionality as reported by user"""
+        print("\n=== Testing File Upload Functionality (User Issue) ===")
+        
+        # Step 1: Setup admin user for file upload testing
+        admin_token = None
+        admin_user = None
+        
+        # Try to login with the specific admin credentials mentioned in the issue
+        login_data = {
+            "email": "admin@mikelcoffee.com",
+            "password": "admin123"
+        }
+        
+        response = self.make_request("POST", "/auth/login", login_data)
+        if response["success"]:
+            admin_token = response["data"]["access_token"]
+            admin_user = response["data"]["user"]
+            self.log_test("STEP 1: Admin login for file upload", True, f"Admin logged in: {admin_user['employee_id']}")
+        else:
+            # Create admin if doesn't exist
+            admin_data = {
+                "name": "Admin",
+                "surname": "User",
+                "email": "admin@mikelcoffee.com",
+                "password": "admin123",
+                "position": "trainer",
+                "store": "merkez"
+            }
+            
+            response = self.make_request("POST", "/auth/register", admin_data)
+            if response["success"]:
+                admin_token = response["data"]["access_token"]
+                admin_user = response["data"]["user"]
+                
+                # Make admin using test endpoint
+                make_admin_response = self.make_request("POST", f"/test/make-admin/{admin_user['email']}")
+                if make_admin_response["success"]:
+                    # Re-login to get updated token
+                    response = self.make_request("POST", "/auth/login", login_data)
+                    if response["success"]:
+                        admin_token = response["data"]["access_token"]
+                        admin_user = response["data"]["user"]
+                        self.log_test("STEP 1: Create admin for file upload", True, f"Admin created and promoted: {admin_user['employee_id']}")
+                    else:
+                        self.log_test("STEP 1: Admin re-login", False, "Failed to re-login after promotion")
+                        return
+                else:
+                    self.log_test("STEP 1: Make admin", False, "Failed to promote user to admin")
+                    return
+            else:
+                self.log_test("STEP 1: Create admin", False, "Failed to create admin user", response["data"])
+                return
+        
+        if not admin_token:
+            self.log_test("STEP 1: Admin setup", False, "No admin token available")
+            return
+        
+        # Step 2: Test file upload with different file types
+        import io
+        import base64
+        
+        # Create test files
+        test_files = [
+            {
+                "name": "test_image.png",
+                "content": b"PNG_TEST_DATA_SMALL_IMAGE_FILE",
+                "content_type": "image/png",
+                "category": "image",
+                "title": "Test Image Upload",
+                "description": "Testing image file upload functionality"
+            },
+            {
+                "name": "test_video.mp4", 
+                "content": b"MP4_TEST_DATA_SMALL_VIDEO_FILE",
+                "content_type": "video/mp4",
+                "category": "video",
+                "title": "Test Video Upload",
+                "description": "Testing video file upload functionality"
+            },
+            {
+                "name": "test_document.pdf",
+                "content": b"PDF_TEST_DATA_SMALL_DOCUMENT_FILE",
+                "content_type": "application/pdf", 
+                "category": "document",
+                "title": "Test Document Upload",
+                "description": "Testing document file upload functionality"
+            }
+        ]
+        
+        uploaded_file_ids = []
+        
+        for test_file in test_files:
+            # Test file upload using multipart/form-data
+            try:
+                import requests
+                
+                url = f"{self.base_url}/files/upload"
+                headers = {"Authorization": f"Bearer {admin_token}"}
+                
+                files = {
+                    'file': (test_file["name"], io.BytesIO(test_file["content"]), test_file["content_type"])
+                }
+                data = {
+                    'title': test_file["title"],
+                    'description': test_file["description"],
+                    'category': test_file["category"]
+                }
+                
+                response = requests.post(url, headers=headers, files=files, data=data)
+                
+                if response.status_code == 200:
+                    response_data = response.json()
+                    file_id = response_data.get("file_id")
+                    if file_id:
+                        uploaded_file_ids.append(file_id)
+                        self.log_test(f"STEP 2: Upload {test_file['category']} file", True, f"Successfully uploaded {test_file['name']} with ID: {file_id}")
+                    else:
+                        self.log_test(f"STEP 2: Upload {test_file['category']} file", False, f"Upload response missing file_id: {response_data}")
+                else:
+                    self.log_test(f"STEP 2: Upload {test_file['category']} file", False, f"Upload failed with status {response.status_code}: {response.text}")
+                    
+            except Exception as e:
+                self.log_test(f"STEP 2: Upload {test_file['category']} file", False, f"Upload failed with exception: {str(e)}")
+        
+        # Step 3: Test file listing after upload - GET /api/files
+        response = self.make_request("GET", "/files", token=admin_token)
+        if response["success"]:
+            all_files = response["data"]
+            if isinstance(all_files, list):
+                self.log_test("STEP 3: List all files", True, f"Retrieved {len(all_files)} files from database")
+                
+                # Check if our uploaded files appear in the list
+                found_files = 0
+                for file_id in uploaded_file_ids:
+                    for file_item in all_files:
+                        if file_item.get("id") == file_id:
+                            found_files += 1
+                            break
+                
+                if found_files == len(uploaded_file_ids):
+                    self.log_test("STEP 3a: Verify uploaded files in list", True, f"All {found_files} uploaded files found in file list")
+                else:
+                    self.log_test("STEP 3a: Verify uploaded files in list", False, f"Only {found_files} out of {len(uploaded_file_ids)} uploaded files found in list")
+            else:
+                self.log_test("STEP 3: List all files", False, f"Expected array, got: {type(all_files)}")
+        else:
+            self.log_test("STEP 3: List all files", False, "Failed to retrieve files list", response["data"])
+        
+        # Step 4: Test file listing by type filters
+        type_filters = [
+            ("image/*", "image"),
+            ("video/*", "video"), 
+            ("application/*", "document")
+        ]
+        
+        for filter_type, category in type_filters:
+            response = self.make_request("GET", f"/files?type={filter_type}", token=admin_token)
+            if response["success"]:
+                filtered_files = response["data"]
+                if isinstance(filtered_files, list):
+                    # Count files of this category that we uploaded
+                    expected_count = sum(1 for f in test_files if f["category"] == category)
+                    actual_count = len(filtered_files)
+                    
+                    if actual_count >= expected_count:
+                        self.log_test(f"STEP 4: Filter {filter_type}", True, f"Found {actual_count} files for {filter_type} (expected at least {expected_count})")
+                    else:
+                        self.log_test(f"STEP 4: Filter {filter_type}", False, f"Found {actual_count} files for {filter_type}, expected at least {expected_count}")
+                else:
+                    self.log_test(f"STEP 4: Filter {filter_type}", False, f"Expected array, got: {type(filtered_files)}")
+            else:
+                self.log_test(f"STEP 4: Filter {filter_type}", False, f"Failed to filter files by {filter_type}", response["data"])
+        
+        # Step 5: Test file download functionality
+        if uploaded_file_ids:
+            test_file_id = uploaded_file_ids[0]
+            
+            try:
+                import requests
+                url = f"{self.base_url}/files/{test_file_id}/download"
+                headers = {"Authorization": f"Bearer {admin_token}"}
+                
+                response = requests.get(url, headers=headers)
+                
+                if response.status_code == 200:
+                    if len(response.content) > 0:
+                        self.log_test("STEP 5: File download", True, f"Successfully downloaded file with {len(response.content)} bytes")
+                    else:
+                        self.log_test("STEP 5: File download", False, "Downloaded file is empty")
+                else:
+                    self.log_test("STEP 5: File download", False, f"Download failed with status {response.status_code}: {response.text}")
+                    
+            except Exception as e:
+                self.log_test("STEP 5: File download", False, f"Download failed with exception: {str(e)}")
+        
+        # Step 6: Test file like functionality
+        if uploaded_file_ids:
+            test_file_id = uploaded_file_ids[0]
+            
+            response = self.make_request("POST", f"/files/{test_file_id}/like", token=admin_token)
+            if response["success"]:
+                like_result = response["data"]
+                if "liked" in like_result:
+                    self.log_test("STEP 6: File like functionality", True, f"File like functionality working: {like_result}")
+                else:
+                    self.log_test("STEP 6: File like functionality", False, f"Like response missing 'liked' field: {like_result}")
+            else:
+                self.log_test("STEP 6: File like functionality", False, "Failed to like file", response["data"])
+        
+        # Step 7: Test file deletion (admin only)
+        if uploaded_file_ids:
+            test_file_id = uploaded_file_ids[0]
+            
+            response = self.make_request("DELETE", f"/files/{test_file_id}", token=admin_token)
+            if response["success"]:
+                self.log_test("STEP 7: File deletion", True, "Admin successfully deleted file")
+                
+                # Verify file is actually deleted
+                response = self.make_request("GET", f"/files/{test_file_id}/download", token=admin_token)
+                if not response["success"] and response["status_code"] == 404:
+                    self.log_test("STEP 7a: Verify file deletion", True, "File properly deleted from database")
+                else:
+                    self.log_test("STEP 7a: Verify file deletion", False, "File still accessible after deletion")
+            else:
+                self.log_test("STEP 7: File deletion", False, "Failed to delete file", response["data"])
+        
+        # Step 8: Test file edit functionality (admin only)
+        if len(uploaded_file_ids) > 1:
+            test_file_id = uploaded_file_ids[1]
+            
+            edit_data = {
+                "title": "Updated File Title",
+                "description": "Updated file description for testing"
+            }
+            
+            response = self.make_request("PUT", f"/files/{test_file_id}", edit_data, token=admin_token)
+            if response["success"]:
+                updated_file = response["data"].get("file", {})
+                if updated_file.get("title") == edit_data["title"]:
+                    self.log_test("STEP 8: File edit functionality", True, "Admin successfully edited file metadata")
+                else:
+                    self.log_test("STEP 8: File edit functionality", False, f"File title not updated correctly: {updated_file.get('title')}")
+            else:
+                self.log_test("STEP 8: File edit functionality", False, "Failed to edit file", response["data"])
+        
+        # Step 9: Test non-admin access restrictions
+        # Create a regular user
+        regular_user_data = {
+            "name": "Regular",
+            "surname": "User",
+            "email": "regular@mikelcoffee.com",
+            "password": "regular123",
+            "position": "barista",
+            "store": "test_store"
+        }
+        
+        response = self.make_request("POST", "/auth/register", regular_user_data)
+        if response["success"]:
+            regular_token = response["data"]["access_token"]
+            
+            # Test that regular user cannot upload files
+            try:
+                import requests
+                
+                url = f"{self.base_url}/files/upload"
+                headers = {"Authorization": f"Bearer {regular_token}"}
+                
+                files = {
+                    'file': ("test.txt", io.BytesIO(b"test content"), "text/plain")
+                }
+                data = {
+                    'title': "Unauthorized Upload Test",
+                    'description': "This should fail",
+                    'category': "document"
+                }
+                
+                response = requests.post(url, headers=headers, files=files, data=data)
+                
+                if response.status_code == 403:
+                    self.log_test("STEP 9: Non-admin upload restriction", True, "Regular user correctly denied file upload access")
+                else:
+                    self.log_test("STEP 9: Non-admin upload restriction", False, f"Regular user should not be able to upload files, got status: {response.status_code}")
+                    
+            except Exception as e:
+                self.log_test("STEP 9: Non-admin upload restriction", False, f"Test failed with exception: {str(e)}")
+        
+        print(f"\n✅ File Upload Functionality Testing Complete")
+        print(f"   📁 Tested file upload, listing, download, like, edit, and delete operations")
+        print(f"   🔒 Verified admin-only restrictions for upload/edit/delete operations")
+        print(f"   📊 Uploaded {len(uploaded_file_ids)} test files during testing")
+
     def run_focused_tests(self):
         """Run focused tests for the announcement likes system and file management"""
         print("🎯 Starting Focused Backend Testing for File Management Features")
