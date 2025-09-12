@@ -1181,6 +1181,8 @@ async def toggle_announcement_like(announcement_id: str, current_user: User = De
     if existing_like:
         # Unlike
         await db.likes.delete_one({"announcement_id": announcement_id, "user_id": current_user.employee_id})
+        # CRITICAL FIX: Update likes_count in announcements collection
+        await db.announcements.update_one({"_id": ObjectId(announcement_id)}, {"$inc": {"likes_count": -1}})
         return {"liked": False}
     else:
         # Like
@@ -1191,6 +1193,8 @@ async def toggle_announcement_like(announcement_id: str, current_user: User = De
             "created_at": datetime.utcnow()
         }
         await db.likes.insert_one(like_data)
+        # CRITICAL FIX: Update likes_count in announcements collection
+        await db.announcements.update_one({"_id": ObjectId(announcement_id)}, {"$inc": {"likes_count": 1}})
         return {"liked": True}
 
 @api_router.get("/profile", response_model=Profile)
