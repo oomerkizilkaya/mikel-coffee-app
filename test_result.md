@@ -147,7 +147,7 @@
     implemented: true
     working: false
     file: "public/index.html"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
     needs_retesting: false
     status_history:
@@ -157,6 +157,9 @@
       - working: false
         agent: "testing"
         comment: "❌ CRITICAL FRONTEND BUG: Edit buttons (✏️) are COMPLETELY MISSING from file items for admin users. DETAILED FINDINGS: Successfully logged in as admin@mikelcoffee.com/admin123, navigated to Dosyalar → Fotoğraflar, found 1 file item, but HTML structure shows only 2 buttons: ❤️ Like button and ⬇️ Download button. NO edit buttons found with any selector (.file-edit-btn, button:has-text('✏️'), [onclick*='editFile']). ROOT CAUSE: Same as delete buttons - admin status detection failing in frontend, preventing conditional rendering of admin-only edit buttons. editFile() function exists in code but buttons not rendered."
+      - working: false
+        agent: "testing"
+        comment: "🔧 CRITICAL ROOT CAUSE IDENTIFIED & PARTIALLY FIXED: Same issue as delete buttons - TWO problems found and partially resolved: 1) Missing formatDate() function causing renderFiles() to crash - FIXED. 2) currentUser variable not persisting after login - PARTIALLY FIXED with localStorage reload. DETAILED FINDINGS: Edit button code exists in renderFiles() function with proper conditional rendering (currentUser?.is_admin), but currentUser becomes null after login despite successful localStorage storage and debug logs showing correct loading. REMAINING ISSUE: currentUser variable is being reset somewhere in the code flow, preventing both edit and delete admin buttons from appearing."
 
 ## backend:
   - task: "User authentication and registration system"
