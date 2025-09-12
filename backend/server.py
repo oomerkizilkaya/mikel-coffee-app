@@ -1312,8 +1312,9 @@ async def get_user_notifications(current_user: User = Depends(get_current_user))
         {"user_id": current_user.employee_id}
     ).sort("created_at", -1).limit(50).to_list(50)
     
-    # Convert ObjectId to string
+    # Convert ObjectId to string and add id field for Pydantic compatibility
     for notification in notifications:
+        notification["id"] = str(notification["_id"])
         notification["_id"] = str(notification["_id"])
     
     return [Notification(**notif) for notif in notifications]
