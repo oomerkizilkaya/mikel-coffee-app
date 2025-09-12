@@ -3703,8 +3703,13 @@
                 <div style="padding: 20px;">
                     <div style="text-align: center; margin-bottom: 20px;">
                         ${file.content_type && file.content_type.startsWith('image/') ? 
-                            `<img src="${BACKEND_URL}/api/files/${file.id}/download?token=${localStorage.getItem('auth_token')}" style="max-width: 100%; max-height: 400px; border-radius: 8px;">` :
-                            `<div style="font-size: 64px; margin: 40px 0;">${getFileIcon(file.content_type)}</div>`
+                            `<img src="${BACKEND_URL}/api/files/${file.id}/download?token=${localStorage.getItem('auth_token')}" style="max-width: 100%; max-height: 400px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">` :
+                        file.content_type && file.content_type.startsWith('video/') ?
+                            `<video controls style="max-width: 100%; max-height: 400px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                                <source src="${BACKEND_URL}/api/files/${file.id}/download?token=${localStorage.getItem('auth_token')}" type="${file.content_type}">
+                                Tarayıcınız video oynatmayı desteklemiyor.
+                            </video>` :
+                            `<div style="font-size: 64px; margin: 40px 0; color: #0095F6;">${getFileIcon(file.content_type)}</div>`
                         }
                     </div>
                     <div style="margin-bottom: 15px;">
