@@ -646,9 +646,9 @@
 
   - task: "Profile Photos Display on Homepage (Ana Sayfa)"
     implemented: true
-    working: true
+    working: false
     file: "public/index.html"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
@@ -658,6 +658,9 @@
       - working: true
         agent: "testing"
         comment: "✅ PROFILE PHOTOS ON HOMEPAGE FULLY WORKING! COMPREHENSIVE TESTING RESULTS: ✅ GLOBAL FUNCTION: loadUsersWithProfiles() function exists and executes successfully ✅ PHOTO DISPLAY: Found 16 posts with actual profile photos (data:image/png base64 format) out of 49 total posts ✅ BACKEND INTEGRATION: Function properly loads user data and profile images from backend API ✅ FALLBACK SYSTEM: Initials display system working when no photos uploaded ✅ HOMEPAGE INTEGRATION: Photos display correctly in Ana Sayfa announcements ✅ DATA FORMAT: Profile photos stored and displayed as base64 data URIs ✅ USER EXPERIENCE: Seamless photo loading with proper fallback to user initials. The profile photo display system is fully functional and enhances the social media experience!"
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL DISPLAY BUG FOUND! COMPREHENSIVE TEST RESULTS: ✅ BACKEND DATA LOADING: loadUsersWithProfiles() function working perfectly - loads 58 users, 4 profiles, finds profile photos for users 00001, 00002, 00015, 00023 with actual base64 data ✅ DEBUG SYSTEM: All debug messages working ('🔍 LOADING USERS WITH PROFILES...', '✅ Users loaded: 58', '✅ Profiles loaded: 4', '✅ Profile photo found for user 00002: YES') ✅ DATA INTEGRITY: Profile photos stored correctly as data:image/png base64 format ❌ DISPLAY RENDERING ISSUE: Despite having profile photo data, announcements still show initials (AU) instead of actual photos. The renderPosts() function is stuck in infinite loop with repeated debug messages but not properly rendering the actual images. ROOT CAUSE: Display logic bug preventing base64 profile photos from being rendered as actual images in the UI, even though the data is correctly loaded and available."
 
   - task: "Comprehensive Notification System with Bell Icon and Badge"
     implemented: true
