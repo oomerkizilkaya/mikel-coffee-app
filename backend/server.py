@@ -735,6 +735,15 @@ async def create_announcement(announcement_data: AnnouncementCreate, request: Re
     # Security logging
     print(f"🔐 SECURITY LOG - Announcement created by: {current_user.email} from IP: {request.client.host}")
     
+    # Tüm kullanıcılara bildirim gönder
+    await create_notifications_for_all_users(
+        title="🔔 Yeni Duyuru",
+        message=f"{title[:50]}{'...' if len(title) > 50 else ''}",
+        notification_type="announcement",
+        related_id=announcement_id,
+        sender_id=current_user.employee_id
+    )
+    
     return Announcement(**announcement_doc)
 
 @api_router.get("/announcements", response_model=List[Announcement])
