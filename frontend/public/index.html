@@ -2821,11 +2821,13 @@
                         </div>
                     `;
                 } else {
-                    filesHTML = files.map(file => `
+                    filesHTML = files.map(file => {
+                        const token = localStorage.getItem('auth_token');
+                        return `
                         <div class="file-item" onclick="openFileViewer('${file.id}', '${file.title}', '${file.content_type}')">
                             <div class="file-preview">
                                 ${file.content_type.startsWith('image/') ? 
-                                    `<img src="https://baristalink.preview.emergentagent.com/api/files/${file.id}/download" alt="${file.title}" style="width:100%;height:150px;object-fit:cover;border-radius:8px;">` :
+                                    `<img src="https://baristalink.preview.emergentagent.com/api/files/${file.id}/download?token=${token}" alt="${file.title}" style="width:100%;height:150px;object-fit:cover;border-radius:8px;">` :
                                     `<div style="font-size:48px;display:flex;align-items:center;justify-content:center;height:150px;">${getFileIcon(file.content_type)}</div>`
                                 }
                             </div>
@@ -2838,7 +2840,7 @@
                                 </div>
                             </div>
                         </div>
-                    `).join('');
+                    `;}).join('');
                 }
                 
                 // Update the files grid
