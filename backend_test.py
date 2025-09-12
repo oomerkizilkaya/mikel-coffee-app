@@ -2522,20 +2522,21 @@ class BackendTester:
             print("   💡 File like/unlike functionality is implemented and ready - authentication confirmed.")
 
     def run_focused_tests(self):
-        """Run focused tests for the announcement likes system"""
-        print("🎯 Starting Focused Backend Testing for Announcement Likes System")
+        """Run focused tests for the announcement likes system and file management"""
+        print("🎯 Starting Focused Backend Testing for File Management Features")
         print("=" * 80)
         print("Testing:")
-        print("1. Announcement Model likes_count field")
-        print("2. Like Toggle Endpoint functionality")
-        print("3. Announcement Retrieval with likes_count")
-        print("4. Like Count Initialization and Updates")
-        print("5. Multiple Users Liking Same Announcement")
+        print("1. File Deletion API (DELETE /api/files/{file_id})")
+        print("2. File Like/Unlike API (POST /api/files/{file_id}/like)")
+        print("3. Admin-only file deletion permissions")
+        print("4. File likes_count increment/decrement")
+        print("5. Authentication and error handling")
         print("=" * 80)
         
         try:
-            # Test the announcement likes system
-            self.test_announcement_likes_system()
+            # Test the file management features
+            self.test_file_deletion_functionality()
+            self.test_file_like_unlike_functionality()
             
         except Exception as e:
             self.log_test("Focused test execution", False, f"Test execution failed with error: {str(e)}")
@@ -2546,7 +2547,7 @@ class BackendTester:
     def print_focused_summary(self):
         """Print focused test results summary"""
         print("\n" + "=" * 80)
-        print("🎯 FOCUSED TESTING SUMMARY - ANNOUNCEMENT LIKES SYSTEM")
+        print("🎯 FOCUSED TESTING SUMMARY - FILE MANAGEMENT FEATURES")
         print("=" * 80)
         
         total_tests = len(self.test_results)
@@ -2559,12 +2560,12 @@ class BackendTester:
         print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
         
         # Group results by test area
-        likes_tests = [r for r in self.test_results if "like" in r["test"].lower() or "likes_count" in r["test"].lower()]
-        announcement_tests = [r for r in self.test_results if "announcement" in r["test"].lower() and "like" not in r["test"].lower()]
+        file_deletion_tests = [r for r in self.test_results if "file deletion" in r["test"].lower() or "delete" in r["test"].lower()]
+        file_like_tests = [r for r in self.test_results if "file like" in r["test"].lower() or "unlike" in r["test"].lower()]
         
         print(f"\n📊 TEST BREAKDOWN:")
-        print(f"1. Likes System Tests: {sum(1 for r in likes_tests if r['success'])}/{len(likes_tests)} passed")
-        print(f"2. Announcement Tests: {sum(1 for r in announcement_tests if r['success'])}/{len(announcement_tests)} passed")
+        print(f"1. File Deletion Tests: {sum(1 for r in file_deletion_tests if r['success'])}/{len(file_deletion_tests)} passed")
+        print(f"2. File Like/Unlike Tests: {sum(1 for r in file_like_tests if r['success'])}/{len(file_like_tests)} passed")
         
         if failed_tests > 0:
             print("\n❌ FAILED TESTS:")
@@ -2572,7 +2573,7 @@ class BackendTester:
                 if not result["success"]:
                     print(f"   • {result['test']}: {result['message']}")
         
-        print("\n🎉 Announcement likes system testing completed!")
+        print("\n🎉 File management features testing completed!")
         print("=" * 80)
 
     def run_all_tests(self):
