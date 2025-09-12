@@ -1588,45 +1588,75 @@
         async function loadUsersWithProfiles() {
             try {
                 const token = localStorage.getItem('auth_token');
-                const [usersResponse, profilesResponse] = await Promise.all([
-                    fetch('https://baristalink.preview.emergentagent.com/api/users', {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    }),
-                    fetch('https://baristalink.preview.emergentagent.com/api/profiles', {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    }).catch(() => null)
-                ]);
-                
-                if (usersResponse.ok) {
-                    const users = await usersResponse.json();
-                    let profiles = [];
-                    if (profilesResponse && profilesResponse.ok) {
-                        profiles = await profilesResponse.json();
-                    }
-                    
-                    console.log('🔍 PROFIL DEBUG - Users loaded:', users.length);
-                    console.log('🔍 PROFIL DEBUG - Profiles loaded:', profiles.length);
-                    
-                    // Create comprehensive user map with profile images
-                    const newUserMap = {};
-                    users.forEach(user => {
-                        const userProfile = profiles.find(p => p.user_id === user.employee_id);
-                        if (userProfile && userProfile.profile_image_url) {
-                            console.log(`🔍 PROFIL DEBUG - User ${user.employee_id} has profile image:`, userProfile.profile_image_url?.substring(0, 50) + '...');
-                        }
-                        newUserMap[user.employee_id] = {
-                            ...user,
-                            profile_image_url: userProfile?.profile_image_url || null
-                        };
-                    });
-                    userMap_global = newUserMap;
-                    console.log('🔍 PROFIL DEBUG - UserMap updated with', Object.keys(newUserMap).length, 'users');
-                    return true;
+                console.log('🔍 LOADING USERS WITH PROFILES...');
+
+                // Load users first
+                const usersResponse = await fetch('https://baristalink.preview.emergentagent.com/api/users', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!usersResponse.ok) {
+                    console.error('❌ Failed to load users');
+                    return;
                 }
-                return false;
+
+                const users = await usersResponse.json();
+                console.log('✅ Users loaded:', users.length);
+
+                // Load profiles
+                const profilesResponse = await fetch('https://baristalink.preview.emergentagent.com/api/profiles', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!profilesResponse.ok) {
+                    console.error('❌ Failed to load profiles');
+                    return;
+                }
+
+                const profiles = await profilesResponse.json();
+                console.log('✅ Profiles loaded:', profiles.length);
+
+                // Create user map with profile data
+                userMap_global = {};
+                
+                // First, add all users to the map
+                users.forEach(user => {
+                    userMap_global[user.employee_id] = {
+                        employee_id: user.employee_id,
+                        name: user.name,
+                        surname: user.surname,
+                        email: user.email,
+                        position: user.position,
+                        store: user.store,
+                        is_admin: user.is_admin,
+                        special_role: user.special_role,
+                        profile_image_url: null // Default to null
+                    };
+                });
+
+                // Then, add profile data where available
+                profiles.forEach(profile => {
+                    if (userMap_global[profile.user_id]) {
+                        userMap_global[profile.user_id].profile_image_url = profile.profile_image_url;
+                        userMap_global[profile.user_id].bio = profile.bio;
+                        console.log(`✅ Profile photo found for user ${profile.user_id}:`, profile.profile_image_url ? 'YES' : 'NO');
+                    }
+                });
+
+                console.log('✅ UserMap created with', Object.keys(userMap_global).length, 'users');
+                console.log('🔍 UserMap sample:', Object.values(userMap_global).slice(0, 3));
+
+                // Force re-render posts if they exist
+                if (typeof announcements !== 'undefined' && announcements.length > 0) {
+                    console.log('🔄 Re-rendering posts with profile photos...');
+                    const postsContainer = document.getElementById('postsContainer');
+                    if (postsContainer) {
+                        postsContainer.innerHTML = renderPosts();
+                    }
+                }
+
             } catch (error) {
-                console.error('Error loading users with profiles:', error);
-                return false;
+                console.error('❌ Error in loadUsersWithProfiles:', error);
             }
         }
 
