@@ -698,10 +698,22 @@
         agent: "testing"
         comment: "🎉 PUSH NOTIFICATIONS FINAL VERIFICATION COMPLETE - 100% SUCCESS! COMPREHENSIVE SYSTEM TEST RESULTS: ✅ SERVICE WORKER: Successfully registered with console message '✅ Service Worker registered: ServiceWorkerRegistration' ✅ PERMISSION HANDLING: Active permission system with console messages '📱 Notification permission: default' and '❌ Notification permission denied' (expected in test environment) ✅ NOTIFICATION BELL: Present and functional in header (🔔) ✅ NOTIFICATION BADGE: Working badge system showing count (currently '0') ✅ NOTIFICATION INFRASTRUCTURE: Complete system ready for push notifications ✅ BACKEND INTEGRATION: System connects to notification endpoints ✅ USER COMPLAINT RESOLVED: 'bildirimler gitmiyor' issue completely fixed - push notification system is fully operational ✅ PRODUCTION READY: All components working, permission handling active, service worker registered. The push notification system is 100% functional and ready for production use!"
 
+## backend:
+  - task: "Announcement likes system and likes_count display"
+    implemented: true
+    working: false
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL BUG FOUND: Announcement like endpoint (POST /api/announcements/{id}/like) does NOT update likes_count field in announcements collection. DETAILED FINDINGS: ✅ Announcement model has likes_count field (defaults to 0) ✅ Like toggle endpoint exists and works (returns {liked: true/false}) ✅ GET /api/announcements returns likes_count field ✅ Like/unlike functionality works (manages likes collection) ❌ MAJOR ISSUE: likes_count field never increments/decrements when users like/unlike announcements. ROOT CAUSE: Lines 1168-1194 in server.py - announcement like endpoint only manages likes collection but missing $inc operations to update likes_count field in announcements collection. COMPARISON: Posts like endpoint (lines 1154, 1165) correctly uses $inc to update likes_count, but announcements endpoint does not. IMPACT: Frontend shows ❤️ ${announcement.likes_count || 0} but count always stays 0 regardless of actual likes. COMPREHENSIVE TESTING: 16 tests run, 14 passed, 2 failed - specifically likes_count increment/decrement tests failed as expected."
+
 ## test_plan:
   current_focus:
-    - "Profile Photos Display on Homepage (Ana Sayfa)" - COMPLETED ✅
-    - "Push Notifications System" - COMPLETED ✅
+    - "Announcement likes system and likes_count display" - TESTED ❌ BUG FOUND
   stuck_tasks:
     - "Comprehensive Security Firewall System"
   test_all: false
@@ -716,6 +728,8 @@
     - "Profile Photos Display on Homepage (Ana Sayfa)"
 
 ## agent_communication:
+  - agent: "testing"
+    message: "🚨 CRITICAL BUG DISCOVERED IN ANNOUNCEMENT LIKES SYSTEM! Comprehensive testing of announcement likes functionality revealed a major backend bug. The POST /api/announcements/{id}/like endpoint successfully manages the likes collection (users can like/unlike) but FAILS to update the likes_count field in the announcements collection. This means the frontend will always show ❤️ 0 regardless of actual likes. The posts like endpoint correctly uses MongoDB $inc operations to update likes_count, but the announcements endpoint is missing this crucial functionality. This explains why the frontend shows likes_count but it never changes from 0. IMMEDIATE FIX NEEDED: Add $inc operations to lines 1183 and 1193 in server.py to decrement/increment announcement likes_count field."
   - agent: "main"
     message: "Backend implementation complete with all core features. Basic UI created but registration has issue. Need comprehensive backend testing first, then frontend debugging."
   - agent: "testing"
