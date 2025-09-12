@@ -3303,15 +3303,13 @@
                                 ${formatFileSize(file.size)} • ${formatDate(file.created_at)}
                             </div>
                             <div class="file-actions" style="display: flex; gap: 10px; align-items: center;">
-                                <span onclick="event.stopPropagation(); toggleFileLike('${file.id}')" style="cursor: pointer; font-size: 16px;">
+                                <span onclick="toggleFileLike('${file.id}')" style="cursor: pointer; font-size: 16px;">
                                     ❤️ ${file.likes_count || 0}
                                 </span>
-                                <span onclick="event.stopPropagation(); downloadFile('${file.id}')" style="cursor: pointer; font-size: 16px;" title="İndir">
+                                <span onclick="downloadFile('${file.id}')" style="cursor: pointer; font-size: 16px;" title="İndir">
                                     ⬇️
                                 </span>
-                                <span onclick="event.stopPropagation(); deleteFile('${file.id}', '${file.title}')" style="cursor: pointer; font-size: 16px; color: red;" title="Sil">
-                                    🗑️
-                                </span>
+                                <button onclick="deleteFile('${file.id}', '${file.title}')">🗑️ Sil</button>
                             </div>
                         </div>
                     </div>
