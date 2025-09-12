@@ -1824,18 +1824,23 @@
                     localStorage.setItem('user', JSON.stringify(data.user));
                     currentUser = data.user;
                     
-                    console.log('Login successful, user:', currentUser);
+                    // Debugging
+                    console.log('✅ Login successful, user:', currentUser.name);
+                    console.log('✅ Token saved, loading dashboard...');
                     
                     showMessage(isLoginMode 
                         ? `Hoş geldiniz!`
                         : `Kayıt başarılı! Sicil: ${data.user.employee_id}`, 'success');
+                    
+                    // Clear login form
+                    document.getElementById('app').innerHTML = '<div style="text-align:center;padding:50px;"><div style="font-size:24px;">📱 Yükleniyor...</div></div>';
                     
                     setTimeout(() => {
                         console.log('Loading feed...');
                         // Push notification'ı tamamen kaldırıyoruz - hata vermesin
                         // initializePushNotifications(); 
                         loadFeed();
-                    }, 1500);
+                    }, 1000); // 1 saniye bekle - şüpheli timing sorunu için
                 } else {
                     showMessage(data.detail || 'Bir hata oluştu', 'error');
                 }
