@@ -3919,11 +3919,24 @@
             const position = document.getElementById('editPosition').value;
             const store = document.getElementById('editStore').value.trim();
             const bio = document.getElementById('editProfileBio').value.trim();
+            const password = document.getElementById('editPassword').value.trim();
+            const passwordConfirm = document.getElementById('editPasswordConfirm').value.trim();
             const imageElement = document.getElementById('editProfilePictureDisplay').querySelector('img');
             const profileImageUrl = imageElement ? imageElement.src : null;
             
             if (!firstName || !lastName || !position) {
-                showToast('Ad, soyad ve pozisyon gereklidir');
+                showToast('❌ Ad, soyad ve pozisyon gereklidir');
+                return;
+            }
+            
+            // Şifre kontrolü
+            if (password && password !== passwordConfirm) {
+                showToast('❌ Şifreler eşleşmiyor');
+                return;
+            }
+            
+            if (password && password.length < 6) {
+                showToast('❌ Şifre en az 6 karakter olmalı');
                 return;
             }
             
@@ -3937,6 +3950,11 @@
                     position: position,
                     store: store || null
                 };
+                
+                // Şifre varsa ekle
+                if (password) {
+                    userUpdateData.password = password;
+                }
 
                 const userResponse = await fetch('https://baristalink.preview.emergentagent.com/api/users/me', {
                     method: 'PUT',
@@ -3949,9 +3967,7 @@
                 
                 // Update profile info
                 const profileUpdateData = { bio };
-                if (profileImageUrl && profileImageUrl !== '' && !profileImageUrl.includes('data:image/')) {
-                    profileUpdateData.profile_image_url = profileImageUrl;
-                } else if (imageElement && profileImageUrl && profileImageUrl.includes('data:image/')) {
+                if (profileImageUrl && profileImageUrl.includes('data:image/')) {
                     profileUpdateData.profile_image_url = profileImageUrl;
                 }
 
@@ -3966,18 +3982,32 @@
                 
                 if (userResponse.ok && profileResponse.ok) {
                     // Update current user data
-                    currentUser.name = firstName;
-                    currentUser.surname = lastName;
-                    currentUser.position = position;
-                    currentUser.store = store;
-                    localStorage.setItem('user', JSON.stringify(currentUser));
+                    const userResult = await userResponse.json();
+                    if (userResult.user) {
+                        currentUser.name = userResult.user.name;
+                        currentUser.surname = userResult.user.surname;
+                        currentUser.position = userResult.user.position;
+                        currentUser.store = userResult.user.store;
+                        localStorage.setItem('user', JSON.stringify(currentUser));
+                    }
                     
-                    showToast('Profil tamamen güncellendi! ✨');
+                    showToast('✅ Profil başarıyla güncellendi!');
                     closeModal();
                     
-                    // Refresh all data
-                    await loadSocialPosts();
+                    // Refresh data and page
+                    await loadUsersWithProfiles();
                     showProfile();
+                } else {
+                    const userError = userResponse.ok ? null : await userResponse.json();
+                    const profileError = profileResponse.ok ? null : await profileResponse.json();
+                    const errorMessage = userError?.detail || profileError?.detail || 'Güncelleme hatası';
+                    showToast(`❌ ${errorMessage}`);
+                }
+            } catch (error) {
+                console.error('Profile update error:', error);
+                showToast('❌ Bağlantı hatası');
+            }
+        }
                 } else {
                     showToast('Güncelleme hatası - bazı bilgiler kaydedilemedi');
                 }
