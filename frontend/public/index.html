@@ -3301,6 +3301,9 @@
                                 <button class="file-download-btn" onclick="event.stopPropagation(); downloadFile('${file.id}')" title="İndir">
                                     ⬇️
                                 </button>
+                                <button class="action-btn edit-btn" onclick="event.stopPropagation(); editFile('${file.id}', '${file.title}', '${file.description || ''}')" title="Düzenle">
+                                    ✏️
+                                </button>
                                 <button class="action-btn delete-btn" onclick="event.stopPropagation(); deleteFile('${file.id}', '${file.title}')" title="Sil">
                                     🗑️
                                 </button>
