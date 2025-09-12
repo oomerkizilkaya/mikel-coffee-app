@@ -3264,9 +3264,24 @@
         }
 
         async function showForms() {
-            currentFileCategory = 'forms';
-            console.log('📄 SHOW FORMS - Loading forms...');
+            console.log('📄 SHOW FORMS BAŞLADI');
             
+            // Ensure currentUser is loaded
+            if (!currentUser) {
+                const savedUserData = localStorage.getItem('user');
+                if (savedUserData) {
+                    currentUser = JSON.parse(savedUserData);
+                    console.log('🔧 CURRENT USER RELOADED:', currentUser);
+                }
+            }
+            
+            console.log('🔍 CURRENT USER:', currentUser);
+            console.log('🔍 IS ADMIN:', currentUser?.is_admin);
+            
+            // Set category for refresh purposes
+            currentFileCategory = 'forms';
+            
+            // Load forms data first
             await loadFiles('application/*');
             console.log('📄 SHOW FORMS - Files loaded:', filesData.length);
             
