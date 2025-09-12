@@ -1248,6 +1248,8 @@ if __name__ == "__main__":
             summary = tester.run_profile_photo_test_only()
         elif sys.argv[1] == "--make-admin-only":
             summary = tester.run_make_admin_test_only()
+        elif sys.argv[1] == "--start-date-only":
+            summary = tester.run_start_date_test_only()
         else:
             summary = tester.run_all_tests()
     else:
