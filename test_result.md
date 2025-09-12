@@ -106,9 +106,9 @@
 
   - task: "File Deletion Feature for Administrators"
     implemented: true
-    working: true
+    working: false
     file: "public/index.html"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
@@ -118,6 +118,9 @@
       - working: true
         agent: "testing"
         comment: "✅ BACKEND TESTING COMPLETE - 90.5% SUCCESS RATE: File deletion API (DELETE /api/files/{file_id}) working perfectly. Admin can delete files successfully, non-admin access denied (403), non-existent files return 404, related likes cleaned up, authentication required. All security requirements met and production-ready."
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL FRONTEND BUG: Delete buttons (🗑️) are COMPLETELY MISSING from file items for admin users. DETAILED FINDINGS: Successfully logged in as admin@mikelcoffee.com/admin123, navigated to Dosyalar → Fotoğraflar, found 1 file item, but HTML structure shows only 2 buttons: ❤️ Like button and ⬇️ Download button. NO delete buttons found with any selector (.file-delete-btn, button:has-text('🗑️'), [onclick*='deleteFile']). ROOT CAUSE: Admin status detection failing in frontend - currentUser.is_admin check not working properly, preventing conditional rendering of admin-only buttons. Backend API works but frontend UI missing."
 
   - task: "File Unlike (Beğenmeyi Geri Alma) Functionality"
     implemented: true
@@ -133,6 +136,24 @@
       - working: true
         agent: "testing"
         comment: "✅ BACKEND TESTING COMPLETE - 100% SUCCESS RATE: File like/unlike API (POST /api/files/{file_id}/like) working excellently. Users can like/unlike files with proper likes_count tracking, toggle functionality working perfectly, authentication required, multiple users can like same file. Production-ready."
+      - working: true
+        agent: "testing"
+        comment: "✅ FRONTEND LIKE FUNCTIONALITY VERIFIED: Like button (❤️) exists and functional in file items. API call successfully made (POST /api/files/{file_id}/like) when clicked. Minor: UI count doesn't update immediately (may need page refresh), but core functionality working. Like button found with multiple selectors and proper onclick handler."
+
+  - task: "File Edit (Düzenle) Feature for Administrators"
+    implemented: true
+    working: false
+    file: "public/index.html"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "NEW FEATURE: Added admin-only file edit functionality. Added editFile() function with modal form, edit buttons (✏️) in file grids, proper form validation, and admin security checks."
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL FRONTEND BUG: Edit buttons (✏️) are COMPLETELY MISSING from file items for admin users. DETAILED FINDINGS: Successfully logged in as admin@mikelcoffee.com/admin123, navigated to Dosyalar → Fotoğraflar, found 1 file item, but HTML structure shows only 2 buttons: ❤️ Like button and ⬇️ Download button. NO edit buttons found with any selector (.file-edit-btn, button:has-text('✏️'), [onclick*='editFile']). ROOT CAUSE: Same as delete buttons - admin status detection failing in frontend, preventing conditional rendering of admin-only edit buttons. editFile() function exists in code but buttons not rendered."
 
 ## backend:
   - task: "User authentication and registration system"
