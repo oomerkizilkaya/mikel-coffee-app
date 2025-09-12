@@ -3354,7 +3354,7 @@
                     <div class="file-item" onclick="openFile('${file.id}')">
                         <div class="file-preview">
                             ${isImage ? 
-                                `<img src="https://teammikel.preview.emergentagent.com/api/files/${file.id}/download" alt="${file.title}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">` :
+                                `<img src="${BACKEND_URL}/api/files/${file.id}/view" alt="${file.title}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">` :
                                 `<div style="font-size:48px;">${fileIcon}</div>`
                             }
                         </div>
