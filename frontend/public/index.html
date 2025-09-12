@@ -3309,6 +3309,28 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
 
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffTime = Math.abs(now - date);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 1) {
+                return 'Dün';
+            } else if (diffDays < 7) {
+                return `${diffDays} gün önce`;
+            } else if (diffDays < 30) {
+                const weeks = Math.floor(diffDays / 7);
+                return `${weeks} hafta önce`;
+            } else {
+                return date.toLocaleDateString('tr-TR', { 
+                    day: 'numeric', 
+                    month: 'short', 
+                    year: 'numeric' 
+                });
+            }
+        }
+
         function showUploadModal(type) {
             const typeNames = {
                 'video': 'Video',
