@@ -2924,6 +2924,14 @@
                                 <div class="file-actions">
                                     <button class="file-like-btn" onclick="event.stopPropagation(); toggleFileLike('${file.id}')">❤️ ${file.likes_count || 0}</button>
                                     <button class="file-download-btn" onclick="event.stopPropagation(); downloadFile('${file.id}')" title="İndir">⬇️</button>
+                                    ${currentUser?.is_admin ? `
+                                        <button class="action-btn delete-btn" onclick="event.stopPropagation(); deleteFile('${file.id}', '${file.title}')" title="Sil">
+                                            🗑️
+                                        </button>
+                                        <button class="action-btn edit-btn" onclick="event.stopPropagation(); editFile('${file.id}', '${file.title}', '${file.description || ''}')" title="Düzenle">
+                                            ✏️
+                                        </button>
+                                    ` : ''}
                                 </div>
                             </div>
                         </div>
