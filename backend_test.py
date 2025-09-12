@@ -1405,12 +1405,15 @@ class BackendTester:
         """Test Excel export includes start_date column with proper formatting"""
         print("\n=== Testing Excel Export with Start Date (İşe Giriş Tarihi) ===")
         
+        import time
+        timestamp = str(int(time.time()))
+        
         # Step 1: Setup admin user
         admin_token = None
         admin_data = {
             "name": "Export",
             "surname": "Admin",
-            "email": "export.admin@mikelcoffee.com",
+            "email": f"export.admin.{timestamp}@mikelcoffee.com",
             "password": "admin123",
             "position": "trainer",
             "store": "merkez"
@@ -1426,7 +1429,7 @@ class BackendTester:
             if make_admin_response["success"]:
                 # Re-login to get updated token
                 login_response = self.make_request("POST", "/auth/login", {
-                    "email": "export.admin@mikelcoffee.com",
+                    "email": f"export.admin.{timestamp}@mikelcoffee.com",
                     "password": "admin123"
                 })
                 if login_response["success"]:
@@ -1441,7 +1444,7 @@ class BackendTester:
         else:
             # Try login if user already exists
             login_response = self.make_request("POST", "/auth/login", {
-                "email": "export.admin@mikelcoffee.com",
+                "email": "admin@mikelcoffee.com",
                 "password": "admin123"
             })
             if login_response["success"]:
@@ -1455,7 +1458,7 @@ class BackendTester:
         user_with_start_date = {
             "name": "Ahmet",
             "surname": "Çalışkan",
-            "email": "ahmet.caliskan@mikelcoffee.com",
+            "email": f"ahmet.caliskan.{timestamp}@mikelcoffee.com",
             "password": "testpass123",
             "position": "barista",
             "store": "İstanbul Merkez",
@@ -1476,7 +1479,7 @@ class BackendTester:
         user_without_start_date = {
             "name": "Fatma",
             "surname": "Yılmaz",
-            "email": "fatma.yilmaz@mikelcoffee.com",
+            "email": f"fatma.yilmaz.{timestamp}@mikelcoffee.com",
             "password": "testpass123",
             "position": "supervizer",
             "store": "Ankara Şube"
@@ -1609,6 +1612,9 @@ class BackendTester:
         """Test push notification subscription and sending system"""
         print("\n=== Testing Push Notification System (Telefona Bildirim) ===")
         
+        import time
+        timestamp = str(int(time.time()))
+        
         # Step 1: Setup admin user
         admin_token = None
         login_data = {
@@ -1631,7 +1637,7 @@ class BackendTester:
             user_data = {
                 "name": f"PushUser{i+1}",
                 "surname": "Test",
-                "email": f"pushuser{i+1}@mikelcoffee.com",
+                "email": f"pushuser{i+1}.{timestamp}@mikelcoffee.com",
                 "password": "testpass123",
                 "position": "barista",
                 "store": "test_store"
@@ -1743,6 +1749,9 @@ class BackendTester:
         """Test that creating announcements automatically creates notifications for all users"""
         print("\n=== Testing Notification Creation When Announcements Are Made ===")
         
+        import time
+        timestamp = str(int(time.time()))
+        
         # Step 1: Setup admin user
         admin_token = None
         login_data = {
@@ -1765,7 +1774,7 @@ class BackendTester:
             user_data = {
                 "name": f"NotifTest{i+1}",
                 "surname": "User",
-                "email": f"notiftest{i+1}@mikelcoffee.com",
+                "email": f"notiftest{i+1}.{timestamp}@mikelcoffee.com",
                 "password": "testpass123",
                 "position": "barista",
                 "store": "test_store"
