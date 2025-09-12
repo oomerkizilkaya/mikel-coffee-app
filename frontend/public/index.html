@@ -2760,36 +2760,6 @@
             
             // Initialize file counts
             updateFileCounts();
-            
-            // Add event listeners for category clicks
-            setTimeout(() => {
-                const videosCategory = document.getElementById('videosCategory');
-                const photosCategory = document.getElementById('photosCategory');
-                const formsCategory = document.getElementById('formsCategory');
-                
-                if (videosCategory) {
-                    videosCategory.addEventListener('click', () => {
-                        console.log('🎥 VIDEOS CATEGORY CLICKED');
-                        showVideos();
-                    });
-                }
-                
-                if (photosCategory) {
-                    photosCategory.addEventListener('click', () => {
-                        console.log('📸 PHOTOS CATEGORY CLICKED');
-                        showPhotos();
-                    });
-                }
-                
-                if (formsCategory) {
-                    formsCategory.addEventListener('click', () => {
-                        console.log('📄 FORMS CATEGORY CLICKED'); 
-                        showForms();
-                    });
-                }
-                
-                console.log('✅ Category event listeners added');
-            }, 100);
         }
 
         // Service worker registration for push notifications
