@@ -1695,7 +1695,8 @@
                         name: document.getElementById('name').value.trim(),
                         surname: document.getElementById('surname').value.trim(),
                         position: selectedPosition,
-                        store: document.getElementById('store').value.trim() || null
+                        store: document.getElementById('store').value.trim() || null,
+                        start_date: document.getElementById('startDate').value
                     };
 
                 const response = await fetch(`https://baristalink.preview.emergentagent.com/api/auth/${endpoint}`, {
