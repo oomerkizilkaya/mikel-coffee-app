@@ -1387,6 +1387,138 @@ async def get_unread_notifications_count(current_user: User = Depends(get_curren
     
     return {"unread_count": count}
 
+# File upload endpoint for Files section
+@api_router.post("/files/upload")
+async def upload_file(
+    file: UploadFile = File(...),
+    title: str = Form(...),
+    description: str = Form(default=""),
+    category: str = Form(...),
+    current_user: User = Depends(get_current_user)
+):
+    """Dosya yükleme endpoint'i (sadece adminler)"""
+    
+    # Sadece adminler dosya yükleyebilir
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Only admins can upload files")
+    
+    try:
+        # File içeriğini oku
+        file_content = await file.read()
+        file_size = len(file_content)
+        
+        # 5GB limit check
+        if file_size > 5 * 1024 * 1024 * 1024:
+            raise HTTPException(status_code=413, detail="File size exceeds 5GB limit")
+        
+        # Dosya dokümanı oluştur
+        file_doc = {
+            "id": str(uuid.uuid4()),
+            "title": title,
+            "description": description,
+            "category": category,  # video, image, document
+            "filename": file.filename,
+            "content_type": file.content_type,
+            "size": file_size,
+            "file_content": file_content,  # Binary content
+            "uploader_id": current_user.employee_id,
+            "created_at": datetime.utcnow(),
+            "likes_count": 0
+        }
+        
+        # Database'e kaydet
+        result = await db.files.insert_one(file_doc)
+        file_doc["_id"] = str(result.inserted_id)
+        
+        print(f"📁 FILE UPLOADED - {title} by {current_user.employee_id}, size: {file_size} bytes")
+        
+        return {"message": "File uploaded successfully", "file_id": file_doc["id"]}
+        
+    except Exception as e:
+        print(f"❌ FILE UPLOAD ERROR: {e}")
+        raise HTTPException(status_code=500, detail=f"File upload failed: {str(e)}")
+
+@api_router.get("/files")
+async def get_files(type: str = None, current_user: User = Depends(get_current_user)):
+    """Dosyaları listele"""
+    
+    try:
+        # Type filter
+        query = {}
+        if type:
+            if type == "video/*":
+                query["category"] = "video"
+            elif type == "image/*":
+                query["category"] = "image"
+            elif type == "application/*":
+                query["category"] = "document"
+        
+        # Dosyaları getir (content hariç - performans için)
+        files = await db.files.find(query, {"file_content": 0}).sort("created_at", -1).to_list(100)
+        
+        # ObjectId'leri string'e çevir
+        for file in files:
+            file["_id"] = str(file["_id"])
+        
+        return files
+        
+    except Exception as e:
+        print(f"❌ GET FILES ERROR: {e}")
+        return []
+
+@api_router.get("/files/{file_id}/download")
+async def download_file(file_id: str, current_user: User = Depends(get_current_user)):
+    """Dosya indirme"""
+    
+    try:
+        # Dosyayı bul
+        file_doc = await db.files.find_one({"id": file_id})
+        
+        if not file_doc:
+            raise HTTPException(status_code=404, detail="File not found")
+        
+        # Binary content'i döndür
+        return Response(
+            content=file_doc["file_content"],
+            media_type=file_doc["content_type"],
+            headers={"Content-Disposition": f"attachment; filename={file_doc['filename']}"}
+        )
+        
+    except Exception as e:
+        print(f"❌ DOWNLOAD FILE ERROR: {e}")
+        raise HTTPException(status_code=500, detail="Download failed")
+
+@api_router.post("/files/{file_id}/like")
+async def toggle_file_like(file_id: str, current_user: User = Depends(get_current_user)):
+    """Dosya beğenme"""
+    
+    try:
+        # Mevcut beğeniyi kontrol et
+        existing_like = await db.likes.find_one({
+            "file_id": file_id, 
+            "user_id": current_user.employee_id
+        })
+        
+        if existing_like:
+            # Unlike
+            await db.likes.delete_one({"file_id": file_id, "user_id": current_user.employee_id})
+            await db.files.update_one({"id": file_id}, {"$inc": {"likes_count": -1}})
+            return {"liked": False}
+        else:
+            # Like
+            like_data = {
+                "file_id": file_id,
+                "user_id": current_user.employee_id,
+                "created_at": datetime.utcnow()
+            }
+            await db.likes.insert_one(like_data)
+            await db.files.update_one({"id": file_id}, {"$inc": {"likes_count": 1}})
+            return {"liked": True}
+            
+    except Exception as e:
+        print(f"❌ FILE LIKE ERROR: {e}")
+        return {"liked": False}
+
 # Push Notification Models and Endpoints
 class PushSubscription(BaseModel):
     endpoint: str
