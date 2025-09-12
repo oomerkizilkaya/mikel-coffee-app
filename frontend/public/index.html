@@ -2881,12 +2881,14 @@
         function openFileViewer(fileId, fileName, contentType) {
             console.log('📄 Opening file:', fileName);
             
+            const token = localStorage.getItem('auth_token');
+            
             if (contentType.startsWith('image/')) {
                 // Show image in modal
                 document.getElementById('modalTitle').textContent = fileName;
                 document.getElementById('modalBody').innerHTML = `
                     <div style="text-align:center;padding:20px;">
-                        <img src="https://baristalink.preview.emergentagent.com/api/files/${fileId}/download" 
+                        <img src="https://baristalink.preview.emergentagent.com/api/files/${fileId}/download?token=${token}" 
                              alt="${fileName}" 
                              style="max-width:100%;max-height:70vh;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15);">
                         <div style="margin-top:15px;">
