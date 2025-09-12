@@ -1457,6 +1457,35 @@ async def send_push_notifications_to_all_users(title: str, body: str):
     except Exception as e:
         print(f"❌ Error sending push notifications to all users: {e}")
 
+async def create_notifications_for_all_users(title: str, message: str, notification_type: str, related_id: str = None, sender_id: str = None):
+    """Tüm kullanıcılara bildirim oluştur"""
+    try:
+        # Tüm kullanıcıları al
+        users = await db.users.find({}).to_list(1000)
+        
+        # Her kullanıcı için bildirim oluştur
+        notifications = []
+        for user in users:
+            notification = {
+                "user_id": user["employee_id"],
+                "title": title,
+                "message": message,
+                "type": notification_type,
+                "read": False,
+                "created_at": datetime.utcnow(),
+                "related_id": related_id,
+                "sender_id": sender_id
+            }
+            notifications.append(notification)
+        
+        # Bulk insert for performance
+        if notifications:
+            await db.notifications.insert_many(notifications)
+            print(f"📧 Created {len(notifications)} notifications for all users")
+            
+    except Exception as e:
+        print(f"❌ Error creating notifications for all users: {e}")
+
 # Include the router in the main app
 app.include_router(api_router)
 
