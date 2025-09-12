@@ -1964,6 +1964,25 @@
             loadFeed();
         }
 
+        function showNotifications() {
+            document.getElementById('modalTitle').textContent = 'Bildirimler';
+            document.getElementById('modalBody').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">🔔</div>
+                    <div class="empty-text">Henüz bildirim yok</div>
+                    <div class="empty-subtext">Yeni bildirimler burada görünecek</div>
+                </div>
+            `;
+            document.getElementById('modalOverlay').style.display = 'flex';
+            
+            // Reset notification badge
+            const badge = document.getElementById('notificationBadge');
+            if (badge) {
+                badge.style.display = 'none';
+                badge.textContent = '0';
+            }
+        }
+
         function showCreatePost() {
             document.getElementById('modalTitle').textContent = 'Yeni Duyuru';
             document.getElementById('modalBody').innerHTML = `
