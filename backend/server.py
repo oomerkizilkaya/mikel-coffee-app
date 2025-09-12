@@ -1206,6 +1206,24 @@ class AdminStatusUpdate(BaseModel):
     is_admin: bool
     reason: Optional[str] = None
 
+# Notification Model
+class Notification(BaseModel):
+    id: Optional[str] = Field(alias="_id")
+    user_id: str  # Kime gönderilecek
+    title: str
+    message: str
+    type: str  # "announcement", "system", etc.
+    read: bool = False
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    related_id: Optional[str] = None  # Duyuru ID'si vs.
+
+    class Config:
+        allow_population_by_field_name = True
+        json_encoders = {
+            ObjectId: str,
+            datetime: lambda v: v.isoformat()
+        }
+
 @api_router.put("/admin/users/{employee_id}/admin-status")
 async def update_admin_status(
     employee_id: str, 
