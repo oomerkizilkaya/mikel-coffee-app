@@ -1249,31 +1249,7 @@ async def update_current_user_profile(user_update: dict, current_user: User = De
     
     raise HTTPException(status_code=404, detail="User not found")
 
-@api_router.put("/users/me", response_model=User)
-async def update_my_profile(user_update: UserUpdate, current_user: User = Depends(get_current_user)):
-    update_data = {}
-    if user_update.name is not None:
-        update_data["name"] = user_update.name
-    if user_update.surname is not None:
-        update_data["surname"] = user_update.surname
-    if user_update.position is not None:
-        if user_update.position not in POSITIONS:
-            raise HTTPException(status_code=400, detail="Invalid position")
-        update_data["position"] = user_update.position
-    if user_update.store is not None:
-        update_data["store"] = user_update.store
 
-    if update_data:
-        await db.users.update_one(
-            {"employee_id": current_user.employee_id},
-            {"$set": update_data}
-        )
-    
-    # Get updated user
-    updated_user = await db.users.find_one({"employee_id": current_user.employee_id})
-    if "_id" in updated_user:
-        updated_user["_id"] = str(updated_user["_id"])
-    return User(**updated_user)
 
 @api_router.delete("/admin/users/{employee_id}")
 async def delete_user(employee_id: str, current_user: User = Depends(get_current_user)):
