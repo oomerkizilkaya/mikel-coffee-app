@@ -1641,7 +1641,7 @@
                 console.log('🔍 LOADING USERS WITH PROFILES...');
 
                 // Load users first
-                const usersResponse = await fetch('https://teammikel.preview.emergentagent.com/api/users', {
+                const usersResponse = await fetch(`${BACKEND_URL}/api/users`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
@@ -1654,7 +1654,7 @@
                 console.log('✅ Users loaded:', users.length);
 
                 // Load profiles
-                const profilesResponse = await fetch('https://teammikel.preview.emergentagent.com/api/profiles', {
+                const profilesResponse = await fetch(`${BACKEND_URL}/api/profiles`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
