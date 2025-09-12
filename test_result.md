@@ -108,7 +108,7 @@
     implemented: true
     working: false
     file: "public/index.html"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
     needs_retesting: false
     status_history:
@@ -121,6 +121,9 @@
       - working: false
         agent: "testing"
         comment: "❌ CRITICAL FRONTEND BUG: Delete buttons (🗑️) are COMPLETELY MISSING from file items for admin users. DETAILED FINDINGS: Successfully logged in as admin@mikelcoffee.com/admin123, navigated to Dosyalar → Fotoğraflar, found 1 file item, but HTML structure shows only 2 buttons: ❤️ Like button and ⬇️ Download button. NO delete buttons found with any selector (.file-delete-btn, button:has-text('🗑️'), [onclick*='deleteFile']). ROOT CAUSE: Admin status detection failing in frontend - currentUser.is_admin check not working properly, preventing conditional rendering of admin-only buttons. Backend API works but frontend UI missing."
+      - working: false
+        agent: "testing"
+        comment: "🔧 CRITICAL ROOT CAUSE IDENTIFIED & PARTIALLY FIXED: Found TWO issues: 1) Missing formatDate() function causing renderFiles() to crash with JavaScript error - FIXED by adding formatDate function. 2) currentUser variable not persisting after login - PARTIALLY FIXED by adding currentUser reload from localStorage. DETAILED FINDINGS: Login API works (returns is_admin: true), localStorage stores user data correctly, debug logs show 'CURRENT USER RELOADED FROM LOCALSTORAGE' and 'IS ADMIN: true', but currentUser variable still becomes null later. Admin buttons exist in renderFiles() code but don't appear because currentUser.is_admin check fails. REMAINING ISSUE: currentUser is being reset to null somewhere after login, preventing admin button rendering."
 
   - task: "File Unlike (Beğenmeyi Geri Alma) Functionality"
     implemented: true
