@@ -2936,7 +2936,10 @@
 
         async function showVideos() {
             currentFileCategory = 'videos';
+            console.log('🎥 SHOW VIDEOS - Loading videos...');
+            
             await loadFiles('video/*');
+            console.log('🎥 SHOW VIDEOS - Files loaded:', filesData.length);
             
             document.getElementById('filesContainer').innerHTML = `
                 <div class="files-header">
@@ -2953,6 +2956,8 @@
                     ${renderFiles('video')}
                 </div>
             `;
+            
+            console.log('🎥 SHOW VIDEOS - Grid HTML set, files rendered');
         }
 
         async function showPhotos() {
