@@ -3302,9 +3302,14 @@
                             <div class="file-meta">
                                 ${formatFileSize(file.size)} • ${formatDate(file.created_at)}
                             </div>
-                            <button onclick="event.stopPropagation(); toggleFileLike('${file.id}')" style="margin:5px; background:none; border:none; cursor:pointer;">❤️ ${file.likes_count || 0}</button>
-                            <button onclick="event.stopPropagation(); downloadFile('${file.id}')" style="margin:5px; background:none; border:none; cursor:pointer;" title="İndir">⬇️</button>
-                            <button onclick="event.stopPropagation(); if(confirm('Dosyayı silmek istediğinizden emin misiniz?')) { deleteFile('${file.id}', '${file.title}'); }" style="margin:5px; background:none; border:none; cursor:pointer; color:red;" title="Sil">🗑️ SİL</button>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
+                                <span onclick="event.stopPropagation(); toggleFileLike('${file.id}')" style="cursor: pointer; color: red; font-size: 16px;">
+                                    ❤️ ${file.likes_count || 0}
+                                </span>
+                                <span onclick="event.stopPropagation(); if(confirm('Bu dosyayı silmek istediğinize emin misiniz?')) { deleteFile('${file.id}', '${file.title}'); }" style="cursor: pointer; color: gray; font-size: 18px;">
+                                    🗑️
+                                </span>
+                            </div>
                         </div>
                     </div>
                 `;
