@@ -3223,9 +3223,7 @@
                         <div class="files-icon">📄</div>
                         <div class="files-text">Formlar</div>
                     </div>
-                    ${currentUser.is_admin ? `
-                    <button class="btn upload-btn" onclick="showUploadModal('document')">⬆️ Form Yükle</button>
-                    ` : ''}
+                    <button class="btn upload-btn" onclick="showUploadModal('document')">⬆️ Dosya Yükle</button>
                 </div>
                 <div class="files-grid" id="formsGrid">
                     ${renderFiles('document')}
