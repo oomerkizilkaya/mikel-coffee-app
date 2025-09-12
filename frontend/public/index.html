@@ -2773,12 +2773,12 @@
             }
 
             try {
-                // Register service worker
+                // Service Worker'ı kaydet
                 console.log('🔔 INIT PUSH - Registering service worker...');
                 swRegistration = await navigator.serviceWorker.register('/sw.js');
                 console.log('✅ INIT PUSH - Service Worker registered:', swRegistration);
 
-                // Request notification permission
+                // Bildirim izni iste - telefon için önemli
                 console.log('🔔 INIT PUSH - Requesting notification permission...');
                 const permission = await Notification.requestPermission();
                 console.log('📱 INIT PUSH - Notification permission:', permission);
@@ -2786,13 +2786,18 @@
                 if (permission === 'granted') {
                     console.log('🔔 INIT PUSH - Permission granted, subscribing to push...');
                     await subscribeUserToPush();
-                } else {
+                    showToast('📱 Telefon bildirimleri aktif!');
+                } else if (permission === 'denied') {
                     console.log('❌ INIT PUSH - Notification permission denied');
-                    showToast('📱 Bildirim izni reddedildi');
+                    showToast('❌ Bildirim izni reddedildi. Telefon bildirimleri çalışmayacak.');
+                } else {
+                    console.log('⚠️ INIT PUSH - Notification permission default/not decided');
+                    showToast('⚠️ Bildirim izni belirsiz. Ayarlardan açabilirsiniz.');
                 }
             } catch (error) {
                 console.error('❌ INIT PUSH - Service Worker registration failed:', error);
-                showToast('❌ Push bildirim sistemi hatası');
+                // Hata durumunda sessizce devam et, sistem çökmesin
+                console.log('🔔 INIT PUSH - Continuing without push notifications...');
             }
         }
 
