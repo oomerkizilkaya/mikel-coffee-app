@@ -1886,6 +1886,15 @@
                     
                     setTimeout(() => {
                         console.log('Loading feed...');
+                        
+                        // Ensure currentUser is loaded from localStorage
+                        const savedUserData = localStorage.getItem('user');
+                        if (savedUserData) {
+                            currentUser = JSON.parse(savedUserData);
+                            console.log('🔧 CURRENT USER RELOADED FROM LOCALSTORAGE:', currentUser);
+                            console.log('🔧 IS ADMIN:', currentUser.is_admin);
+                        }
+                        
                         // Push notification'ı tamamen kaldırıyoruz - hata vermesin
                         // initializePushNotifications(); 
                         loadFeed();
