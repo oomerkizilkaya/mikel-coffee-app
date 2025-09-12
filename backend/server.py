@@ -259,6 +259,7 @@ class UserRegister(BaseModel):
     password: str
     position: str
     store: Optional[str] = None
+    start_date: Optional[str] = None  # İşe giriş tarihi
 
     class Config:
         json_encoders = {
