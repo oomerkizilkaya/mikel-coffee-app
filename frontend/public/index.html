@@ -1592,7 +1592,7 @@
                 console.log('🔍 LOADING USERS WITH PROFILES...');
 
                 // Load users first
-                const usersResponse = await fetch('https://baristalink.preview.emergentagent.com/api/users', {
+                const usersResponse = await fetch('https://teammikel.preview.emergentagent.com/api/users', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
@@ -1605,7 +1605,7 @@
                 console.log('✅ Users loaded:', users.length);
 
                 // Load profiles
-                const profilesResponse = await fetch('https://baristalink.preview.emergentagent.com/api/profiles', {
+                const profilesResponse = await fetch('https://teammikel.preview.emergentagent.com/api/profiles', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
@@ -1811,7 +1811,7 @@
                         start_date: document.getElementById('startDate').value
                     };
 
-                const response = await fetch(`https://baristalink.preview.emergentagent.com/api/auth/${endpoint}`, {
+                const response = await fetch(`https://teammikel.preview.emergentagent.com/api/auth/${endpoint}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(body)
@@ -1954,7 +1954,7 @@
             try {
                 const token = localStorage.getItem('auth_token');
                 const [announcementsResponse, usersLoaded] = await Promise.all([
-                    fetch('https://baristalink.preview.emergentagent.com/api/announcements', {
+                    fetch('https://teammikel.preview.emergentagent.com/api/announcements', {
                         headers: { 'Authorization': `Bearer ${token}` }
                     }),
                     loadUsersWithProfiles()
@@ -2069,7 +2069,7 @@
         async function loadNotifications() {
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch('https://baristalink.preview.emergentagent.com/api/notifications', {
+                const response = await fetch('https://teammikel.preview.emergentagent.com/api/notifications', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
@@ -2128,7 +2128,7 @@
         async function markAsRead(notificationId) {
             try {
                 const token = localStorage.getItem('auth_token');
-                await fetch(`https://baristalink.preview.emergentagent.com/api/notifications/${notificationId}/read`, {
+                await fetch(`https://teammikel.preview.emergentagent.com/api/notifications/${notificationId}/read`, {
                     method: 'PUT',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -2143,7 +2143,7 @@
         async function updateNotificationCount() {
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch('https://baristalink.preview.emergentagent.com/api/notifications/unread-count', {
+                const response = await fetch('https://teammikel.preview.emergentagent.com/api/notifications/unread-count', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
@@ -2226,7 +2226,7 @@
                     announcementData.image_url = selectedAnnouncementMedia;
                 }
 
-                const response = await fetch('https://baristalink.preview.emergentagent.com/api/announcements', {
+                const response = await fetch('https://teammikel.preview.emergentagent.com/api/announcements', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -2281,10 +2281,10 @@
             try {
                 const token = localStorage.getItem('auth_token');
                 const [examResponse, usersResponse] = await Promise.all([
-                    fetch('https://baristalink.preview.emergentagent.com/api/exam-results', {
+                    fetch('https://teammikel.preview.emergentagent.com/api/exam-results', {
                         headers: { 'Authorization': `Bearer ${token}` }
                     }),
-                    fetch('https://baristalink.preview.emergentagent.com/api/users', {
+                    fetch('https://teammikel.preview.emergentagent.com/api/users', {
                         headers: { 'Authorization': `Bearer ${token}` }
                     })
                 ]);
@@ -2401,7 +2401,7 @@
             
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch('https://baristalink.preview.emergentagent.com/api/users', {
+                const response = await fetch('https://teammikel.preview.emergentagent.com/api/users', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
@@ -2472,7 +2472,7 @@
             
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch('https://baristalink.preview.emergentagent.com/api/exam-results', {
+                const response = await fetch('https://teammikel.preview.emergentagent.com/api/exam-results', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -2531,7 +2531,7 @@
         async function exportToExcel() {
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch('https://baristalink.preview.emergentagent.com/api/admin/export/users', {
+                const response = await fetch('https://teammikel.preview.emergentagent.com/api/admin/export/users', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
@@ -2563,7 +2563,7 @@
             
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch('https://baristalink.preview.emergentagent.com/api/users', {
+                const response = await fetch('https://teammikel.preview.emergentagent.com/api/users', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
@@ -2632,7 +2632,7 @@
         async function toggleAnnouncementLike(announcementId) {
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch(`https://baristalink.preview.emergentagent.com/api/announcements/${announcementId}/like`, {
+                const response = await fetch(`https://teammikel.preview.emergentagent.com/api/announcements/${announcementId}/like`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -2804,7 +2804,7 @@
             
             // Load files from backend
             const token = localStorage.getItem('auth_token');
-            fetch(`https://baristalink.preview.emergentagent.com/api/files?type=${fileType}`, {
+            fetch(`https://teammikel.preview.emergentagent.com/api/files?type=${fileType}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
             .then(response => response.json())
@@ -2827,7 +2827,7 @@
                         <div class="file-item" onclick="openFileViewer('${file.id}', '${file.title}', '${file.content_type}')">
                             <div class="file-preview">
                                 ${file.content_type.startsWith('image/') ? 
-                                    `<img src="https://baristalink.preview.emergentagent.com/api/files/${file.id}/download?token=${token}" alt="${file.title}" style="width:100%;height:150px;object-fit:cover;border-radius:8px;">` :
+                                    `<img src="https://teammikel.preview.emergentagent.com/api/files/${file.id}/download?token=${token}" alt="${file.title}" style="width:100%;height:150px;object-fit:cover;border-radius:8px;">` :
                                     `<div style="font-size:48px;display:flex;align-items:center;justify-content:center;height:150px;">${getFileIcon(file.content_type)}</div>`
                                 }
                             </div>
@@ -2888,7 +2888,7 @@
                 document.getElementById('modalTitle').textContent = fileName;
                 document.getElementById('modalBody').innerHTML = `
                     <div style="text-align:center;padding:20px;">
-                        <img src="https://baristalink.preview.emergentagent.com/api/files/${fileId}/download?token=${token}" 
+                        <img src="https://teammikel.preview.emergentagent.com/api/files/${fileId}/download?token=${token}" 
                              alt="${fileName}" 
                              style="max-width:100%;max-height:70vh;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15);">
                         <div style="margin-top:15px;">
@@ -2979,7 +2979,7 @@
                 const token = localStorage.getItem('auth_token');
                 console.log('🔔 SUBSCRIBE PUSH - Sending subscription to backend...');
                 
-                const response = await fetch('https://baristalink.preview.emergentagent.com/api/push/subscribe', {
+                const response = await fetch('https://teammikel.preview.emergentagent.com/api/push/subscribe', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -3041,19 +3041,19 @@
                 const token = localStorage.getItem('auth_token');
                 
                 // Video sayısını getir
-                const videoResponse = await fetch('https://baristalink.preview.emergentagent.com/api/files?type=video/*', {
+                const videoResponse = await fetch('https://teammikel.preview.emergentagent.com/api/files?type=video/*', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const videos = videoResponse.ok ? await videoResponse.json() : [];
                 
                 // Fotoğraf sayısını getir
-                const photoResponse = await fetch('https://baristalink.preview.emergentagent.com/api/files?type=image/*', {
+                const photoResponse = await fetch('https://teammikel.preview.emergentagent.com/api/files?type=image/*', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const photos = photoResponse.ok ? await photoResponse.json() : [];
                 
                 // Form sayısını getir
-                const formResponse = await fetch('https://baristalink.preview.emergentagent.com/api/files?type=application/*', {
+                const formResponse = await fetch('https://teammikel.preview.emergentagent.com/api/files?type=application/*', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const forms = formResponse.ok ? await formResponse.json() : [];
@@ -3163,7 +3163,7 @@
         async function loadFiles(fileType) {
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch(`https://baristalink.preview.emergentagent.com/api/files?type=${fileType}`, {
+                const response = await fetch(`https://teammikel.preview.emergentagent.com/api/files?type=${fileType}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
@@ -3207,7 +3207,7 @@
                     <div class="file-item" onclick="openFile('${file.id}')">
                         <div class="file-preview">
                             ${isImage ? 
-                                `<img src="https://baristalink.preview.emergentagent.com/api/files/${file.id}/download" alt="${file.title}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">` :
+                                `<img src="https://teammikel.preview.emergentagent.com/api/files/${file.id}/download" alt="${file.title}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">` :
                                 `<div style="font-size:48px;">${fileIcon}</div>`
                             }
                         </div>
@@ -3324,7 +3324,7 @@
                 document.getElementById('progressText').textContent = 'Yükleniyor...';
 
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch('https://baristalink.preview.emergentagent.com/api/files/upload', {
+                const response = await fetch('https://teammikel.preview.emergentagent.com/api/files/upload', {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}` },
                     body: formData
@@ -3359,7 +3359,7 @@
         async function toggleFileLike(fileId) {
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch(`https://baristalink.preview.emergentagent.com/api/files/${fileId}/like`, {
+                const response = await fetch(`https://teammikel.preview.emergentagent.com/api/files/${fileId}/like`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -3377,7 +3377,7 @@
 
         function downloadFile(fileId) {
             const token = localStorage.getItem('auth_token');
-            window.open(`https://baristalink.preview.emergentagent.com/api/files/${fileId}/download?token=${token}`, '_blank');
+            window.open(`https://teammikel.preview.emergentagent.com/api/files/${fileId}/download?token=${token}`, '_blank');
         }
 
         function openFile(fileId) {
@@ -3473,7 +3473,7 @@
                     postData.image_url = selectedPostMedia;
                 }
 
-                const response = await fetch('https://baristalink.preview.emergentagent.com/api/posts', {
+                const response = await fetch('https://teammikel.preview.emergentagent.com/api/posts', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -3501,7 +3501,7 @@
             try {
                 const token = localStorage.getItem('auth_token');
                 const [postsResponse, usersLoaded] = await Promise.all([
-                    fetch('https://baristalink.preview.emergentagent.com/api/posts', {
+                    fetch('https://teammikel.preview.emergentagent.com/api/posts', {
                         headers: { 'Authorization': `Bearer ${token}` }
                     }),
                     loadUsersWithProfiles()
@@ -3590,7 +3590,7 @@
         async function togglePostLike(postId) {
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch(`https://baristalink.preview.emergentagent.com/api/posts/${postId}/like`, {
+                const response = await fetch(`https://teammikel.preview.emergentagent.com/api/posts/${postId}/like`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -3673,7 +3673,7 @@
         async function loadComments(postId) {
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch(`https://baristalink.preview.emergentagent.com/api/posts/${postId}/comments`, {
+                const response = await fetch(`https://teammikel.preview.emergentagent.com/api/posts/${postId}/comments`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
@@ -3747,7 +3747,7 @@
 
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch(`https://baristalink.preview.emergentagent.com/api/posts/${postId}/comments`, {
+                const response = await fetch(`https://teammikel.preview.emergentagent.com/api/posts/${postId}/comments`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -3914,7 +3914,7 @@
         async function loadCurrentProfile() {
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch('https://baristalink.preview.emergentagent.com/api/profile', {
+                const response = await fetch('https://teammikel.preview.emergentagent.com/api/profile', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
@@ -3949,7 +3949,7 @@
                 
                 try {
                     const token = localStorage.getItem('auth_token');
-                    const response = await fetch('https://baristalink.preview.emergentagent.com/api/profile', {
+                    const response = await fetch('https://teammikel.preview.emergentagent.com/api/profile', {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
@@ -3980,7 +3980,7 @@
             
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch('https://baristalink.preview.emergentagent.com/api/profile', {
+                const response = await fetch('https://teammikel.preview.emergentagent.com/api/profile', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -4031,7 +4031,7 @@
         async function loadUserProfile(userId) {
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch('https://baristalink.preview.emergentagent.com/api/profile', {
+                const response = await fetch('https://teammikel.preview.emergentagent.com/api/profile', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
@@ -4170,7 +4170,7 @@
         async function loadEditProfile() {
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch('https://baristalink.preview.emergentagent.com/api/profile', {
+                const response = await fetch('https://teammikel.preview.emergentagent.com/api/profile', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
@@ -4233,7 +4233,7 @@
                     userUpdateData.password = password;
                 }
 
-                const userResponse = await fetch('https://baristalink.preview.emergentagent.com/api/users/me', {
+                const userResponse = await fetch('https://teammikel.preview.emergentagent.com/api/users/me', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -4248,7 +4248,7 @@
                     profileUpdateData.profile_image_url = profileImageUrl;
                 }
 
-                const profileResponse = await fetch('https://baristalink.preview.emergentagent.com/api/profile', {
+                const profileResponse = await fetch('https://teammikel.preview.emergentagent.com/api/profile', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -4340,7 +4340,7 @@
                 const token = localStorage.getItem('auth_token');
                 console.log('Deleting announcement with ID:', announcementId);
                 
-                const response = await fetch(`https://baristalink.preview.emergentagent.com/api/announcements/${announcementId}`, {
+                const response = await fetch(`https://teammikel.preview.emergentagent.com/api/announcements/${announcementId}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -4373,7 +4373,7 @@
             
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch(`https://baristalink.preview.emergentagent.com/api/posts/${postId}`, {
+                const response = await fetch(`https://teammikel.preview.emergentagent.com/api/posts/${postId}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -4442,7 +4442,7 @@
             
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch(`https://baristalink.preview.emergentagent.com/api/admin/users/${employeeId}`, {
+                const response = await fetch(`https://teammikel.preview.emergentagent.com/api/admin/users/${employeeId}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -4468,7 +4468,7 @@
             
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch(`https://baristalink.preview.emergentagent.com/api/admin/users/${employeeId}/admin-status`, {
+                const response = await fetch(`https://teammikel.preview.emergentagent.com/api/admin/users/${employeeId}/admin-status`, {
                     method: 'PUT',
                     headers: { 
                         'Authorization': `Bearer ${token}`,

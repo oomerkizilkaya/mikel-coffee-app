@@ -9,7 +9,7 @@ import json
 import time
 
 # Configuration - using EXPO_PUBLIC_BACKEND_URL from frontend/.env
-BASE_URL = "https://baristalink.preview.emergentagent.com/api"
+BASE_URL = "https://teammikel.preview.emergentagent.com/api"
 HEADERS = {"Content-Type": "application/json"}
 
 class AnnouncementDeleteTester:
