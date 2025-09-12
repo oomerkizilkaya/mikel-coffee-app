@@ -3629,7 +3629,7 @@
                         <button class="file-like-btn ${file.liked ? 'liked' : ''}" onclick="toggleFileLike('${file.id}')" style="padding: 8px 16px; border-radius: 8px; border: 1px solid #DBDBDB;">
                             ❤️ ${file.likes_count || 0}
                         </button>
-                        ${currentUser.is_admin ? `
+                        ${localStorage.getItem('user') && JSON.parse(localStorage.getItem('user')).is_admin ? `
                         <button class="btn-secondary" onclick="editFile('${file.id}', '${file.title}', '${file.description || ''}')">✏️ Düzenle</button>
                         <button class="btn-danger" onclick="deleteFile('${file.id}', '${file.title}')">🗑️ Sil</button>
                         ` : ''}
