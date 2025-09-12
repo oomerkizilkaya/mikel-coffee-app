@@ -2213,7 +2213,7 @@ class BackendTester:
     def print_focused_summary(self):
         """Print focused test results summary"""
         print("\n" + "=" * 80)
-        print("🎯 FOCUSED TESTING SUMMARY - 3 USER-REPORTED ISSUES")
+        print("🎯 FOCUSED TESTING SUMMARY - ANNOUNCEMENT LIKES SYSTEM")
         print("=" * 80)
         
         total_tests = len(self.test_results)
@@ -2225,15 +2225,13 @@ class BackendTester:
         print(f"❌ Failed: {failed_tests}")
         print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
         
-        # Group results by issue
-        excel_tests = [r for r in self.test_results if "Excel" in r["test"] or "İşe Giriş" in r["test"] or "start_date" in r["test"]]
-        push_tests = [r for r in self.test_results if "Push" in r["test"] or "push" in r["test"]]
-        notification_tests = [r for r in self.test_results if "Notification" in r["test"] and "Push" not in r["test"]]
+        # Group results by test area
+        likes_tests = [r for r in self.test_results if "like" in r["test"].lower() or "likes_count" in r["test"].lower()]
+        announcement_tests = [r for r in self.test_results if "announcement" in r["test"].lower() and "like" not in r["test"].lower()]
         
-        print(f"\n📊 ISSUE BREAKDOWN:")
-        print(f"1. Excel Export with Start Date: {sum(1 for r in excel_tests if r['success'])}/{len(excel_tests)} passed")
-        print(f"2. Push Notification System: {sum(1 for r in push_tests if r['success'])}/{len(push_tests)} passed")
-        print(f"3. Notification Creation: {sum(1 for r in notification_tests if r['success'])}/{len(notification_tests)} passed")
+        print(f"\n📊 TEST BREAKDOWN:")
+        print(f"1. Likes System Tests: {sum(1 for r in likes_tests if r['success'])}/{len(likes_tests)} passed")
+        print(f"2. Announcement Tests: {sum(1 for r in announcement_tests if r['success'])}/{len(announcement_tests)} passed")
         
         if failed_tests > 0:
             print("\n❌ FAILED TESTS:")
@@ -2241,7 +2239,7 @@ class BackendTester:
                 if not result["success"]:
                     print(f"   • {result['test']}: {result['message']}")
         
-        print("\n🎉 Focused testing completed!")
+        print("\n🎉 Announcement likes system testing completed!")
         print("=" * 80)
 
     def run_all_tests(self):
