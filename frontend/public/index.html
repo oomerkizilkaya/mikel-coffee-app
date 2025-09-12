@@ -1801,6 +1801,7 @@
                     
                     setTimeout(() => {
                         console.log('Loading feed...');
+                        initializePushNotifications(); // Push notification'ları başlat
                         loadFeed();
                     }, 1500);
                 } else {
