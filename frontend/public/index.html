@@ -3030,9 +3030,9 @@
                 return;
             }
 
-            // 1GB limit check
-            if (file.size > 1024 * 1024 * 1024) {
-                showToast('❌ Dosya boyutu 1GB\'ı aşamaz');
+            // 5GB limit check
+            if (file.size > 5 * 1024 * 1024 * 1024) {
+                showToast('❌ Dosya boyutu 5GB\'ı aşamaz');
                 return;
             }
 
