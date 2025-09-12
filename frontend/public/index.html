@@ -4556,7 +4556,7 @@
                 const token = localStorage.getItem('auth_token');
                 console.log('Deleting announcement with ID:', announcementId);
                 
-                const response = await fetch(`https://teammikel.preview.emergentagent.com/api/announcements/${announcementId}`, {
+                const response = await fetch(`${BACKEND_URL}/api/announcements/${announcementId}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
