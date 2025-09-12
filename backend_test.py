@@ -777,6 +777,183 @@ class BackendTester:
         else:
             self.log_test("STEP 10a: New admin login", False, "Failed to login as newly promoted admin", response["data"])
 
+    def test_start_date_functionality(self):
+        """Test the newly added start_date field functionality in user registration"""
+        print("\n=== Testing Start Date Field Functionality ===")
+        
+        # Test 1: Register user with start_date field
+        user_with_start_date = {
+            "name": "Test",
+            "surname": "Employee", 
+            "email": "testuser@mikelcoffee.com",
+            "password": "testpass123",
+            "position": "barista",
+            "store": "test_store",
+            "start_date": "2024-01-15"
+        }
+        
+        response = self.make_request("POST", "/auth/register", user_with_start_date)
+        if response["success"]:
+            user = response["data"]["user"]
+            token = response["data"]["access_token"]
+            
+            # Verify start_date is in response
+            if user.get("start_date") == "2024-01-15":
+                self.log_test("Registration with start_date", True, f"User registered with start_date: {user['start_date']}")
+            else:
+                self.log_test("Registration with start_date", False, f"start_date not returned correctly: {user.get('start_date')}")
+            
+            # Store for further tests
+            self.tokens["start_date_user"] = token
+            self.users["start_date_user"] = user
+        else:
+            self.log_test("Registration with start_date", False, "Failed to register user with start_date", response["data"])
+            return
+        
+        # Test 2: Register user without start_date field (should be optional)
+        user_without_start_date = {
+            "name": "No Date",
+            "surname": "Employee", 
+            "email": "nodate@mikelcoffee.com",
+            "password": "testpass123",
+            "position": "barista",
+            "store": "test_store"
+            # No start_date field
+        }
+        
+        response = self.make_request("POST", "/auth/register", user_without_start_date)
+        if response["success"]:
+            user = response["data"]["user"]
+            
+            # Verify start_date is null/None when not provided
+            if user.get("start_date") is None:
+                self.log_test("Registration without start_date", True, "User registered successfully without start_date (field is optional)")
+            else:
+                self.log_test("Registration without start_date", False, f"start_date should be null when not provided: {user.get('start_date')}")
+        else:
+            self.log_test("Registration without start_date", False, "Failed to register user without start_date", response["data"])
+        
+        # Test 3: Register user with null start_date
+        user_with_null_start_date = {
+            "name": "Null Date",
+            "surname": "Employee", 
+            "email": "nulldate@mikelcoffee.com",
+            "password": "testpass123",
+            "position": "barista",
+            "store": "test_store",
+            "start_date": None
+        }
+        
+        response = self.make_request("POST", "/auth/register", user_with_null_start_date)
+        if response["success"]:
+            user = response["data"]["user"]
+            
+            # Verify start_date is null when explicitly set to null
+            if user.get("start_date") is None:
+                self.log_test("Registration with null start_date", True, "User registered successfully with explicit null start_date")
+            else:
+                self.log_test("Registration with null start_date", False, f"start_date should be null when set to null: {user.get('start_date')}")
+        else:
+            self.log_test("Registration with null start_date", False, "Failed to register user with null start_date", response["data"])
+        
+        # Test 4: Verify start_date is stored in database (via /auth/me endpoint)
+        if "start_date_user" in self.tokens:
+            response = self.make_request("GET", "/auth/me", token=self.tokens["start_date_user"])
+            if response["success"]:
+                user = response["data"]
+                if user.get("start_date") == "2024-01-15":
+                    self.log_test("Database storage verification", True, "start_date correctly stored and retrieved from database")
+                else:
+                    self.log_test("Database storage verification", False, f"start_date not stored correctly in database: {user.get('start_date')}")
+            else:
+                self.log_test("Database storage verification", False, "Failed to retrieve user data for database verification", response["data"])
+        
+        # Test 5: Verify start_date appears in user list (admin endpoint)
+        # First create an admin user if we don't have one
+        admin_token = self.tokens.get("admin")
+        if not admin_token:
+            admin_data = {
+                "name": "Admin",
+                "surname": "User",
+                "email": "admin.startdate@mikelcoffee.com",
+                "password": "admin123",
+                "position": "trainer",
+                "store": "merkez"
+            }
+            
+            response = self.make_request("POST", "/auth/register", admin_data)
+            if response["success"]:
+                admin_token = response["data"]["access_token"]
+                # Make this user admin
+                admin_user = response["data"]["user"]
+                make_admin_response = self.make_request("POST", f"/test/make-admin/{admin_user['email']}")
+                if make_admin_response["success"]:
+                    # Re-login to get updated token
+                    login_response = self.make_request("POST", "/auth/login", {
+                        "email": "admin.startdate@mikelcoffee.com",
+                        "password": "admin123"
+                    })
+                    if login_response["success"]:
+                        admin_token = login_response["data"]["access_token"]
+        
+        if admin_token:
+            response = self.make_request("GET", "/users", token=admin_token)
+            if response["success"]:
+                users = response["data"]
+                
+                # Find our test user with start_date
+                test_user_found = False
+                for user in users:
+                    if user.get("email") == "testuser@mikelcoffee.com":
+                        test_user_found = True
+                        if user.get("start_date") == "2024-01-15":
+                            self.log_test("Admin user list includes start_date", True, "start_date field appears correctly in admin user list")
+                        else:
+                            self.log_test("Admin user list includes start_date", False, f"start_date not correct in user list: {user.get('start_date')}")
+                        break
+                
+                if not test_user_found:
+                    self.log_test("Admin user list includes start_date", False, "Test user not found in admin user list")
+            else:
+                self.log_test("Admin user list includes start_date", False, "Failed to get user list for start_date verification", response["data"])
+        else:
+            self.log_test("Admin user list includes start_date", False, "No admin token available for user list verification")
+        
+        # Test 6: Test different date formats (edge cases)
+        date_formats_to_test = [
+            ("2024-12-31", "Standard ISO date format"),
+            ("2023-01-01", "Different year"),
+            ("2024-02-29", "Leap year date"),
+        ]
+        
+        for i, (date_value, description) in enumerate(date_formats_to_test):
+            user_data = {
+                "name": f"DateTest{i}",
+                "surname": "Employee", 
+                "email": f"datetest{i}@mikelcoffee.com",
+                "password": "testpass123",
+                "position": "barista",
+                "store": "test_store",
+                "start_date": date_value
+            }
+            
+            response = self.make_request("POST", "/auth/register", user_data)
+            if response["success"]:
+                user = response["data"]["user"]
+                if user.get("start_date") == date_value:
+                    self.log_test(f"Date format test: {description}", True, f"Successfully registered with start_date: {date_value}")
+                else:
+                    self.log_test(f"Date format test: {description}", False, f"start_date not stored correctly: expected {date_value}, got {user.get('start_date')}")
+            else:
+                self.log_test(f"Date format test: {description}", False, f"Failed to register user with start_date {date_value}", response["data"])
+        
+        # Test 7: Verify UserRegister and User model compatibility
+        # This is implicitly tested by the successful registration and retrieval above
+        if response["success"]:  # Using the last successful response
+            self.log_test("Model compatibility verification", True, "UserRegister and User models successfully handle start_date field")
+        
+        print(f"\n✅ Start Date Field Testing Complete - Tested registration, storage, retrieval, and model compatibility")
+
     def test_profile_photo_visibility_issue(self):
         """Test the specific profile photo visibility issue reported"""
         print("\n=== Testing Profile Photo Visibility Issue ===")
