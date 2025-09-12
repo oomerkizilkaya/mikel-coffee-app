@@ -2973,6 +2973,8 @@
         }
 
         function renderFiles(type) {
+            console.log('🔍 RENDER FILES - Type:', type, 'Files count:', filesData.length);
+            
             if (filesData.length === 0) {
                 const typeNames = {
                     'video': 'video',
@@ -2991,27 +2993,35 @@
                 `;
             }
 
-            return filesData.map(file => `
-                <div class="file-item" onclick="openFile('${file.id}')">
-                    <div class="file-preview">
-                        ${getFileIcon(file.type)}
-                    </div>
-                    <div class="file-info">
-                        <div class="file-title">${file.title}</div>
-                        <div class="file-meta">
-                            ${formatFileSize(file.size)} • ${formatDate(file.created_at)}
+            return filesData.map(file => {
+                const fileIcon = getFileIcon(file.content_type || file.filename);
+                const isImage = file.content_type && file.content_type.startsWith('image/');
+                
+                return `
+                    <div class="file-item" onclick="openFile('${file.id}')">
+                        <div class="file-preview">
+                            ${isImage ? 
+                                `<img src="https://baristalink.preview.emergentagent.com/api/files/${file.id}/download" alt="${file.title}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">` :
+                                `<div style="font-size:48px;">${fileIcon}</div>`
+                            }
                         </div>
-                        <div class="file-actions">
-                            <button class="file-like-btn ${file.liked ? 'liked' : ''}" onclick="event.stopPropagation(); toggleFileLike('${file.id}')">
-                                ❤️ ${file.likes_count || 0}
-                            </button>
-                            <button class="file-download-btn" onclick="event.stopPropagation(); downloadFile('${file.id}')" title="İndir">
-                                ⬇️
-                            </button>
+                        <div class="file-info">
+                            <div class="file-title">${file.title}</div>
+                            <div class="file-meta">
+                                ${formatFileSize(file.size)} • ${formatDate(file.created_at)}
+                            </div>
+                            <div class="file-actions">
+                                <button class="file-like-btn ${file.liked ? 'liked' : ''}" onclick="event.stopPropagation(); toggleFileLike('${file.id}')">
+                                    ❤️ ${file.likes_count || 0}
+                                </button>
+                                <button class="file-download-btn" onclick="event.stopPropagation(); downloadFile('${file.id}')" title="İndir">
+                                    ⬇️
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         function getFileIcon(fileType) {
