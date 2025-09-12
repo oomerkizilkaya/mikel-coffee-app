@@ -1539,6 +1539,43 @@ async def download_file(file_id: str, request: Request, token: str = None):
         print(f"❌ RESPONSE CREATION ERROR: {e}")
         raise HTTPException(status_code=500, detail=f"Response creation failed: {str(e)}")
 
+# Public file view endpoint for images (no download, just view)
+@api_router.get("/files/{file_id}/view")
+async def view_file(file_id: str):
+    """Dosya görüntüleme endpoint'i - Public access for images"""
+    
+    try:
+        # Dosyayı veritabanından bul
+        file_doc = await db.files.find_one({"id": file_id})
+        
+        if not file_doc:
+            raise HTTPException(status_code=404, detail="File not found")
+        
+        # Sadece image ve video dosyalarına izin ver
+        content_type = file_doc.get("content_type", "")
+        if not (content_type.startswith('image/') or content_type.startswith('video/')):
+            raise HTTPException(status_code=403, detail="Only images and videos can be viewed publicly")
+        
+        # Dosya içeriğini döndür
+        file_content = file_doc.get("file_content")
+        if not file_content:
+            raise HTTPException(status_code=404, detail="File content not found")
+        
+        # Return file content for viewing (not download)
+        return Response(
+            content=file_content,
+            media_type=content_type,
+            headers={
+                "Content-Disposition": f'inline; filename="{file_doc.get("title", "file")}"'
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ VIEW FILE ERROR: {e}")
+        raise HTTPException(status_code=500, detail=f"File view failed: {str(e)}")
+
 @api_router.post("/files/{file_id}/like")
 async def toggle_file_like(file_id: str, current_user: User = Depends(get_current_user)):
     """Dosya beğenme"""
