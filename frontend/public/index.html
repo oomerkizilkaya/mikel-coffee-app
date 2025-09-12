@@ -1673,9 +1673,10 @@
             if (!isLoginMode) {
                 const name = document.getElementById('name').value.trim();
                 const surname = document.getElementById('surname').value.trim();
+                const startDate = document.getElementById('startDate').value;
                 
-                if (!name || !surname || !selectedPosition) {
-                    showMessage('Ad, soyad ve pozisyon gereklidir', 'error');
+                if (!name || !surname || !selectedPosition || !startDate) {
+                    showMessage('Ad, soyad, pozisyon ve işe giriş tarihi gereklidir', 'error');
                     return;
                 }
             }
