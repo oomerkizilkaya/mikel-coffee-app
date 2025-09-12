@@ -2717,6 +2717,16 @@
             document.getElementById('modalOverlay').style.display = 'none';
         }
 
+        // Close modal when clicking outside content
+        document.addEventListener('click', function(event) {
+            const modalOverlay = document.getElementById('modalOverlay');
+            const modalContent = document.querySelector('.modal-content');
+            
+            if (event.target === modalOverlay && !modalContent.contains(event.target)) {
+                closeModal();
+            }
+        });
+
         // Social Media Functions
         async function toggleAnnouncementLike(announcementId) {
             try {
