@@ -1467,10 +1467,28 @@ async def get_files(type: str = None, current_user: User = Depends(get_current_u
         return []
 
 @api_router.get("/files/{file_id}/download")
-async def download_file(file_id: str, token: str = None, current_user: User = None):
+async def download_file(file_id: str, token: str = None, request: Request = None):
     """Dosya indirme - token URL parameter veya header ile"""
     
+    current_user = None
+    
     try:
+        # İlk olarak Authorization header'ını kontrol et
+        auth_header = request.headers.get("authorization") if request else None
+        if auth_header and auth_header.startswith("Bearer "):
+            try:
+                token_from_header = auth_header.split(" ")[1]
+                payload = jwt.decode(token_from_header, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+                user_id = payload.get("sub")
+                if user_id:
+                    user_doc = await db.users.find_one({"_id": ObjectId(user_id)})
+                    if user_doc:
+                        user_doc["_id"] = str(user_doc["_id"])
+                        current_user = User(**user_doc)
+            except Exception as e:
+                print(f"Header token decode error: {e}")
+                pass
+        
         # Token URL parameter olarak gelirse, onu manual verify et
         if token and not current_user:
             try:
@@ -1481,9 +1499,10 @@ async def download_file(file_id: str, token: str = None, current_user: User = No
                     # Kullanıcıyı database'den al
                     user_doc = await db.users.find_one({"employee_id": employee_id})
                     if user_doc:
+                        user_doc["_id"] = str(user_doc["_id"])
                         current_user = User(**user_doc)
             except Exception as e:
-                print(f"Token decode error: {e}")
+                print(f"URL token decode error: {e}")
                 pass
         
         # Hala kullanıcı yoksa 403
