@@ -3622,7 +3622,8 @@
                         <button class="file-like-btn ${file.liked ? 'liked' : ''}" onclick="toggleFileLike('${file.id}')" style="padding: 8px 16px; border-radius: 8px; border: 1px solid #DBDBDB;">
                             ❤️ ${file.likes_count || 0}
                         </button>
-                        <button class="action-btn delete-btn" onclick="deleteFile('${file.id}', '${file.title}')">🗑️ Sil</button>
+                        <button class="btn" onclick="editFile('${file.id}', '${file.title}', '${file.description || ''}')">✏️ Düzenle</button>
+                        <button class="btn" onclick="if(confirm('Bu dosyayı silmek istediğinizden emin misiniz?')) { deleteFile('${file.id}', '${file.title}'); }" style="background: #ff3040; color: white;">🗑️ Sil</button>
                         <button class="btn-secondary" onclick="closeModal()">Kapat</button>
                     </div>
                 </div>
