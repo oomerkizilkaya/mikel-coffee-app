@@ -1949,9 +1949,12 @@
                     (author.name?.[0] || '') + (author.surname?.[0] || '') : 
                     (announcement.created_by ? announcement.created_by.slice(-2) : '??');
                 
-                // Debug logging
+                // Enhanced Debug logging
+                console.log(`🔍 RENDERPOST DEBUG - Announcement by: ${announcement.created_by}`);
+                console.log(`🔍 RENDERPOST DEBUG - Author data:`, author);
+                console.log(`🔍 RENDERPOST DEBUG - userMap_global:`, userMap_global);
                 if (author && author.profile_image_url) {
-                    console.log(`🔍 RENDERPOST DEBUG - Author ${announcement.created_by} has profile image:`, author.profile_image_url.substring(0, 50) + '...');
+                    console.log(`🔍 RENDERPOST DEBUG - Author ${announcement.created_by} has profile image:`, author.profile_image_url.substring(0, 100) + '...');
                 } else {
                     console.log(`🔍 RENDERPOST DEBUG - Author ${announcement.created_by} NO profile image, showing initials:`, authorInitials);
                 }
