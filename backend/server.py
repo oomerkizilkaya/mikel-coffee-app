@@ -45,7 +45,7 @@ class SecurityConfig:
     LOGIN_LOCKOUT_TIME = 300  # 5 minutes
     
     # Content Security
-    MAX_CONTENT_LENGTH = 5 * 1024 * 1024 * 1024  # 5GB
+    MAX_CONTENT_LENGTH = 100 * 1024 * 1024 * 1024  # 100GB
     ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.mp4', '.mov', '.avi'}
     
     # Malicious Patterns
