@@ -1604,6 +1604,66 @@ async def delete_file(file_id: str, current_user: User = Depends(get_current_use
         print(f"❌ DELETE FILE ERROR: {e}")
         raise HTTPException(status_code=500, detail=f"File deletion failed: {str(e)}")
 
+# File edit model
+class FileEdit(BaseModel):
+    title: str
+    description: str = ""
+
+@api_router.put("/files/{file_id}")
+async def edit_file(file_id: str, file_edit: FileEdit, current_user: User = Depends(get_current_user)):
+    """Dosya düzenleme - Sadece adminler"""
+    
+    # Sadece adminler dosya düzenleyebilir
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Only admins can edit files")
+    
+    try:
+        # Input validation and sanitization
+        title = input_validator.sanitize_input(file_edit.title.strip())
+        description = input_validator.sanitize_input(file_edit.description.strip())
+        
+        if not title:
+            raise HTTPException(status_code=400, detail="File title is required")
+        
+        if not input_validator.validate_content_size(title):
+            raise HTTPException(status_code=413, detail="Title too large")
+        
+        if description and not input_validator.validate_content_size(description):
+            raise HTTPException(status_code=413, detail="Description too large")
+        
+        # Dosyanın varlığını kontrol et
+        file_doc = await db.files.find_one({"id": file_id})
+        
+        if not file_doc:
+            raise HTTPException(status_code=404, detail="File not found")
+        
+        # Dosyayı güncelle
+        update_data = {
+            "title": title,
+            "description": description,
+            "updated_at": datetime.utcnow()
+        }
+        
+        update_result = await db.files.update_one({"id": file_id}, {"$set": update_data})
+        
+        if update_result.modified_count == 0:
+            raise HTTPException(status_code=404, detail="File not found or no changes made")
+        
+        print(f"📁 FILE EDITED - {title} by admin {current_user.employee_id}")
+        
+        # Güncel dosya bilgilerini döndür
+        updated_file = await db.files.find_one({"id": file_id}, {"file_content": 0})
+        if updated_file:
+            updated_file["_id"] = str(updated_file["_id"])
+        
+        return {"message": "File updated successfully", "file": updated_file}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ EDIT FILE ERROR: {e}")
+        raise HTTPException(status_code=500, detail=f"File edit failed: {str(e)}")
+
 # Push Notification Models and Endpoints
 class PushSubscription(BaseModel):
     endpoint: str
