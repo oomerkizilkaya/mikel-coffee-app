@@ -694,11 +694,10 @@
 
 ## test_plan:
   current_focus:
-    - "Registration with start date field (İşe Giriş Tarihi) - Frontend Implementation"
     - "Profile Photos Display on Homepage (Ana Sayfa)"
-    - "Comprehensive Notification System with Bell Icon and Badge"
   stuck_tasks:
     - "Comprehensive Security Firewall System"
+    - "Profile Photos Display on Homepage (Ana Sayfa)"
   test_all: false
   test_priority: "high_first"
   completed_urgent:
@@ -706,8 +705,8 @@
     - "Make Admin Button Functionality"
     - "Comprehensive Notification System"
     - "Registration with start date field (İşe Giriş Tarihi) - Frontend Implementation"
-    - "Profile Photos Display on Homepage (Ana Sayfa)"
     - "Comprehensive Notification System with Bell Icon and Badge"
+    - "Push Notifications System"
 
 ## agent_communication:
   - agent: "main"
