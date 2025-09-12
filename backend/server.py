@@ -448,6 +448,31 @@ async def generate_employee_id() -> str:
         new_id = 1
     return f"{new_id:05d}"
 
+async def create_notifications_for_all_users(title: str, message: str, notification_type: str, related_id: str = None, sender_id: str = None):
+    """Tüm kullanıcılara bildirim gönder"""
+    # Tüm kullanıcıları al
+    users = await db.users.find({}, {"employee_id": 1}).to_list(1000)
+    
+    # Her kullanıcı için bildirim oluştur
+    notifications = []
+    for user in users:
+        notification_doc = {
+            "_id": str(uuid.uuid4()),
+            "user_id": user["employee_id"],
+            "title": title,
+            "message": message,
+            "type": notification_type,
+            "read": False,
+            "created_at": datetime.utcnow(),
+            "related_id": related_id,
+            "sender_id": sender_id
+        }
+        notifications.append(notification_doc)
+    
+    # Toplu olarak ekle
+    if notifications:
+        await db.notifications.insert_many(notifications)
+
 # Authentication Routes
 @api_router.post("/auth/register", response_model=Token)
 async def register(user_data: UserRegister):
