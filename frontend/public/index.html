@@ -3590,17 +3590,25 @@
         }
 
         function openFile(fileId) {
+            console.log('🔍 MODAL AÇILIYOR - File ID:', fileId);
+            console.log('🔍 FILES DATA:', filesData);
+            
             // File preview modal implementation
             const file = filesData.find(f => f.id === fileId);
-            if (!file) return;
+            console.log('🔍 BULUNAN FILE:', file);
+            
+            if (!file) {
+                console.error('❌ FILE BULUNAMADI:', fileId);
+                return;
+            }
 
             document.getElementById('modalTitle').textContent = file.title;
             document.getElementById('modalBody').innerHTML = `
                 <div style="padding: 20px;">
                     <div style="text-align: center; margin-bottom: 20px;">
-                        ${file.type.startsWith('image/') ? 
-                            `<img src="${file.url}" style="max-width: 100%; max-height: 400px; border-radius: 8px;">` :
-                            `<div style="font-size: 64px; margin: 40px 0;">${getFileIcon(file.type)}</div>`
+                        ${file.content_type && file.content_type.startsWith('image/') ? 
+                            `<img src="${BACKEND_URL}/api/files/${file.id}/download?token=${localStorage.getItem('auth_token')}" style="max-width: 100%; max-height: 400px; border-radius: 8px;">` :
+                            `<div style="font-size: 64px; margin: 40px 0;">${getFileIcon(file.content_type)}</div>`
                         }
                     </div>
                     <div style="margin-bottom: 15px;">
@@ -3617,14 +3625,23 @@
                     <div style="margin-bottom: 15px;">
                         <strong>Yüklenme Tarihi:</strong> ${formatDate(file.created_at)}
                     </div>
-                    <div style="display: flex; gap: 10px; margin-top: 20px;">
-                        <button class="btn" onclick="downloadFile('${file.id}')">⬇️ İndir</button>
-                        <button class="file-like-btn ${file.liked ? 'liked' : ''}" onclick="toggleFileLike('${file.id}')" style="padding: 8px 16px; border-radius: 8px; border: 1px solid #DBDBDB;">
+                    
+                    <div style="display: flex; gap: 10px; margin-top: 20px; justify-content: center;">
+                        <button onclick="downloadFile('${file.id}')" style="padding: 8px 16px; background: #0095F6; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                            ⬇️ İndir
+                        </button>
+                        <button onclick="toggleFileLike('${file.id}')" style="padding: 8px 16px; background: #fff; border: 1px solid #DBDBDB; border-radius: 8px; cursor: pointer;">
                             ❤️ ${file.likes_count || 0}
                         </button>
-                        <button class="btn" onclick="editFile('${file.id}', '${file.title}', '${file.description || ''}')">✏️ Düzenle</button>
-                        <button class="btn" onclick="if(confirm('Bu dosyayı silmek istediğinizden emin misiniz?')) { deleteFile('${file.id}', '${file.title}'); }" style="background: #ff3040; color: white;">🗑️ Sil</button>
-                        <button class="btn-secondary" onclick="closeModal()">Kapat</button>
+                        <button onclick="editFile('${file.id}', '${file.title}', '${file.description || ''}')" style="padding: 8px 16px; background: #0095F6; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                            ✏️ Düzenle
+                        </button>
+                        <button onclick="if(confirm('Bu dosyayı silmek istediğinizden emin misiniz?')) { deleteFile('${file.id}', '${file.title}'); closeModal(); }" style="padding: 8px 16px; background: #ff3040; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                            🗑️ Sil
+                        </button>
+                        <button onclick="closeModal()" style="padding: 8px 16px; background: #8E8E8E; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                            Kapat
+                        </button>
                     </div>
                 </div>
             `;
