@@ -1911,6 +1911,23 @@
         }
 
         async function loadFeed() {
+            // Ensure currentUser is loaded before proceeding
+            if (!currentUser) {
+                const savedUserData = localStorage.getItem('user');
+                if (savedUserData) {
+                    currentUser = JSON.parse(savedUserData);
+                    console.log('🔧 LOADFEED - Current user reloaded from localStorage:', currentUser);
+                }
+            }
+            
+            if (!currentUser) {
+                console.error('❌ LOADFEED - No current user available');
+                showAuthForm();
+                return;
+            }
+            
+            console.log('🔧 LOADFEED - Current user confirmed:', currentUser.name, 'Admin:', currentUser.is_admin);
+            
             await loadAnnouncements();
             await loadUsersWithProfiles(); // Ana sayfada profil fotoğrafları için
             await updateNotificationCount(); // Bildirim sayısını güncelle
