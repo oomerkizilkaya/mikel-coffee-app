@@ -860,8 +860,8 @@
 
 ## test_plan:
   current_focus:
-    - "File Display System Fix (Dosya gözükmüyor, açılmıyor, tuşlama yapılmıyor)" - TESTED ✅ FULLY WORKING
-    - "Mobile Push Notifications (Telefonda bildirim alacakları şekilde)" - TESTED ✅ FULLY WORKING
+    - "File Deletion Feature for Administrators" - NEEDS TESTING ⏳
+    - "File Unlike (Beğenmeyi Geri Alma) Functionality" - NEEDS TESTING ⏳
   stuck_tasks:
     - "Comprehensive Security Firewall System"
   test_all: false
