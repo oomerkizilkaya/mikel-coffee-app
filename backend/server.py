@@ -864,8 +864,25 @@ async def export_users_excel(current_user: User = Depends(get_current_user)):
         ws.cell(row=row, column=4, value=user.get("email", ""))
         ws.cell(row=row, column=5, value=user.get("position", "").title())
         ws.cell(row=row, column=6, value=user.get("store", "Belirtilmemiş"))
-        ws.cell(row=row, column=7, value=user.get("special_role", "Yok") or "Yok")
-        ws.cell(row=row, column=8, value="Evet" if user.get("is_admin") else "Hayır")
+        
+        # İşe giriş tarihi
+        start_date = user.get("start_date")
+        if start_date:
+            try:
+                # Tarih formatını düzenle
+                if isinstance(start_date, str):
+                    date_obj = datetime.fromisoformat(start_date)
+                    formatted_start_date = date_obj.strftime("%d.%m.%Y")
+                else:
+                    formatted_start_date = start_date
+            except:
+                formatted_start_date = start_date
+        else:
+            formatted_start_date = "Belirtilmemiş"
+        ws.cell(row=row, column=7, value=formatted_start_date)
+        
+        ws.cell(row=row, column=8, value=user.get("special_role", "Yok") or "Yok")
+        ws.cell(row=row, column=9, value="Evet" if user.get("is_admin") else "Hayır")
         
         # Format date
         created_at = user.get("created_at")
