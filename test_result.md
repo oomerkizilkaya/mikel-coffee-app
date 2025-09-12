@@ -776,7 +776,8 @@
 
 ## test_plan:
   current_focus:
-    - "Announcement likes system and likes_count display" - COMPLETED ✅ BUG FIXED
+    - "File Display System Fix (Dosya gözükmüyor, açılmıyor, tuşlama yapılmıyor)" - TESTED ✅ PARTIALLY WORKING
+    - "Mobile Push Notifications (Telefonda bildirim alacakları şekilde)" - TESTED ✅ FULLY WORKING
   stuck_tasks:
     - "Comprehensive Security Firewall System"
   test_all: false
@@ -790,6 +791,7 @@
     - "Push Notifications System"
     - "Profile Photos Display on Homepage (Ana Sayfa)"
     - "Announcement likes system and likes_count display"
+    - "Mobile Push Notifications (Telefonda bildirim alacakları şekilde)"
 
 ## agent_communication:
   - agent: "testing"
