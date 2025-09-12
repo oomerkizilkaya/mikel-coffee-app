@@ -3210,19 +3210,22 @@
         }
 
         async function loadFiles(fileType) {
+            console.log(`🎥 LOADING FILES - Type: ${fileType}`);
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch(`https://teammikel.preview.emergentagent.com/api/files?type=${fileType}`, {
+                const response = await fetch(`${BACKEND_URL}/api/files?type=${fileType}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                
+
                 if (response.ok) {
                     filesData = await response.json();
+                    console.log(`✅ Files loaded for ${fileType}:`, filesData.length);
                 } else {
-                    filesData = []; // Başlangıçta boş array
+                    console.error(`❌ Failed to load files for ${fileType}:`, response.status);
+                    filesData = [];
                 }
             } catch (error) {
-                console.error('Error loading files:', error);
+                console.error(`❌ Error loading files for ${fileType}:`, error);
                 filesData = [];
             }
         }
