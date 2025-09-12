@@ -1837,7 +1837,9 @@ class BackendTester:
                     # Find the notification for our announcement
                     announcement_notification = None
                     for notif in notifications:
-                        if notif.get("title") == "🔔 Yeni Duyuru" and announcement_id in notif.get("message", ""):
+                        if (notif.get("title") == "🔔 Yeni Duyuru" and 
+                            notif.get("type") == "announcement" and
+                            notif.get("related_id") == announcement_id):
                             announcement_notification = notif
                             break
                     
