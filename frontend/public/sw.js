@@ -39,15 +39,52 @@ function doBackgroundSync() {
   return Promise.resolve();
 }
 
-// Push notifications (if needed)
+// Push notifications handler
 self.addEventListener('push', event => {
+  console.log('📱 Push notification received:', event);
+  
+  let data = {};
+  if (event.data) {
+    try {
+      data = event.data.json();
+    } catch (e) {
+      data = { title: 'Mikel Coffee', body: event.data.text() };
+    }
+  }
+
   const options = {
-    body: event.data ? event.data.text() : 'Mikel Coffee bildirim',
+    body: data.body || 'Yeni bildirim var!',
     icon: '/assets/images/icon.png',
-    badge: '/assets/images/icon.png'
+    badge: '/assets/images/icon.png',
+    tag: 'mikel-coffee-notification',
+    data: data,
+    actions: [
+      {
+        action: 'view',
+        title: 'Görüntüle'
+      },
+      {
+        action: 'dismiss',
+        title: 'Kapat'
+      }
+    ],
+    requireInteraction: true
   };
   
   event.waitUntil(
-    self.registration.showNotification('Mikel Coffee', options)
+    self.registration.showNotification(data.title || 'Mikel Coffee', options)
   );
+});
+
+// Handle notification click
+self.addEventListener('notificationclick', event => {
+  console.log('📱 Notification clicked:', event);
+  
+  event.notification.close();
+  
+  if (event.action === 'view' || !event.action) {
+    event.waitUntil(
+      clients.openWindow('https://baristalink.preview.emergentagent.com/')
+    );
+  }
 });
