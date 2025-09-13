@@ -1648,6 +1648,101 @@
         let isLoginMode = true;
         let selectedPosition = '';
 
+        // PWA Install Prompt
+        let deferredPrompt;
+        let installButton = null;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent the mini-infobar from appearing on mobile
+            e.preventDefault();
+            // Stash the event so it can be triggered later
+            deferredPrompt = e;
+            // Update UI notify the user they can install the PWA
+            showInstallPromotion();
+        });
+
+        function showInstallPromotion() {
+            // Show install button in header
+            if (!installButton) {
+                installButton = document.createElement('button');
+                installButton.className = 'logout-btn';
+                installButton.innerHTML = '📱';
+                installButton.title = 'Uygulamayı Yükle';  
+                installButton.onclick = installPWA;
+                
+                // Add to header actions
+                const headerActions = document.querySelector('.header-actions');
+                if (headerActions) {
+                    headerActions.insertBefore(installButton, headerActions.firstChild);
+                }
+            }
+        }
+
+        async function installPWA() {
+            if (!deferredPrompt) {
+                alert('Uygulama zaten yüklü veya tarayıcınız desteklemiyor');
+                return;
+            }
+
+            // Show the install prompt
+            deferredPrompt.prompt();
+            
+            // Wait for the user to respond to the prompt
+            const { outcome } = await deferredPrompt.userChoice;
+            
+            if (outcome === 'accepted') {
+                console.log('✅ PWA installed successfully');
+                // Hide the install button
+                if (installButton) {
+                    installButton.style.display = 'none';
+                }
+            } else {
+                console.log('❌ User dismissed the install prompt');
+            }
+            
+            // Clear the deferredPrompt
+            deferredPrompt = null;
+        }
+
+        // Check if PWA is already installed
+        window.addEventListener('appinstalled', () => {
+            console.log('✅ PWA was installed');
+            if (installButton) {
+                installButton.style.display = 'none';
+            }
+        });
+
+        // Enhanced Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', async () => {
+                try {
+                    const registration = await navigator.serviceWorker.register('/sw.js');
+                    console.log('✅ Service Worker registered:', registration);
+                    
+                    // Check for updates
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed') {
+                                if (navigator.serviceWorker.controller) {
+                                    // New update available
+                                    showUpdateAvailable();
+                                }
+                            }
+                        });
+                    });
+                } catch (error) {
+                    console.error('❌ Service Worker registration failed:', error);
+                }
+            });
+        }
+
+        function showUpdateAvailable() {
+            if (confirm('Yeni güncelleme mevcut! Yeniden yüklemek ister misiniz?')) {
+                window.location.reload();
+            }
+        }
+
         // Global function to load users with profiles
         async function loadUsersWithProfiles() {
             try {
