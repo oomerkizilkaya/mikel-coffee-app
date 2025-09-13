@@ -1633,11 +1633,15 @@
         <!-- App content will be loaded here -->
     </div>
 
-    <script>
+   <script type="module">
+    "use strict";
+    // Backend URL konfigürasyonu
         // Backend URL konfigürasyonu
-        const BACKEND_URL = window.location.hostname.includes('localhost') 
+        // Yeni:
+var BACKEND_URL = window.location.hostname.includes('localhost')
+var currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
     ? 'http://localhost:8001' 
-    const BACKEND_URL = window.location.hostname.includes('localhost') 
+    var BACKEND_URL = window.location.hostname.includes('localhost') 
     ? 'http://localhost:8001' 
     : window.location.hostname.includes('netlify.app')
         ? 'https://employee-hub-45.preview.emergentagent.com'
