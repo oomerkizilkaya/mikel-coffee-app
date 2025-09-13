@@ -2323,7 +2323,7 @@
         async function updateNotificationCount() {
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch('https://employee-hub-45.preview.emergentagent.com/api/notifications/unread-count', {
+                const response = await fetch(`${BACKEND_URL}/api/notifications/unread-count`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
