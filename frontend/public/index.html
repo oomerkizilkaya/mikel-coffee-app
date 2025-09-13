@@ -2249,7 +2249,7 @@
         async function loadNotifications() {
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch('https://employee-hub-45.preview.emergentagent.com/api/notifications', {
+                const response = await fetch(`${BACKEND_URL}/api/notifications`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
