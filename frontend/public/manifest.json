@@ -1,12 +1,15 @@
 {
   "name": "Mikel Coffee - Çalışan Sistemi",
   "short_name": "Mikel Coffee",
-  "description": "Mikel Coffee çalışanları için kayıt ve yönetim sistemi",
-  "start_url": "/",
+  "description": "Mikel Coffee çalışanları için sosyal platform ve yönetim sistemi - Instagram tarzı deneyim",
+  "start_url": "/?source=pwa",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
   "background_color": "#8B4513",
   "theme_color": "#8B4513",
   "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "tr",
   "icons": [
     {
       "src": "https://customer-assets.emergentagent.com/job_0f64345d-2f6b-41c8-af15-208e01ade896/artifacts/fwptedkg_M%C4%B0KEL%20LOGOSU.png",
