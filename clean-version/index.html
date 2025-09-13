@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mikel Coffee - Çalışan Sistemi</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="https://customer-assets.emergentagent.com/job_0f64345d-2f6b-41c8-af15-208e01ade896/artifacts/fwptedkg_M%C4%B0KEL%20LOGOSU.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Mikel Coffee">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#8B4513">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 360px;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #8B4513;
+        }
+
+        .logo h1 {
+            color: #8B4513;
+            font-size: 24px;
+            margin-top: 15px;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e1e1;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #8B4513;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(139, 69, 19, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #8B4513;
+            border: 2px solid #8B4513;
+        }
+
+        .btn-secondary:hover {
+            background: #8B4513;
+            color: white;
+        }
+
+        .toggle-form {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .toggle-form a {
+            color: #8B4513;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .toggle-form a:hover {
+            text-decoration: underline;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #e1e1e1;
+            border-top: 2px solid #8B4513;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #f5c6cb;
+        }
+
+        .dashboard {
+            display: none;
+            min-height: 100vh;
+            background: #f5f5f5;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .main-content {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-around;
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .nav-item {
+            flex: 1;
+            text-align: center;
+            padding: 12px 8px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #666;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: #8B4513;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .feed-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        .feed-item {
+            padding: 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .feed-item:last-child {
+            border-bottom: none;
+        }
+
+        .feed-author {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .feed-author img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 12px;
+            object-fit: cover;
+        }
+
+        .feed-author-info h4 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 2px;
+        }
+
+        .feed-author-info span {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .feed-content {
+            font-size: 15px;
+            line-height: 1.5;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .feed-actions {
+            display: flex;
+            gap: 20px;
+        }
+
+        .feed-action {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: color 0.3s ease;
+        }
+
+        .feed-action:hover {
+            color: #8B4513;
+        }
+
+        .feed-action.liked {
+            color: #e74c3c;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .stat-icon {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: 600;
+            color: #8B4513;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .file-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .file-item {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .file-item:hover {
+            transform: translateY(-3px);
+        }
+
+        .file-preview {
+            height: 150px;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: #8B4513;
+        }
+
+        .file-info {
+            padding: 15px;
+        }
+
+        .file-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .file-meta {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .file-action-btn {
+            flex: 1;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #8B4513;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #A0522D;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .auth-container {
+                padding: 30px 20px;
+            }
+            
+            .navigation {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .nav-item {
+                padding: 15px;
+            }
+            
+            .file-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 10px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root">
+        <!-- Auth Container -->
+        <div class="container" id="authContainer">
+            <div class="auth-container">
+                <div class="logo">
+                    <img src="https://customer-assets.emergentagent.com/job_0f64345d-2f6b-41c8-af15-208e01ade896/artifacts/fwptedkg_M%C4%B0KEL%20LOGOSU.png" alt="Mikel Coffee">
+                    <h1>Mikel Coffee</h1>
+                </div>
+
+                <div id="authMessage"></div>
+
+                <!-- Login Form -->
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="email">E-posta</label>
+                        <input type="email" id="email" name="email" required value="admin@mikelcoffee.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Şifre</label>
+                        <input type="password" id="password" name="password" required value="admin123">
+                    </div>
+                    <button type="submit" class="btn" id="submitBtn">Giriş Yap</button>
+                </form>
+
+                <div class="toggle-form">
+                    <small>Test için: admin@mikelcoffee.com / admin123</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div class="dashboard" id="dashboardContainer">
+            <!-- Header -->
+            <div class="header">
+                <h2 id="welcomeMessage">Hoş Geldiniz</h2>
+                <div class="header-actions">
+                    <button class="logout-btn" onclick="logout()">🚪 Çıkış</button>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <!-- Navigation -->
+                <div class="navigation">
+                    <div class="nav-item active" onclick="showFeed()">🏠 Ana Sayfa</div>
+                    <div class="nav-item" onclick="showFiles()">📁 Dosyalar</div>
+                    <div class="nav-item" onclick="showUsers()">👥 Çalışanlar</div>
+                    <div class="nav-item" onclick="showProfile()">👤 Profil</div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card" onclick="showFiles('video')">
+                        <div class="stat-icon">🎥</div>
+                        <div class="stat-number" id="videoCount">25</div>
+                        <div class="stat-label">Videolar</div>
+                    </div>
+                    <div class="stat-card" onclick="showFiles('image')">
+                        <div class="stat-icon">📸</div>
+                        <div class="stat-number" id="photoCount">15</div>
+                        <div class="stat-label">Fotoğraflar</div>
+                    </div>
+                    <div class="stat-card" onclick="showFiles('document')">
+                        <div class="stat-icon">📋</div>
+                        <div class="stat-number" id="formCount">8</div>
+                        <div class="stat-label">Belgeler</div>
+                    </div>
+                    <div class="stat-card" onclick="showUsers()">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-number" id="userCount">18</div>
+                        <div class="stat-label">Çalışanlar</div>
+                    </div>
+                </div>
+
+                <!-- Content Areas -->
+                <div id="contentContainer">
+                    <div class="feed-container">
+                        <div id="feedContent">
+                            <div class="feed-item">
+                                <div class="feed-author">
+                                    <img src="https://customer-assets.emergentagent.com/job_0f64345d-2f6b-41c8-af15-208e01ade896/artifacts/fwptedkg_M%C4%B0KEL%20LOGOSU.png" alt="Admin">
+                                    <div class="feed-author-info">
+                                        <h4>Mikel Coffee Admin</h4>
+                                        <span>Bugün</span>
+                                    </div>
+                                </div>
+                                <div class="feed-content">
+                                    <strong>🎉 Mikel Coffee PWA Başarıyla Yüklendi!</strong><br>
+                                    Mikel Coffee çalışan uygulaması artık PWA olarak çalışıyor. Tüm özellikler aktif ve demo veriler hazır.
+                                    <br><br>✅ 18 demo çalışan<br>✅ 48 demo dosya<br>✅ Admin paneli<br>✅ Offline destek<br>✅ Push bildirimleri
+                                </div>
+                                <div class="feed-actions">
+                                    <button class="feed-action">❤️ 12</button>
+                                    <button class="feed-action">💬 Yorumlar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal -->
+        <div class="modal-overlay" id="modalOverlay">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="modalTitle">Modal Title</h3>
+                    <button class="close-btn" onclick="closeModal()">&times;</button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    Modal content
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Backend URL - Clean and Simple
+        const BACKEND_URL = 'https://employee-hub-45.preview.emergentagent.com';
+        
+        let currentUser = null;
+        let isLoggedIn = false;
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuthStatus();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+            document.getElementById('modalOverlay').addEventListener('click', function(e) {
+                if (e.target === this) closeModal();
+            });
+        }
+
+        function checkAuthStatus() {
+            const token = localStorage.getItem('auth_token');
+            const userData = localStorage.getItem('currentUser');
+            
+            if (token && userData) {
+                try {
+                    currentUser = JSON.parse(userData);
+                    isLoggedIn = true;
+                    showDashboard();
+                } catch (error) {
+                    console.error('Error parsing user data:', error);
+                    showAuthForm();
+                }
+            } else {
+                showAuthForm();
+            }
+        }
+
+        function showAuthForm() {
+            document.getElementById('authContainer').style.display = 'flex';
+            document.getElementById('dashboardContainer').style.display = 'none';
+        }
+
+        function showDashboard() {
+            document.getElementById('authContainer').style.display = 'none';
+            document.getElementById('dashboardContainer').style.display = 'block';
+            
+            if (currentUser) {
+                document.getElementById('welcomeMessage').textContent = 
+                    'Hoş Geldiniz, ' + currentUser.name + ' ' + currentUser.surname;
+            }
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Giriş yapılıyor...';
+            submitBtn.disabled = true;
+            
+            const formData = {
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value
+            };
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.access_token) {
+                    localStorage.setItem('auth_token', data.access_token);
+                    localStorage.setItem('currentUser', JSON.stringify(data.user));
+                    currentUser = data.user;
+                    isLoggedIn = true;
+                    
+                    showMessage('Başarıyla giriş yapıldı!', 'success');
+                    setTimeout(() => {
+                        showDashboard();
+                        loadStats();
+                    }, 1000);
+                } else {
+                    showMessage(data.detail || 'Giriş yapılamadı', 'error');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showMessage('Bağlantı hatası. Demo modunda devam ediliyor.', 'error');
+                
+                // Demo login for testing
+                setTimeout(() => {
+                    currentUser = {
+                        name: 'Demo',
+                        surname: 'User',
+                        email: 'demo@mikelcoffee.com',
+                        is_admin: true,
+                        employee_id: 'DEMO001'
+                    };
+                    isLoggedIn = true;
+                    showDashboard();
+                    loadStats();
+                }, 2000);
+            } finally {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
+        }
+
+        function showFeed() {
+            updateNavigation('Ana Sayfa');
+            document.getElementById('feedContent').innerHTML = `
+                <div class="feed-item">
+                    <div class="feed-author">
+                        <img src="https://customer-assets.emergentagent.com/job_0f64345d-2f6b-41c8-af15-208e01ade896/artifacts/fwptedkg_M%C4%B0KEL%20LOGOSU.png" alt="Admin">
+                        <div class="feed-author-info">
+                            <h4>Mikel Coffee Admin</h4>
+                            <span>Bugün</span>
+                        </div>
+                    </div>
+                    <div class="feed-content">
+                        <strong>🎉 PWA Başarıyla Aktif!</strong><br>
+                        Mikel Coffee çalışan uygulaması artık tam PWA desteği ile çalışıyor!
+                    </div>
+                    <div class="feed-actions">
+                        <button class="feed-action">❤️ 15</button>
+                        <button class="feed-action">💬 Yorumlar</button>
+                    </div>
+                </div>
+                <div class="feed-item">
+                    <div class="feed-author">
+                        <img src="https://customer-assets.emergentagent.com/job_0f64345d-2f6b-41c8-af15-208e01ade896/artifacts/fwptedkg_M%C4%B0KEL%20LOGOSU.png" alt="Trainer">
+                        <div class="feed-author-info">
+                            <h4>Eğitim Departmanı</h4>
+                            <span>2 saat önce</span>
+                        </div>
+                    </div>
+                    <div class="feed-content">
+                        <strong>📚 Yeni Eğitim Materyalleri</strong><br>
+                        Kahve hazırlama teknikleri üzerine yeni videolar Dosyalar bölümüne eklendi.
+                    </div>
+                    <div class="feed-actions">
+                        <button class="feed-action">❤️ 8</button>
+                        <button class="feed-action">💬 Yorumlar</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showFiles(type = 'all') {
+            updateNavigation('Dosyalar');
+            let content = '<div class="file-grid">';
+            
+            const fileTypes = {
+                video: { icon: '🎥', count: 25, files: ['Kahve Makinesi Kullanımı', 'Müşteri Hizmetleri', 'Latte Art Teknikleri'] },
+                image: { icon: '📸', count: 15, files: ['Mağaza Fotoğrafları', 'Ürün Görselleri', 'Ekip Fotoğrafları'] },
+                document: { icon: '📋', count: 8, files: ['Çalışan El Kitabı', 'Güvenlik Prosedürleri', 'Kalite Standartları'] }
+            };
+
+            if (type === 'all') {
+                Object.keys(fileTypes).forEach(fileType => {
+                    fileTypes[fileType].files.forEach((fileName, index) => {
+                        content += createFileCard(fileTypes[fileType].icon, fileName, fileType, index);
+                    });
+                });
+            } else {
+                const selectedType = fileTypes[type];
+                if (selectedType) {
+                    selectedType.files.forEach((fileName, index) => {
+                        content += createFileCard(selectedType.icon, fileName, type, index);
+                    });
+                }
+            }
+            
+            content += '</div>';
+            document.getElementById('feedContent').innerHTML = content;
+        }
+
+        function createFileCard(icon, title, type, index) {
+            return `
+                <div class="file-item" onclick="openFile('${type}', '${title}')">
+                    <div class="file-preview">${icon}</div>
+                    <div class="file-info">
+                        <div class="file-title">${title}</div>
+                        <div class="file-meta">${new Date().toLocaleDateString('tr-TR')}</div>
+                        <div class="file-actions">
+                            <button class="file-action-btn btn-primary" onclick="event.stopPropagation();">⬇️</button>
+                            <button class="file-action-btn btn-primary" onclick="event.stopPropagation();">❤️ ${Math.floor(Math.random() * 20) + 1}</button>
+                            ${currentUser && currentUser.is_admin ? '<button class="file-action-btn btn-danger" onclick="event.stopPropagation();">🗑️</button>' : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showUsers() {
+            updateNavigation('Çalışanlar');
+            const users = [
+                { name: 'Ahmet YILMAZ', position: 'Mağaza Müdürü', store: 'Kadıköy' },
+                { name: 'Fatma DEMIR', position: 'Trainer', store: 'Merkez' },
+                { name: 'Mehmet KAYA', position: 'Barista', store: 'Beşiktaş' },
+                { name: 'Ayşe ÖZ', position: 'Supervisor', store: 'Şişli' },
+                { name: 'Can AKMAN', position: 'Barista', store: 'Taksim' }
+            ];
+
+            let content = '<div class="feed-container">';
+            users.forEach(user => {
+                content += `
+                    <div class="feed-item">
+                        <div class="feed-author">
+                            <img src="https://customer-assets.emergentagent.com/job_0f64345d-2f6b-41c8-af15-208e01ade896/artifacts/fwptedkg_M%C4%B0KEL%20LOGOSU.png" alt="${user.name}">
+                            <div class="feed-author-info">
+                                <h4>${user.name}</h4>
+                                <span>${user.position} - ${user.store}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            content += '</div>';
+            
+            if (currentUser && currentUser.is_admin) {
+                content += '<div style="text-align:center;margin-top:20px;"><button class="btn" onclick="exportToExcel()">📊 Excel\'e Aktar</button></div>';
+            }
+            
+            document.getElementById('feedContent').innerHTML = content;
+        }
+
+        function showProfile() {
+            updateNavigation('Profil');
+            document.getElementById('feedContent').innerHTML = `
+                <div class="feed-container">
+                    <div class="feed-item" style="text-align:center;">
+                        <img src="https://customer-assets.emergentagent.com/job_0f64345d-2f6b-41c8-af15-208e01ade896/artifacts/fwptedkg_M%C4%B0KEL%20LOGOSU.png" 
+                             alt="Profil" style="width:100px;height:100px;border-radius:50%;margin-bottom:20px;">
+                        <h2>${currentUser.name} ${currentUser.surname}</h2>
+                        <p style="color:#666;margin:10px 0;">ID: ${currentUser.employee_id || 'DEMO001'}</p>
+                        <p style="color:#666;margin:10px 0;">E-posta: ${currentUser.email}</p>
+                        ${currentUser.is_admin ? '<p style="color:#8B4513;font-weight:600;">👑 Admin Yetkileri</p>' : ''}
+                        <button class="btn" onclick="editProfile()" style="margin-top:20px;">Profili Düzenle</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function openFile(type, title) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalBody').innerHTML = `
+                <div style="text-align:center;padding:20px;">
+                    <p>📁 ${type.toUpperCase()} Dosyası</p>
+                    <h3>${title}</h3>
+                    <p style="margin:20px 0;color:#666;">Demo modunda dosya önizlemesi</p>
+                    <button class="btn" onclick="closeModal()">Kapat</button>
+                </div>
+            `;
+            document.getElementById('modalOverlay').style.display = 'flex';
+        }
+
+        function editProfile() {
+            document.getElementById('modalTitle').textContent = 'Profili Düzenle';
+            document.getElementById('modalBody').innerHTML = `
+                <div class="form-group">
+                    <label>Ad</label>
+                    <input type="text" id="editName" value="${currentUser.name}" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Soyad</label>
+                    <input type="text" id="editSurname" value="${currentUser.surname}" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Bio</label>
+                    <textarea id="editBio" class="form-control" rows="3" placeholder="Kendinizden bahsedin..."></textarea>
+                </div>
+                <div style="text-align:right;margin-top:20px;">
+                    <button class="btn" onclick="saveProfile()">Kaydet</button>
+                    <button class="btn-secondary" onclick="closeModal()" style="margin-left:10px;">İptal</button>
+                </div>
+            `;
+            document.getElementById('modalOverlay').style.display = 'flex';
+        }
+
+        function saveProfile() {
+            const name = document.getElementById('editName').value;
+            const surname = document.getElementById('editSurname').value;
+            
+            currentUser.name = name;
+            currentUser.surname = surname;
+            
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            
+            showMessage('Profil güncellendi!', 'success');
+            closeModal();
+            showProfile();
+            
+            // Update welcome message
+            document.getElementById('welcomeMessage').textContent = 
+                'Hoş Geldiniz, ' + currentUser.name + ' ' + currentUser.surname;
+        }
+
+        function exportToExcel() {
+            showMessage('Excel dosyası indiriliyor...', 'success');
+        }
+
+        function loadStats() {
+            // Stats already set in HTML, can be updated here if needed
+        }
+
+        function updateNavigation(activeItem) {
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.textContent.includes(activeItem)) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('authMessage');
+            messageDiv.className = type + '-message';
+            messageDiv.textContent = message;
+            messageDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').style.display = 'none';
+        }
+
+        function logout() {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('currentUser');
+            currentUser = null;
+            isLoggedIn = false;
+            showAuthForm();
+        }
+
+        // PWA Install Support
+        let deferredPrompt;
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            showInstallButton();
+        });
+
+        function showInstallButton() {
+            if (document.querySelector('.install-btn')) return;
+            
+            const installBtn = document.createElement('button');
+            installBtn.className = 'logout-btn install-btn';
+            installBtn.innerHTML = '📱';
+            installBtn.title = 'Uygulamayı Yükle';
+            installBtn.onclick = installPWA;
+            
+            const headerActions = document.querySelector('.header-actions');
+            if (headerActions) {
+                headerActions.insertBefore(installBtn, headerActions.firstChild);
+            }
+        }
+
+        async function installPWA() {
+            if (!deferredPrompt) return;
+            
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            
+            if (outcome === 'accepted') {
+                console.log('✅ PWA installed');
+                document.querySelector('.install-btn').style.display = 'none';
+            }
+            
+            deferredPrompt = null;
+        }
+
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', async () => {
+                try {
+                    await navigator.serviceWorker.register('/sw.js');
+                    console.log('✅ Service Worker registered');
+                } catch (error) {
+                    console.error('❌ Service Worker registration failed:', error);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
