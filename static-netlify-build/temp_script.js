@@ -1,0 +1,862 @@
+        "use strict";
+        
+        // Backend URL konfigürasyonu - Production Ready
+        var BACKEND_URL = window.location.hostname.includes('localhost') 
+            ? 'http://localhost:8001' 
+            : window.location.hostname.includes('netlify.app')
+                ? 'https://employee-hub-45.preview.emergentagent.com'
+                : window.location.protocol + '//' + window.location.hostname;
+        
+        console.log('🔧 BACKEND_URL configured as:', BACKEND_URL);
+        
+        var currentUser = null;
+        var announcements = [];
+        var socialPosts = [];
+        var userMap_global = {};
+        var isLoginMode = true;
+
+        // Global function to load users with profiles
+        function loadUsersWithProfiles() {
+            return fetch(BACKEND_URL + '/api/users', {
+                headers: { 'Authorization': 'Bearer ' + localStorage.getItem('auth_token') }
+            })
+            .then(function(response) { return response.json(); })
+            .then(function(users) {
+                return fetch(BACKEND_URL + '/api/profiles', {
+                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('auth_token') }
+                })
+                .then(function(response) { return response.json(); })
+                .then(function(profiles) {
+                    var profileMap = {};
+                    profiles.forEach(function(profile) {
+                        profileMap[profile.employee_id] = profile;
+                    });
+                    
+                    userMap_global = {};
+                    users.forEach(function(user) {
+                        var profile = profileMap[user.employee_id] || {};
+                        userMap_global[user.employee_id] = {
+                            name: user.name + ' ' + user.surname,
+                            position: user.position,
+                            store: user.store,
+                            profile_photo: profile.profile_photo || 'https://customer-assets.emergentagent.com/job_0f64345d-2f6b-41c8-af15-208e01ade896/artifacts/fwptedkg_M%C4%B0KEL%20LOGOSU.png',
+                            bio: profile.bio || '',
+                            start_date: user.start_date || '',
+                            employee_id: user.employee_id,
+                            email: user.email,
+                            is_admin: user.is_admin || false
+                        };
+                    });
+                    
+                    return userMap_global;
+                });
+            })
+            .catch(function(error) {
+                console.error('Error loading users:', error);
+                return {};
+            });
+        }
+
+        function checkAuthStatus() {
+            var token = localStorage.getItem('auth_token');
+            var userData = localStorage.getItem('currentUser');
+            
+            if (token && userData) {
+                try {
+                    currentUser = JSON.parse(userData);
+                    showDashboard();
+                    loadFeed();
+                    updateFileCounts();
+                } catch (error) {
+                    console.error('Error parsing user data:', error);
+                    showAuthForm();
+                }
+            } else {
+                showAuthForm();
+            }
+        }
+
+        function showAuthForm() {
+            document.getElementById('authContainer').style.display = 'flex';
+            document.getElementById('dashboardContainer').style.display = 'none';
+        }
+
+        function showDashboard() {
+            document.getElementById('authContainer').style.display = 'none';
+            document.getElementById('dashboardContainer').style.display = 'block';
+            
+            if (currentUser) {
+                document.getElementById('welcomeMessage').textContent = 'Hoş Geldiniz, ' + currentUser.name + ' ' + currentUser.surname;
+            }
+        }
+
+        function handleAuth(e) {
+            e.preventDefault();
+            
+            var submitBtn = document.getElementById('submitBtn');
+            var originalText = submitBtn.textContent;
+            submitBtn.textContent = 'İşleniyor...';
+            submitBtn.disabled = true;
+            
+            var formData;
+            var endpoint;
+            
+            if (isLoginMode) {
+                formData = {
+                    email: document.getElementById('email').value,
+                    password: document.getElementById('password').value
+                };
+                endpoint = '/auth/login';
+            } else {
+                formData = {
+                    name: document.getElementById('regName').value,
+                    surname: document.getElementById('regSurname').value,
+                    email: document.getElementById('regEmail').value,
+                    password: document.getElementById('regPassword').value,
+                    position: document.getElementById('position').value,
+                    store: document.getElementById('store').value,
+                    start_date: document.getElementById('startDate').value
+                };
+                endpoint = '/auth/register';
+            }
+            
+            fetch(BACKEND_URL + '/api' + endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                if (data.access_token) {
+                    localStorage.setItem('auth_token', data.access_token);
+                    localStorage.setItem('currentUser', JSON.stringify(data.user));
+                    currentUser = data.user;
+                    
+                    showMessage('Başarıyla giriş yapıldı!', 'success');
+                    setTimeout(function() {
+                        showDashboard();
+                        loadFeed();
+                        updateFileCounts();
+                    }, 1000);
+                } else {
+                    showMessage(data.detail || 'Bir hata oluştu', 'error');
+                }
+            })
+            .catch(function(error) {
+                console.error('Auth error:', error);
+                showMessage('Bağlantı hatası', 'error');
+            })
+            .finally(function() {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            });
+        }
+
+        function loadFeed() {
+            document.getElementById('feedContent').innerHTML = '<div class="loading"><div class="loading-spinner"></div>Ana sayfa yükleniyor...</div>';
+            
+            Promise.all([
+                loadUsersWithProfiles(),
+                loadSocialPosts(),
+                loadAnnouncements()
+            ]).then(function() {
+                displayFeed();
+            }).catch(function(error) {
+                console.error('Error loading feed:', error);
+                document.getElementById('feedContent').innerHTML = '<div class="error-message">Feed yüklenirken hata oluştu</div>';
+            });
+        }
+
+        function loadAnnouncements() {
+            return fetch(BACKEND_URL + '/api/announcements', {
+                headers: { 'Authorization': 'Bearer ' + localStorage.getItem('auth_token') }
+            })
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                announcements = data;
+                return data;
+            })
+            .catch(function(error) {
+                console.error('Error loading announcements:', error);
+                return [];
+            });
+        }
+
+        function loadSocialPosts() {
+            return fetch(BACKEND_URL + '/api/posts', {
+                headers: { 'Authorization': 'Bearer ' + localStorage.getItem('auth_token') }
+            })
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                socialPosts = data;
+                return data;
+            })
+            .catch(function(error) {
+                console.error('Error loading social posts:', error);
+                return [];
+            });
+        }
+
+        function displayFeed() {
+            var feedContent = document.getElementById('feedContent');
+            var content = '';
+            
+            // Combine announcements and posts
+            var allItems = [];
+            
+            announcements.forEach(function(announcement) {
+                allItems.push({
+                    type: 'announcement',
+                    data: announcement,
+                    created_at: announcement.created_at
+                });
+            });
+            
+            socialPosts.forEach(function(post) {
+                allItems.push({
+                    type: 'post',
+                    data: post,
+                    created_at: post.created_at
+                });
+            });
+            
+            // Sort by created_at
+            allItems.sort(function(a, b) {
+                return new Date(b.created_at) - new Date(a.created_at);
+            });
+            
+            if (allItems.length === 0) {
+                content = '<div class="feed-item"><p>Henüz içerik bulunmuyor.</p></div>';
+            } else {
+                allItems.forEach(function(item) {
+                    var user = userMap_global[item.data.employee_id] || { 
+                        name: 'Bilinmeyen Kullanıcı', 
+                        profile_photo: 'https://customer-assets.emergentagent.com/job_0f64345d-2f6b-41c8-af15-208e01ade896/artifacts/fwptedkg_M%C4%B0KEL%20LOGOSU.png' 
+                    };
+                    
+                    content += '<div class="feed-item">';
+                    content += '<div class="feed-author">';
+                    content += '<img src="' + user.profile_photo + '" alt="' + user.name + '">';
+                    content += '<div class="feed-author-info">';
+                    content += '<h4>' + user.name + '</h4>';
+                    content += '<span>' + new Date(item.created_at).toLocaleDateString('tr-TR') + '</span>';
+                    content += '</div>';
+                    content += '</div>';
+                    
+                    if (item.type === 'announcement') {
+                        content += '<div class="feed-content">';
+                        content += '<strong>📢 ' + item.data.title + '</strong><br>';
+                        content += item.data.content;
+                        if (item.data.image_url) {
+                            if (item.data.image_url.includes('video')) {
+                                content += '<br><video src="' + item.data.image_url + '" controls style="width:100%;max-height:400px;border-radius:8px;margin-top:10px;"></video>';
+                            } else {
+                                content += '<br><img src="' + item.data.image_url + '" style="width:100%;max-height:400px;border-radius:8px;margin-top:10px;" alt="Duyuru görseli">';
+                            }
+                        }
+                        content += '</div>';
+                        content += '<div class="feed-actions">';
+                        content += '<button class="feed-action" onclick="toggleAnnouncementLike(\'' + item.data.id + '\')">';
+                        content += '❤️ ' + (item.data.likes || 0);
+                        content += '</button>';
+                        content += '</div>';
+                    } else {
+                        content += '<div class="feed-content">' + item.data.content;
+                        if (item.data.image_url) {
+                            if (item.data.image_url.includes('video')) {
+                                content += '<br><video src="' + item.data.image_url + '" controls style="width:100%;max-height:400px;border-radius:8px;margin-top:10px;"></video>';
+                            } else {
+                                content += '<br><img src="' + item.data.image_url + '" style="width:100%;max-height:400px;border-radius:8px;margin-top:10px;" alt="Post görseli">';
+                            }
+                        }
+                        content += '</div>';
+                        content += '<div class="feed-actions">';
+                        content += '<button class="feed-action" onclick="togglePostLike(\'' + item.data.id + '\')">';
+                        content += '❤️ ' + (item.data.likes || 0);
+                        content += '</button>';
+                        content += '<button class="feed-action" onclick="showComments(\'' + item.data.id + '\')">';
+                        content += '💬 Yorumlar';
+                        content += '</button>';
+                        content += '</div>';
+                    }
+                    content += '</div>';
+                });
+            }
+            
+            feedContent.innerHTML = content;
+        }
+
+        function showFiles() {
+            document.getElementById('feedContainer').classList.add('hidden');
+            document.getElementById('fileGrid').classList.remove('hidden');
+            
+            // Update navigation active state
+            document.querySelectorAll('.nav-item').forEach(function(item) {
+                item.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            loadFiles('all');
+        }
+
+        function showVideos() {
+            showFiles();
+            loadFiles('video/*');
+        }
+
+        function showPhotos() {
+            showFiles();
+            loadFiles('image/*');
+        }
+
+        function showForms() {
+            showFiles();
+            loadFiles('application/*');
+        }
+
+        function loadFiles(fileType) {
+            var fileGrid = document.getElementById('fileGrid');
+            fileGrid.innerHTML = '<div class="loading"><div class="loading-spinner"></div>Dosyalar yükleniyor...</div>';
+            
+            var token = localStorage.getItem('auth_token');
+            
+            var url = BACKEND_URL + '/api/files';
+            if (fileType && fileType !== 'all') {
+                url += '?type=' + encodeURIComponent(fileType);
+            }
+            
+            fetch(url, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+            .then(function(response) { return response.json(); })
+            .then(function(files) {
+                displayFiles(files);
+            })
+            .catch(function(error) {
+                console.error('Error loading files:', error);
+                fileGrid.innerHTML = '<div class="error-message">Dosyalar yüklenirken hata oluştu</div>';
+            });
+        }
+
+        function displayFiles(files) {
+            var fileGrid = document.getElementById('fileGrid');
+            var content = '';
+            
+            if (files.length === 0) {
+                content = '<div style="text-align:center;padding:40px;color:#666;">Henüz dosya bulunmuyor</div>';
+            } else {
+                var token = localStorage.getItem('auth_token');
+                
+                files.forEach(function(file) {
+                    content += '<div class="file-item" onclick="openFileViewer(\'' + file.id + '\', \'' + file.title + '\', \'' + file.content_type + '\')">';
+                    content += '<div class="file-preview">';
+                    
+                    if (file.content_type.startsWith('image/')) {
+                        content += '<img src="' + BACKEND_URL + '/api/files/' + file.id + '/view" alt="' + file.title + '" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">';
+                    } else if (file.content_type.startsWith('video/')) {
+                        content += '<video style="width:100%;height:100%;object-fit:cover;border-radius:8px;" muted>';
+                        content += '<source src="' + BACKEND_URL + '/api/files/' + file.id + '/view" type="' + file.content_type + '">';
+                        content += '</video>';
+                    } else {
+                        content += getFileIcon(file.content_type);
+                    }
+                    
+                    content += '</div>';
+                    content += '<div class="file-info">';
+                    content += '<div class="file-title">' + file.title + '</div>';
+                    content += '<div class="file-meta">' + new Date(file.created_at).toLocaleDateString('tr-TR') + '</div>';
+                    content += '<div class="file-actions">';
+                    content += '<button class="file-action-btn btn-primary" onclick="event.stopPropagation(); downloadFile(\'' + file.id + '\')">⬇️</button>';
+                    content += '<button class="file-action-btn btn-primary" onclick="event.stopPropagation(); toggleFileLike(\'' + file.id + '\')">❤️ ' + (file.likes || 0) + '</button>';
+                    
+                    // Admin-only buttons
+                    currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                    if (currentUser.is_admin) {
+                        content += '<button class="file-action-btn file-edit-btn" onclick="event.stopPropagation(); editFile(\'' + file.id + '\', \'' + file.title + '\', \'' + (file.description || '') + '\')">✏️</button>';
+                        content += '<button class="file-action-btn file-delete-btn" onclick="event.stopPropagation(); deleteFile(\'' + file.id + '\', \'' + file.title + '\')">🗑️</button>';
+                    }
+                    
+                    content += '</div>';
+                    content += '</div>';
+                    content += '</div>';
+                });
+            }
+            
+            fileGrid.innerHTML = content;
+        }
+
+        function openFileViewer(fileId, fileName, contentType) {
+            console.log('📄 Opening file:', fileName, 'Type:', contentType);
+            
+            var token = localStorage.getItem('auth_token');
+            
+            if (contentType.startsWith('image/')) {
+                // Show image in modal
+                document.getElementById('modalTitle').textContent = fileName;
+                document.getElementById('modalBody').innerHTML = 
+                    '<div style="text-align:center;padding:20px;">' +
+                    '<img src="' + BACKEND_URL + '/api/files/' + fileId + '/download?token=' + token + '" ' +
+                    'alt="' + fileName + '" ' +
+                    'style="max-width:100%;max-height:70vh;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15);">' +
+                    '<div style="margin-top:15px;">' +
+                    '<button class="btn" onclick="downloadFile(\'' + fileId + '\')">⬇️ İndir</button>' +
+                    '<button class="btn-secondary" onclick="closeModal()">Kapat</button>' +
+                    '</div>' +
+                    '</div>';
+                document.getElementById('modalOverlay').style.display = 'flex';
+            } else if (contentType.startsWith('video/')) {
+                // Show video in modal
+                document.getElementById('modalTitle').textContent = fileName;
+                document.getElementById('modalBody').innerHTML = 
+                    '<div style="text-align:center;padding:20px;">' +
+                    '<video controls style="max-width:100%;max-height:70vh;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15);">' +
+                    '<source src="' + BACKEND_URL + '/api/files/' + fileId + '/download?token=' + token + '" type="' + contentType + '">' +
+                    '<p>Tarayıcınız bu video formatını desteklemiyor. <a href="' + BACKEND_URL + '/api/files/' + fileId + '/download?token=' + token + '" target="_blank">İndirmek için tıklayın</a></p>' +
+                    '</video>' +
+                    '<div style="margin-top:15px;">' +
+                    '<button class="btn" onclick="downloadFile(\'' + fileId + '\')">⬇️ İndir</button>' +
+                    '<button class="btn-secondary" onclick="closeModal()">Kapat</button>' +
+                    '</div>' +
+                    '</div>';
+                document.getElementById('modalOverlay').style.display = 'flex';
+            } else if (contentType.includes('pdf')) {
+                // Show PDF in modal
+                document.getElementById('modalTitle').textContent = fileName;
+                document.getElementById('modalBody').innerHTML = 
+                    '<div style="text-align:center;padding:20px;">' +
+                    '<iframe src="' + BACKEND_URL + '/api/files/' + fileId + '/download?token=' + token + '" ' +
+                    'style="width:100%;height:70vh;border:none;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15);"></iframe>' +
+                    '<div style="margin-top:15px;">' +
+                    '<button class="btn" onclick="downloadFile(\'' + fileId + '\')">⬇️ İndir</button>' +
+                    '<button class="btn-secondary" onclick="closeModal()">Kapat</button>' +
+                    '</div>' +
+                    '</div>';
+                document.getElementById('modalOverlay').style.display = 'flex';
+            } else {
+                // Direct download for other files
+                downloadFile(fileId);
+            }
+        }
+
+        function getFileIcon(contentType) {
+            if (contentType.includes('pdf')) return '📄';
+            if (contentType.includes('word')) return '📝';
+            if (contentType.includes('excel')) return '📊';
+            if (contentType.includes('powerpoint')) return '📊';
+            if (contentType.includes('zip')) return '📦';
+            return '📋';
+        }
+
+        function downloadFile(fileId) {
+            var token = localStorage.getItem('auth_token');
+            window.open(BACKEND_URL + '/api/files/' + fileId + '/download?token=' + token, '_blank');
+        }
+
+        function toggleFileLike(fileId) {
+            var token = localStorage.getItem('auth_token');
+            
+            fetch(BACKEND_URL + '/api/files/' + fileId + '/like', {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                // Refresh file display
+                loadFiles('all');
+            })
+            .catch(function(error) {
+                console.error('Error toggling like:', error);
+            });
+        }
+
+        function editFile(fileId, currentTitle, currentDescription) {
+            document.getElementById('modalTitle').textContent = 'Dosyayı Düzenle';
+            document.getElementById('modalBody').innerHTML = 
+                '<div class="form-group">' +
+                '<label>Başlık</label>' +
+                '<input type="text" id="editFileTitle" value="' + currentTitle + '" class="form-control">' +
+                '</div>' +
+                '<div class="form-group">' +
+                '<label>Açıklama</label>' +
+                '<textarea id="editFileDescription" class="form-control" rows="3">' + currentDescription + '</textarea>' +
+                '</div>' +
+                '<div style="text-align:right;margin-top:20px;">' +
+                '<button class="btn" onclick="saveFileEdit(\'' + fileId + '\')">Kaydet</button>' +
+                '<button class="btn-secondary" onclick="closeModal()" style="margin-left:10px;">İptal</button>' +
+                '</div>';
+            document.getElementById('modalOverlay').style.display = 'flex';
+        }
+
+        function saveFileEdit(fileId) {
+            var title = document.getElementById('editFileTitle').value;
+            var description = document.getElementById('editFileDescription').value;
+            var token = localStorage.getItem('auth_token');
+            
+            fetch(BACKEND_URL + '/api/files/' + fileId, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({
+                    title: title,
+                    description: description
+                })
+            })
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                showMessage('Dosya başarıyla güncellendi', 'success');
+                closeModal();
+                loadFiles('all');
+            })
+            .catch(function(error) {
+                console.error('Error updating file:', error);
+                showMessage('Dosya güncellenirken hata oluştu', 'error');
+            });
+        }
+
+        function deleteFile(fileId, fileName) {
+            if (confirm('Bu dosyayı silmek istediğinizden emin misiniz?\n\n' + fileName)) {
+                var token = localStorage.getItem('auth_token');
+                
+                fetch(BACKEND_URL + '/api/files/' + fileId, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                })
+                .then(function(response) {
+                    if (response.ok) {
+                        showMessage('Dosya başarıyla silindi', 'success');
+                        loadFiles('all');
+                        updateFileCounts();
+                    } else {
+                        showMessage('Dosya silinirken hata oluştu', 'error');
+                    }
+                })
+                .catch(function(error) {
+                    console.error('Error deleting file:', error);
+                    showMessage('Dosya silinirken hata oluştu', 'error');
+                });
+            }
+        }
+
+        function updateFileCounts() {
+            var token = localStorage.getItem('auth_token');
+            
+            // Video sayısını getir
+            fetch(BACKEND_URL + '/api/files?type=video/*', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+            .then(function(response) { return response.json(); })
+            .then(function(videos) {
+                document.getElementById('videoCount').textContent = videos.length;
+            });
+            
+            // Fotoğraf sayısını getir
+            fetch(BACKEND_URL + '/api/files?type=image/*', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+            .then(function(response) { return response.json(); })
+            .then(function(photos) {
+                document.getElementById('photoCount').textContent = photos.length;
+            });
+            
+            // Form sayısını getir
+            fetch(BACKEND_URL + '/api/files?type=application/*', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+            .then(function(response) { return response.json(); })
+            .then(function(forms) {
+                document.getElementById('formCount').textContent = forms.length;
+            });
+        }
+
+        function showFeed() {
+            document.getElementById('feedContainer').classList.remove('hidden');
+            document.getElementById('fileGrid').classList.add('hidden');
+            
+            // Update navigation active state
+            document.querySelectorAll('.nav-item').forEach(function(item) {
+                item.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            loadFeed();
+        }
+
+        function showAnnouncements() {
+            document.getElementById('feedContainer').classList.remove('hidden');
+            document.getElementById('fileGrid').classList.add('hidden');
+            
+            // Update navigation active state
+            document.querySelectorAll('.nav-item').forEach(function(item) {
+                item.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            loadAnnouncements().then(function() {
+                displayAnnouncementsOnly();
+            });
+        }
+
+        function displayAnnouncementsOnly() {
+            var feedContent = document.getElementById('feedContent');
+            var content = '';
+            
+            if (announcements.length === 0) {
+                content = '<div class="feed-item"><p>Henüz duyuru bulunmuyor.</p></div>';
+            } else {
+                announcements.forEach(function(announcement) {
+                    var user = userMap_global[announcement.employee_id] || { 
+                        name: 'Bilinmeyen Kullanıcı', 
+                        profile_photo: 'https://customer-assets.emergentagent.com/job_0f64345d-2f6b-41c8-af15-208e01ade896/artifacts/fwptedkg_M%C4%B0KEL%20LOGOSU.png' 
+                    };
+                    
+                    content += '<div class="feed-item">';
+                    content += '<div class="feed-author">';
+                    content += '<img src="' + user.profile_photo + '" alt="' + user.name + '">';
+                    content += '<div class="feed-author-info">';
+                    content += '<h4>' + user.name + '</h4>';
+                    content += '<span>' + new Date(announcement.created_at).toLocaleDateString('tr-TR') + '</span>';
+                    content += '</div>';
+                    content += '</div>';
+                    content += '<div class="feed-content">';
+                    content += '<strong>📢 ' + announcement.title + '</strong><br>';
+                    content += announcement.content;
+                    if (announcement.image_url) {
+                        if (announcement.image_url.includes('video')) {
+                            content += '<br><video src="' + announcement.image_url + '" controls style="width:100%;max-height:400px;border-radius:8px;margin-top:10px;"></video>';
+                        } else {
+                            content += '<br><img src="' + announcement.image_url + '" style="width:100%;max-height:400px;border-radius:8px;margin-top:10px;" alt="Duyuru görseli">';
+                        }
+                    }
+                    content += '</div>';
+                    content += '<div class="feed-actions">';
+                    content += '<button class="feed-action" onclick="toggleAnnouncementLike(\'' + announcement.id + '\')">';
+                    content += '❤️ ' + (announcement.likes || 0);
+                    content += '</button>';
+                    content += '</div>';
+                    content += '</div>';
+                });
+            }
+            
+            feedContent.innerHTML = content;
+        }
+
+        function showProfile() {
+            document.getElementById('feedContainer').classList.remove('hidden');
+            document.getElementById('fileGrid').classList.add('hidden');
+            
+            // Update navigation active state
+            document.querySelectorAll('.nav-item').forEach(function(item) {
+                item.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            var feedContent = document.getElementById('feedContent');
+            feedContent.innerHTML = '<div class="loading"><div class="loading-spinner"></div>Profil yükleniyor...</div>';
+            
+            var user = currentUser;
+            var userProfile = userMap_global[user.employee_id] || {};
+            
+            var content = '<div class="feed-item">';
+            content += '<div style="text-align:center;padding:20px;">';
+            content += '<img src="' + (userProfile.profile_photo || 'https://customer-assets.emergentagent.com/job_0f64345d-2f6b-41c8-af15-208e01ade896/artifacts/fwptedkg_M%C4%B0KEL%20LOGOSU.png') + '" alt="Profil" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:4px solid #8B4513;">';
+            content += '<h2 style="margin:15px 0 5px;">' + user.name + ' ' + user.surname + '</h2>';
+            content += '<p style="color:#666;margin-bottom:10px;">ID: ' + user.employee_id + '</p>';
+            content += '<p style="color:#666;margin-bottom:10px;">Pozisyon: ' + user.position + '</p>';
+            content += '<p style="color:#666;margin-bottom:20px;">Mağaza: ' + user.store + '</p>';
+            
+            if (userProfile.bio) {
+                content += '<div style="background:#f8f9fa;padding:15px;border-radius:10px;margin-bottom:20px;">';
+                content += '<h4 style="margin-bottom:10px;">Hakkımda</h4>';
+                content += '<p>' + userProfile.bio + '</p>';
+                content += '</div>';
+            }
+            
+            content += '<button class="btn" onclick="editProfile()">Profili Düzenle</button>';
+            content += '</div>';
+            content += '</div>';
+            
+            feedContent.innerHTML = content;
+        }
+
+        function editProfile() {
+            var user = currentUser;
+            var userProfile = userMap_global[user.employee_id] || {};
+            
+            document.getElementById('modalTitle').textContent = 'Profili Düzenle';
+            document.getElementById('modalBody').innerHTML = 
+                '<div class="form-group">' +
+                '<label>Ad</label>' +
+                '<input type="text" id="editName" value="' + user.name + '" class="form-control">' +
+                '</div>' +
+                '<div class="form-group">' +
+                '<label>Soyad</label>' +
+                '<input type="text" id="editSurname" value="' + user.surname + '" class="form-control">' +
+                '</div>' +
+                '<div class="form-group">' +
+                '<label>Pozisyon</label>' +
+                '<input type="text" id="editPosition" value="' + user.position + '" class="form-control">' +
+                '</div>' +
+                '<div class="form-group">' +
+                '<label>Mağaza</label>' +
+                '<input type="text" id="editStore" value="' + user.store + '" class="form-control">' +
+                '</div>' +
+                '<div class="form-group">' +
+                '<label>Hakkımda</label>' +
+                '<textarea id="editBio" class="form-control" rows="3">' + (userProfile.bio || '') + '</textarea>' +
+                '</div>' +
+                '<div class="form-group">' +
+                '<label>Profil Fotoğrafı URL</label>' +
+                '<input type="url" id="editProfilePhoto" value="' + (userProfile.profile_photo || '') + '" class="form-control">' +
+                '</div>' +
+                '<div style="text-align:right;margin-top:20px;">' +
+                '<button class="btn" onclick="saveProfile()">Kaydet</button>' +
+                '<button class="btn-secondary" onclick="closeModal()" style="margin-left:10px;">İptal</button>' +
+                '</div>';
+            document.getElementById('modalOverlay').style.display = 'flex';
+        }
+
+        function saveProfile() {
+            var profileData = {
+                name: document.getElementById('editName').value,
+                surname: document.getElementById('editSurname').value,
+                position: document.getElementById('editPosition').value,
+                store: document.getElementById('editStore').value,
+                bio: document.getElementById('editBio').value,
+                profile_photo: document.getElementById('editProfilePhoto').value
+            };
+            
+            var token = localStorage.getItem('auth_token');
+            
+            fetch(BACKEND_URL + '/api/profile', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify(profileData)
+            })
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                showMessage('Profil başarıyla güncellendi', 'success');
+                closeModal();
+                
+                // Update current user data
+                currentUser.name = profileData.name;
+                currentUser.surname = profileData.surname;
+                currentUser.position = profileData.position;
+                currentUser.store = profileData.store;
+                
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                // Refresh profile display
+                showProfile();
+                loadUsersWithProfiles();
+            })
+            .catch(function(error) {
+                console.error('Error updating profile:', error);
+                showMessage('Profil güncellenirken hata oluştu', 'error');
+            });
+        }
+
+        function toggleAnnouncementLike(announcementId) {
+            var token = localStorage.getItem('auth_token');
+            
+            fetch(BACKEND_URL + '/api/announcements/' + announcementId + '/like', {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                loadAnnouncements().then(function() {
+                    displayAnnouncementsOnly();
+                });
+            })
+            .catch(function(error) {
+                console.error('Error toggling announcement like:', error);
+            });
+        }
+
+        function togglePostLike(postId) {
+            var token = localStorage.getItem('auth_token');
+            
+            fetch(BACKEND_URL + '/api/posts/' + postId + '/like', {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                loadSocialPosts().then(function() {
+                    displayFeed();
+                });
+            })
+            .catch(function(error) {
+                console.error('Error toggling post like:', error);
+            });
+        }
+
+        function showMessage(message, type) {
+            var messageDiv = document.getElementById('authMessage');
+            messageDiv.className = type + '-message';
+            messageDiv.textContent = message;
+            messageDiv.style.display = 'block';
+            
+            setTimeout(function() {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').style.display = 'none';
+        }
+
+        function logout() {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('currentUser');
+            currentUser = null;
+            showAuthForm();
+        }
+
+        function toggleAuthMode() {
+            isLoginMode = !isLoginMode;
+            var loginForm = document.getElementById('loginForm');
+            var registerForm = document.getElementById('registerForm');
+            var toggleLink = document.getElementById('toggleAuth');
+            var submitBtn = document.getElementById('submitBtn');
+            
+            if (isLoginMode) {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+                toggleLink.textContent = 'Hesabınız yok mu? Kayıt olun';
+                submitBtn.textContent = 'Giriş Yap';
+            } else {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                toggleLink.textContent = 'Zaten hesabınız var mı? Giriş yapın';
+                document.querySelector('#registerForm button').textContent = 'Kayıt Ol';
+            }
+        }
+
+        // Event Listeners
+        document.getElementById('loginForm').addEventListener('submit', handleAuth);
+        document.getElementById('registerForm').addEventListener('submit', handleAuth);
+        document.getElementById('toggleAuth').addEventListener('click', function(e) {
+            e.preventDefault();
+            toggleAuthMode();
+        });
+
+        // Modal close on overlay click
+        document.getElementById('modalOverlay').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuthStatus();
+        });
+
