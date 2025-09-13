@@ -32,7 +32,7 @@ JWT_SECRET = os.getenv('JWT_SECRET', 'your-secret-key-change-this-in-production'
 
 # MongoDB setup
 client = AsyncIOMotorClient(MONGO_URL)
-db = client.mikel_coffee
+db = client[os.environ.get('MONGO_DB_NAME', 'mikel_coffee')]
 
 # Security Configuration
 class SecurityConfig:
