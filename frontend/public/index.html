@@ -1633,7 +1633,7 @@
         <!-- App content will be loaded here -->
     </div>
 
-   <script type="module">
+   <script type="text/javascript">
     "use strict";
     // Backend URL konfigürasyonu
         // Backend URL konfigürasyonu
@@ -1677,7 +1677,7 @@ var currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
                 installButton.onclick = installPWA;
                 
                 // Add to header actions
-                const headerActions = document.querySelector('.header-actions');
+                var headerActions = document.querySelector('.header-actions');
                 if (headerActions) {
                     headerActions.insertBefore(installButton, headerActions.firstChild);
                 }
