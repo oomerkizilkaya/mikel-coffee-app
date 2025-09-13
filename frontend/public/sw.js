@@ -1,11 +1,17 @@
-const CACHE_NAME = 'mikel-coffee-v1.0.0';
+const CACHE_NAME = 'mikel-coffee-pwa-v2.0.0';
+const STATIC_CACHE = 'mikel-coffee-static-v2.0.0';
+const DYNAMIC_CACHE = 'mikel-coffee-dynamic-v2.0.0';
+
+// Critical files to cache immediately
 const urlsToCache = [
   '/',
-  '/static/js/bundle.js',
-  '/static/css/main.css',
-  '/assets/images/icon.png',
-  '/assets/images/adaptive-icon.png'
+  '/index.html',
+  '/manifest.json',
+  'https://customer-assets.emergentagent.com/job_0f64345d-2f6b-41c8-af15-208e01ade896/artifacts/fwptedkg_M%C4%B0KEL%20LOGOSU.png'
 ];
+
+// Files to cache on-demand
+const DYNAMIC_CACHE_LIMIT = 50;
 
 self.addEventListener('install', event => {
   event.waitUntil(
