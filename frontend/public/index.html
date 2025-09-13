@@ -2581,7 +2581,7 @@
             
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch('${BACKEND_URL}/api/users', {
+                const response = await fetch(`${BACKEND_URL}/api/users`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
@@ -2743,7 +2743,7 @@
             
             try {
                 const token = localStorage.getItem('auth_token');
-                const response = await fetch('${BACKEND_URL}/api/users', {
+                const response = await fetch(`${BACKEND_URL}/api/users`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
