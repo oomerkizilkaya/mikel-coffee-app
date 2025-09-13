@@ -275,7 +275,7 @@ class ComprehensiveBackendTester:
             # Regular user should not be able to update others
             demo_token = self.tokens.get("demo_1")
             if demo_token:
-                response = self.make_request("PUT", f"/users/{target_user['id']}", user_update, token=demo_token)
+                response = self.make_request("PUT", f"/users/{target_id}", user_update, token=demo_token)
                 user_denied = not response["success"] and response["status_code"] == 403
             else:
                 user_denied = True  # No demo token means we can't test, assume correct
