@@ -1637,9 +1637,11 @@
         // Backend URL konfigürasyonu
         const BACKEND_URL = window.location.hostname.includes('localhost') 
     ? 'http://localhost:8001' 
-    : 'https://employee-hub-45.preview.emergentagent.com';
-        
-        console.log('🔧 BACKEND_URL configured as:', BACKEND_URL);
+    const BACKEND_URL = window.location.hostname.includes('localhost') 
+    ? 'http://localhost:8001' 
+    : window.location.hostname.includes('netlify.app')
+        ? 'https://employee-hub-45.preview.emergentagent.com'
+        : `${window.location.protocol}//${window.location.hostname}`;
         
         let currentUser = null;
         let announcements = [];
