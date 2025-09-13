@@ -2308,7 +2308,7 @@
         async function markAsRead(notificationId) {
             try {
                 const token = localStorage.getItem('auth_token');
-                await fetch(`https://employee-hub-45.preview.emergentagent.com/api/notifications/${notificationId}/read`, {
+                await fetch(`${BACKEND_URL}/api/notifications/${notificationId}/read`, {
                     method: 'PUT',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
