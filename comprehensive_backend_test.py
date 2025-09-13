@@ -265,8 +265,11 @@ class ComprehensiveBackendTester:
                 "position": "barista"
             }
             
+            # Use employee_id instead of id for user updates
+            target_id = target_user.get('id') or target_user.get('_id') or target_user.get('employee_id')
+            
             # Admin should be able to update
-            response = self.make_request("PUT", f"/users/{target_user['id']}", user_update, token=admin_token)
+            response = self.make_request("PUT", f"/users/{target_id}", user_update, token=admin_token)
             admin_can_update = response["success"]
             
             # Regular user should not be able to update others
