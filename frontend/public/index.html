@@ -1634,10 +1634,12 @@
     </div>
 
     <script>
-        // Backend URL konfigürasyonu - Demo Mode
+        // Backend URL konfigürasyonu - Production Ready
         const BACKEND_URL = window.location.hostname.includes('localhost') 
             ? 'http://localhost:8001' 
-            : 'https://employee-hub-45.preview.emergentagent.com'; // Demo backend
+            : window.location.hostname.includes('netlify.app')
+                ? 'https://employee-hub-45.preview.emergentagent.com' // Netlify deployment uses demo backend
+                : `${window.location.protocol}//${window.location.hostname}`; // Production backend
         
         console.log('🔧 BACKEND_URL configured as:', BACKEND_URL);
         
