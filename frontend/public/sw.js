@@ -13,26 +13,133 @@ const urlsToCache = [
 // Files to cache on-demand
 const DYNAMIC_CACHE_LIMIT = 50;
 
+// Install Event - Cache essential resources
 self.addEventListener('install', event => {
+  console.log('⚡ PWA installing...');
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
+    caches.open(STATIC_CACHE)
+      .then(cache => {
+        console.log('✅ PWA caching static files');
+        return cache.addAll(urlsToCache);
+      })
+      .then(() => {
+        console.log('✅ PWA installation complete');
+        return self.skipWaiting(); // Force activate
+      })
   );
 });
 
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // Cache hit - return response
-        if (response) {
-          return response;
-        }
-        return fetch(event.request);
-      }
-    )
+// Activate Event - Clean old caches
+self.addEventListener('activate', event => {
+  console.log('⚡ PWA activating...');
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE) {
+            console.log('🧹 PWA deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    }).then(() => {
+      console.log('✅ PWA activation complete');
+      return self.clients.claim(); // Take control immediately
+    })
   );
 });
+
+// Fetch Event - Smart caching strategy
+self.addEventListener('fetch', event => {
+  const { request } = event;
+  const url = new URL(request.url);
+  
+  // Skip cross-origin requests that aren't API calls
+  if (url.origin !== location.origin && !url.pathname.startsWith('/api')) {
+    return;
+  }
+  
+  event.respondWith(
+    handleFetch(request)
+  );
+});
+
+async function handleFetch(request) {
+  const url = new URL(request.url);
+  
+  // API requests - Network first with cache fallback
+  if (url.pathname.startsWith('/api')) {
+    return networkFirstStrategy(request);
+  }
+  
+  // Static assets - Cache first
+  if (url.pathname.match(/\.(js|css|png|jpg|jpeg|gif|svg|woff2?|ttf|eot)$/)) {
+    return cacheFirstStrategy(request);
+  }
+  
+  // HTML pages - Network first with cache fallback
+  return networkFirstStrategy(request);
+}
+
+async function networkFirstStrategy(request) {
+  try {
+    const networkResponse = await fetch(request);
+    
+    // Cache successful responses
+    if (networkResponse.status === 200) {
+      const cache = await caches.open(DYNAMIC_CACHE);
+      cache.put(request, networkResponse.clone());
+      await limitCacheSize(DYNAMIC_CACHE, DYNAMIC_CACHE_LIMIT);
+    }
+    
+    return networkResponse;
+  } catch (error) {
+    console.log('📱 PWA serving from cache (offline):', request.url);
+    const cacheResponse = await caches.match(request);
+    
+    if (cacheResponse) {
+      return cacheResponse;
+    }
+    
+    // Return offline page for navigation requests
+    if (request.mode === 'navigate') {
+      return caches.match('/');
+    }
+    
+    throw error;
+  }
+}
+
+async function cacheFirstStrategy(request) {
+  const cacheResponse = await caches.match(request);
+  
+  if (cacheResponse) {
+    return cacheResponse;
+  }
+  
+  try {
+    const networkResponse = await fetch(request);
+    const cache = await caches.open(STATIC_CACHE);
+    cache.put(request, networkResponse.clone());
+    return networkResponse;
+  } catch (error) {
+    console.log('❌ PWA fetch failed:', request.url);
+    throw error;
+  }
+}
+
+async function limitCacheSize(cacheName, limit) {
+  const cache = await caches.open(cacheName);
+  const keys = await cache.keys();
+  
+  if (keys.length > limit) {
+    // Delete oldest entries
+    const deleteCount = keys.length - limit;
+    for (let i = 0; i < deleteCount; i++) {
+      await cache.delete(keys[i]);
+    }
+  }
+}
 
 // Background sync for offline functionality
 self.addEventListener('sync', event => {
