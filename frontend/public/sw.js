@@ -104,7 +104,7 @@ self.addEventListener('notificationclick', event => {
         }
         // Yoksa yeni window aç
         if (clients.openWindow) {
-          return clients.openWindow('https://teammikel.preview.emergentagent.com/');
+          return clients.openWindow('https://employee-hub-45.preview.emergentagent.com/');
         }
       })
     );
