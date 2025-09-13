@@ -267,7 +267,7 @@ class DemoDataCreator:
             {
                 "title": "🔧 Sistem Bakımı Duyurusu",
                 "content": "Bu Pazar günü saat 02:00-04:00 arası sistem bakımı yapılacaktır. Bu süre zarfında uygulamaya erişim sağlanamayabilir. Anlayışınız için teşekkürler.",
-                "is_urgent": true
+                "is_urgent": True
             },
             {
                 "title": "🎯 Yeni Hedeflerimiz",
